@@ -7,7 +7,7 @@ import { ZodTypeAny } from 'zod';
 /**
  * A Cirql instance which will automatically connect to the Surreal database
  */
-export class Cirql {
+export class Cirql extends EventTarget {
 
 	readonly options: CirqlOptions;
 	
@@ -16,22 +16,20 @@ export class Cirql {
 	#isConnected: boolean = false;
 
 	constructor(options: CirqlOptions) {
+		super();
+
 		this.options = options;
 		
-		if (options.autoConnect) {
+		if (options.autoConnect !== false) {
 			this.connect();
 		}
-	}
-
-	#init() {
-		return new CirqlQuery(this, [] as const);
 	}
 
 	/**
 	 * Returns whether the database is connected or not
 	 */
 	get isConnected() {
-		return this.#isConnected;
+		return this.#isConnected && !this.#isPending;
 	}
 
 	/**
@@ -48,10 +46,17 @@ export class Cirql {
 			onConnect: () => {
 				this.#isConnected = true;
 				this.#isPending = false;
+				this.dispatchEvent(new Event('open'));
 			},
 			onDisconnect: () => {
 				this.#isConnected = false;
 				this.#isPending = false;
+				this.dispatchEvent(new Event('close'));
+			},
+			onError: (error) => {
+				this.dispatchEvent(new CustomEvent('error', {
+					detail: error
+				}));
 			}
 		});
 	}
@@ -73,7 +78,7 @@ export class Cirql {
 	 * @param options The query options
 	 * @returns Cirql query builder
 	 */
-	query(options: SimpleQueryOptions) {
+	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
 		return this.#init().query(options);
 	}
 
@@ -148,6 +153,10 @@ export class Cirql {
 	 */
 	relate(options: RelateQueryOptions) {
 		return this.#init().relate(options);
+	}
+
+	#init() {
+		return new CirqlQuery(this, [], {}, [] as const);
 	}
 
 }

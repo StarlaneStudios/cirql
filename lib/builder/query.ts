@@ -1,48 +1,47 @@
-import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions } from "./types";
-import { Cirql } from "./builder";
-import { ZodTypeAny } from 'zod';
+import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params } from "./types";
+import { Cirql } from "./cirql";
+import { TypeOf, z, ZodTypeAny } from 'zod';
+import { buildFieldMap } from "./fields";
+import { nextId, table, thing } from "../helpers";
+
+type CirqlResult<T extends readonly ZodTypeAny[]> = Promise<{ [K in keyof T]: TypeOf<T[K]> }>;
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
  * append multiple queries and execute these as transaction.
  */
-export class CirqlQuery<T extends readonly unknown[]> {
+export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 
-	private ops: T;
+	private schemas: T;
 	private parent: Cirql;
 	private params: Record<string, any>;
 	private queries: string[];
 
-	constructor(previous: any, operations: T) {
-		this.ops = operations;
+	constructor(previous: any, queries: string[], params: Record<string, any>, schemas: T) {
+		this.queries = queries;
+		this.params = params;
+		this.schemas = schemas;
 
 		if (previous instanceof Cirql) {
 			this.parent = previous;
-			this.params = {};
-			this.queries = [];
 		} else {
 			this.parent = previous.parent;
-			this.params = previous.params;
-			this.queries = previous.queries;
 		}
 	}
 
-	#debug(query: string) {
-		if (this.parent.options.logging) {
-			const printer = this.parent.options.logPrinter || console.debug;
-
-			printer(query);
-		}
-	}
-
-	#addParams(params: Record<string, any>) {
-		for (const [key, value] of Object.entries(params)) {
-			if (this.params[key]) {
-				throw new Error(`Duplicate parameter name: ${key}`);
+	#append<R extends ZodTypeAny>(query: string, params: Params, schema: R) {
+		for (const param of Object.keys(params)) {
+			if (this.params[param]) {
+				throw new Error(`Duplicate parameter name: ${param}`);
 			}
-
-			this.params[key] = value;
 		}
+
+		return new CirqlQuery(
+			this,
+			[...this.queries, query],
+			{...this.params, ...params},
+			[...this.schemas, schema] as const,
+		);
 	}
 
 	/**
@@ -51,14 +50,8 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @param options The query options
 	 * @returns Cirql query builder
 	 */
-	query(options: SimpleQueryOptions) {
-		this.queries.push(options.query);
-		
-		if (options.params) {
-			this.#addParams(options.params);
-		}
-
-		return new CirqlQuery(this, [...this.ops, {} as any] as const);
+	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
+		return this.#append(options.query, options.params || {}, options.schema || z.any());
 	}
 
 	/**
@@ -68,16 +61,7 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		const result = await this.execute(options);
-		const parsed = options.schema!.array().safeParse(result);
-
-		if (parsed.success) {
-			return parsed.data;
-		}
-
-		throw new Error('Failed to parse query result', { cause: parsed.error });
-		
-		return new CirqlQuery(this, [...this.ops, options.schema.parse({}) as TypeOf<R>] as const);
+		return this.#append(options.query, options.params || {}, options.schema.array());
 	}
 
 	/**
@@ -87,7 +71,7 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return new CirqlQuery(this, [...this.ops, options.schema.parse({}) as TypeOf<R>] as const);
+		return this.#append(options.query, options.params || {}, options.schema);
 	}
 
 	/**
@@ -98,7 +82,19 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		return new CirqlQuery(this, [...this.ops, options.schema.parse({}) as TypeOf<R>] as const);
+		const tb = nextId('tb'); 
+		const id = nextId('id');
+		const fields = buildFieldMap(options.data);
+		const target = options.id ? thing(tb, id) : table(tb);
+		const query = `CREATE ${target} SET ${fields.query}`;
+
+		const params = {
+			...fields.values,
+			[tb]: options.table,
+			[id]: options.id || ''
+		};
+
+		return this.#append(query, params, options.schema);
 	}
 
 	/**
@@ -109,7 +105,18 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		return new CirqlQuery(this, [...this.ops, {} as any] as const);
+		const tb = nextId('tb'); 
+		const id = nextId('id');
+		const fields = buildFieldMap(options.data);
+		const query = `UPDATE ${thing(tb, id)} SET ${fields.query}`;
+
+		const params = {
+			...fields.values,
+			[tb]: options.table,
+			[id]: options.id
+		};
+
+		return this.#append(query, params, options.schema);
 	}
 
 	/**
@@ -119,7 +126,18 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	delete(options: DeleteQueryOptions) {
-		return new CirqlQuery(this, [...this.ops, {} as any] as const);
+		const tb = nextId('tb'); 
+		const id = nextId('id');
+		const target = options.id ? thing(tb, id) : table(tb);
+		const query = `DELETE ${target} ${options.where ? ` WHERE ${options.where}` : ''}`;
+
+		const params = {
+			...options.params,
+			[tb]: options.table,
+			[id]: options.id
+		};
+
+		return this.#append(query, params, z.void());
 	}
 
 	/**
@@ -129,7 +147,17 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	count(options: CountQueryOptions) {
-		return new CirqlQuery(this, [...this.ops, {} as any] as const);
+		const tb = nextId('tb');
+		const query = `SELECT count() FROM ${table(tb)} ${options.where ? ` WHERE ${options.where}` : ''} GROUP BY ALL`;
+
+		const params = {
+			...options.params,
+			[tb]: options.table
+		}
+
+		// TODO How will we get to number?
+
+		return this.#append(query, params, z.number());
 	}
 	
 	/**
@@ -139,7 +167,28 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
-		return new CirqlQuery(this, [...this.ops, {} as any] as const);
+		/*
+		let query = `RELATE type::thing($fromTable, $fromId)->$edge->type::thing($toTable, $toId)`;
+		let params = {
+			fromTable: options.fromTable,
+			fromId: options.fromId,
+			toTable: options.toTable,
+			toId: options.toId,
+			edge: options.edge
+		};
+
+		if (options.data) {
+			const fields = buildFieldMap(options.data);
+
+			query += ` SET ${fields.query}`;
+			params = {
+				...params,
+				...fields.values
+			};
+		}
+		*/
+		
+		return this.#append('', {}, z.string());
 	}
 
 	/**
@@ -147,7 +196,7 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * 
 	 * @returns The query results
 	 */
-	transaction(): Promise<T> {
+	transaction() {
 		return this.execute();
 	}
 
@@ -156,7 +205,7 @@ export class CirqlQuery<T extends readonly unknown[]> {
 	 * 
 	 * @returns The query results
 	 */
-	async execute(): Promise<T> {
+	async execute(): CirqlResult<T> {
 		if (!this.parent.isConnected) {
 			throw new Error('There is no active connection to the database');
 		}
@@ -164,7 +213,7 @@ export class CirqlQuery<T extends readonly unknown[]> {
 		console.log('QUERIES =', this.queries);
 		console.log('PARAMS =', this.params);
 
-		return null as any;
+		return this.schemas.map(schema => schema) as any;
 	}
 
 }

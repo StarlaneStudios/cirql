@@ -1,6 +1,13 @@
 import { ZodTypeAny } from 'zod';
 import { ConnectionDetails } from '../types';
 
+export type Params = Record<string, any>;
+
+export interface FieldMap {
+	query: string,
+	values: Record<string, any>
+};
+
 export interface CirqlOptions {
 	connection: ConnectionDetails;
 	autoConnect?: boolean;
@@ -20,10 +27,10 @@ export interface StringQuery {
 	query: string;
 }
 
-export type SimpleQueryOptions = StringQuery & ParameterizedQuery;
 export type CountQueryOptions = ParameterizedQuery & { table: string, where?: string };
 export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: string };
 export type SelectQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
+export type SimpleQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & Partial<SchemafulQuery<S>>;
 export type CreateQueryOptions<S extends ZodTypeAny, D extends {} = {}> = SchemafulQuery<S> & { table: string, id?: string, data: D };
 export type UpdateQueryOptions<S extends ZodTypeAny, D extends {} = {}> = SchemafulQuery<S> & { table: string, id: string, data: D };
 export type RelateQueryOptions<D extends {} = {}> = { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
