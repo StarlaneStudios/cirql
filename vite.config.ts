@@ -6,6 +6,15 @@ export default defineConfig({
 			entry: './lib/index.ts',
 			name: 'Cirql',
 			fileName: 'Cirql'
+		},
+		rollupOptions: {
+			external: ['zod', 'isomorphic-ws'],
+			output: {
+				globals: {
+					'zod': 'Zod',
+					'isomorphic-ws': 'WebSocket'
+				},
+			},
 		}
 	}
 })

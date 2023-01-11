@@ -157,7 +157,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		const tb = nextId('tb'); 
 		const id = nextId('id');
 		const target = options.id ? thing(tb, id) : table(tb);
-		const query = `DELETE ${target} ${options.where ? ` WHERE ${options.where[Raw]}` : ''}`;
+		const query = `DELETE ${target}${options.where ? ` WHERE ${options.where[Raw]}` : ''}`;
 
 		const params = {
 			...options.params,

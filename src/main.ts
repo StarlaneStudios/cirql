@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import Cirql, { raw } from '../lib';
+import { Cirql, raw } from '../lib';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({

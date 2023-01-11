@@ -13,11 +13,13 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
-		"noEmit": true,
+		"emitDeclarationOnly": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"declaration": true,
+		"declarationDir": "dist",
 	},
 	"include": [
 		"src",
