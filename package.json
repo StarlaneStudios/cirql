@@ -1,6 +1,6 @@
 {
 	"name": "cirql",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"type": "module",
 	"files": [
 		"dist"
@@ -15,7 +15,8 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build && tsup ./lib/index.ts --dts --dts-only"
+		"build": "tsc && vite build && tsup ./lib/index.ts --dts --dts-only",
+		"prepublishOnly": "pnpm run build"
 	},
 	"devDependencies": {
 		"@types/ws": "^8.5.4",
