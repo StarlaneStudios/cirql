@@ -28,7 +28,7 @@ Cirql (pronounced Circle) is a simple and lightweight query builder for [Surreal
 
 ## Features
 - 🔗 Connect directly to SurrealDB without dependencies
-- 📦 Batch queries & transactions
+- 📦 Chain queries for batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
 
@@ -71,17 +71,17 @@ const UserProfile = z.object({
 });
 
 // Select all user profiles
-const [profiles] = cirql.selectMany({ 
+const profiles = cirql.selectMany({ 
 	query: 'SELECT * FROM profile',
 	schema: UserProfile
-}).execute();
+});
 ```
 
 ### Batch queries
-You can send multiple queries in a single request by chaining multiple operations together. The execute function will return a spreadable array containing all query results.
+You can send multiple queries in a single request by chaining multiple operations together after using the `.prepare()` function. The execute function will return a spreadable array containing all query results.
 
 ```ts
-const [profiles, total, john] = cirql
+const [profiles, total, john] = cirql.prepare()
 	.selectMany({ 
 		query: 'SELECT * FROM profile',
 		schema: UserProfile
