@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import Cirql from '../lib';
+import Cirql, { raw } from '../lib';
 
+// Create a Cirql instance and connect to the database
 const cirql = new Cirql({
 	connection: {
 		namespace: 'test',
@@ -8,8 +9,43 @@ const cirql = new Cirql({
 		endpoint: 'http://localhost:8000',
 		password: 'root',
 		username: 'root'
-	}
+	},
+	logging: true
 });
+
+// Use Zod to define our model schema
+const AlertBanner = z.object({
+	"backgroundColor": z.string(),
+	"content": z.string(),
+	"createdAt": z.string(),
+	"filter": z.any().array().optional(),
+	"orderNumber": z.number(),
+	"target": z.string()
+});
+
+// Execute a selectOne, count, and create query
+function execute() {
+	return cirql
+		.selectOne({ 
+			query: 'SELECT * FROM alertBanner LIMIT 1',
+			schema: AlertBanner
+		})
+		.count({
+			table: 'alertBanner',
+		})
+		.create({
+			table: 'alertBanner',
+			schema: AlertBanner,
+			data: {
+				content: 'Alpha beta',
+				backgroundColor: 'red',
+				createdAt: raw('time::now()'),
+				orderNumber: 1,
+				target: 'https://google.com',
+			}
+		})
+		.execute();
+}
 
 cirql.addEventListener('open', () => {
 	setConnected(true);
@@ -18,17 +54,6 @@ cirql.addEventListener('open', () => {
 cirql.addEventListener('close', () => {
 	setConnected(false);
 });
-
-const Bruh = z.object({ bruh: z.boolean() });
-
-async function sendQuery() {
-	const res = await cirql
-		.query({ query: '' })
-		.selectMany({ query: '', schema: Bruh })
-		.selectOne({ query: '', schema: Bruh })
-		.query({ query: '' })
-		.execute();
-}
 
 // -- Initialization --
 
@@ -47,6 +72,31 @@ function setConnected(connected: boolean) {
 		send.removeAttribute('disabled');
 	} else {
 		send.setAttribute('disabled', '');
+	}
+}
+
+async function sendQuery() {
+	try {
+		const results = await execute();
+
+		let output = '';
+
+		for (let i = 0; i < results.length; i++) {
+			output += `
+				<div><b>Query #${i + 1}</b></div>
+				<pre>${JSON.stringify(results[i], null, 4)}</pre>
+				<hr />
+			`;
+		}
+
+		get('output').innerHTML = output;
+	} catch(err) {
+		console.error(err);
+		
+		get('output').innerHTML = `
+			<div><b>Query failure</div>
+			<pre style="color: red">${err}</pre>
+		`;
 	}
 }
 

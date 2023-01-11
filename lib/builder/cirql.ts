@@ -9,7 +9,7 @@ import { ZodTypeAny } from 'zod';
  */
 export class Cirql extends EventTarget {
 
-	readonly options: CirqlOptions;
+	readonly options: Required<CirqlOptions>;
 	
 	#surreal: SurrealHandle|null = null;
 	#isPending: boolean = false;
@@ -18,7 +18,12 @@ export class Cirql extends EventTarget {
 	constructor(options: CirqlOptions) {
 		super();
 
-		this.options = options;
+		this.options = {
+			autoConnect: true,
+			logPrinter: (query) => console.log(query),
+			logging: false,
+			...options
+		};
 		
 		if (options.autoConnect !== false) {
 			this.connect();
@@ -30,6 +35,13 @@ export class Cirql extends EventTarget {
 	 */
 	get isConnected() {
 		return this.#isConnected && !this.#isPending;
+	}
+
+	/**
+	 * Returns the underlying Surreal handle
+	 */
+	get handle() {
+		return this.#surreal;
 	}
 
 	/**
@@ -156,7 +168,7 @@ export class Cirql extends EventTarget {
 	}
 
 	#init() {
-		return new CirqlQuery(this, [], {}, [] as const);
+		return new CirqlQuery(this, [] as const);
 	}
 
 }

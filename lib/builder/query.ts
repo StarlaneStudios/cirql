@@ -1,26 +1,27 @@
-import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params } from "./types";
-import { Cirql } from "./cirql";
-import { TypeOf, z, ZodTypeAny } from 'zod';
-import { buildFieldMap } from "./fields";
+import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result } from "./types";
 import { nextId, table, thing } from "../helpers";
-
-type CirqlResult<T extends readonly ZodTypeAny[]> = Promise<{ [K in keyof T]: TypeOf<T[K]> }>;
+import { buildFieldMap } from "./fields";
+import { z, ZodTypeAny } from 'zod';
+import { Cirql } from "./cirql";
+import { CirqlError, CirqlParseError } from "../errors";
+import { Raw } from "../constants";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
  * append multiple queries and execute these as transaction.
  */
-export class CirqlQuery<T extends readonly ZodTypeAny[]> {
+export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
-	private schemas: T;
 	private parent: Cirql;
 	private params: Record<string, any>;
-	private queries: string[];
+	private queries: T;
 
-	constructor(previous: any, queries: string[], params: Record<string, any>, schemas: T) {
+	private queryPrefix?: string;
+	private querySuffix?: string;
+
+	constructor(previous: any, queries: T, params?: Record<string, any>) {
 		this.queries = queries;
-		this.params = params;
-		this.schemas = schemas;
+		this.params = params || {};
 
 		if (previous instanceof Cirql) {
 			this.parent = previous;
@@ -29,7 +30,7 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 		}
 	}
 
-	#append<R extends ZodTypeAny>(query: string, params: Params, schema: R) {
+	#push<R extends ZodTypeAny>(query: Query<R>, params: Params) {
 		for (const param of Object.keys(params)) {
 			if (this.params[param]) {
 				throw new Error(`Duplicate parameter name: ${param}`);
@@ -38,9 +39,8 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 
 		return new CirqlQuery(
 			this,
-			[...this.queries, query],
-			{...this.params, ...params},
-			[...this.schemas, schema] as const,
+			[...this.queries, query] as const,
+			{...this.params, ...params}
 		);
 	}
 
@@ -51,7 +51,10 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * @returns Cirql query builder
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
-		return this.#append(options.query, options.params || {}, options.schema || z.any());
+		return this.#push({
+			query: options.query,
+			schema: options.schema || z.any() as unknown as R
+		}, options.params || {});
 	}
 
 	/**
@@ -61,7 +64,10 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * @returns Cirql query builder
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.#append(options.query, options.params || {}, options.schema.array());
+		return this.#push({
+			query: options.query,
+			schema: options.schema.array()
+		}, options.params || {});
 	}
 
 	/**
@@ -71,7 +77,17 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * @returns Cirql query builder
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.#append(options.query, options.params || {}, options.schema);
+		return this.#push({
+			query: options.query,
+			schema: options.schema,
+			transform(data) {
+				if (data.length > 1) {
+					throw new CirqlError('Query returned multiple results, only one was expected', 'too_many_results');
+				}
+
+				return data[0];
+			}
+		}, options.params || {});
 	}
 
 	/**
@@ -94,7 +110,13 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 			[id]: options.id || ''
 		};
 
-		return this.#append(query, params, options.schema);
+		return this.#push({
+			query: query,
+			schema: options.schema,
+			transform(data) {
+				return data[0];
+			}
+		}, params);
 	}
 
 	/**
@@ -116,7 +138,13 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 			[id]: options.id
 		};
 
-		return this.#append(query, params, options.schema);
+		return this.#push({
+			query: query,
+			schema: options.schema,
+			transform(data) {
+				return data[0];
+			}
+		}, params);
 	}
 
 	/**
@@ -129,7 +157,7 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 		const tb = nextId('tb'); 
 		const id = nextId('id');
 		const target = options.id ? thing(tb, id) : table(tb);
-		const query = `DELETE ${target} ${options.where ? ` WHERE ${options.where}` : ''}`;
+		const query = `DELETE ${target} ${options.where ? ` WHERE ${options.where[Raw]}` : ''}`;
 
 		const params = {
 			...options.params,
@@ -137,7 +165,10 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 			[id]: options.id
 		};
 
-		return this.#append(query, params, z.void());
+		return this.#push({
+			query: query,
+			schema: z.void()
+		}, params);
 	}
 
 	/**
@@ -148,16 +179,20 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 */
 	count(options: CountQueryOptions) {
 		const tb = nextId('tb');
-		const query = `SELECT count() FROM ${table(tb)} ${options.where ? ` WHERE ${options.where}` : ''} GROUP BY ALL`;
+		const query = `SELECT count() FROM ${table(tb)}${options.where ? ` WHERE ${options.where[Raw]}` : ''} GROUP BY ALL`;
 
 		const params = {
 			...options.params,
 			[tb]: options.table
 		}
 
-		// TODO How will we get to number?
-
-		return this.#append(query, params, z.number());
+		return this.#push({
+			query: query,
+			schema: z.number(),
+			transform(data) {
+				return data[0].count;
+			},
+		}, params);
 	}
 	
 	/**
@@ -167,14 +202,21 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
-		/*
-		let query = `RELATE type::thing($fromTable, $fromId)->$edge->type::thing($toTable, $toId)`;
+		const fromTable = nextId('fromTable');
+		const fromId = nextId('fromId');
+		const toTable = nextId('toTable');
+		const toId = nextId('toId');
+		const edge = nextId('edge');
+		const from = thing(fromTable, fromId);
+		const to = thing(toTable, toId);
+
+		let query = `RELATE ${from}->$${edge}->${to}`;
 		let params = {
-			fromTable: options.fromTable,
-			fromId: options.fromId,
-			toTable: options.toTable,
-			toId: options.toId,
-			edge: options.edge
+			[fromTable]: options.fromTable,
+			[fromId]: options.fromId,
+			[toTable]: options.toTable,
+			[toId]: options.toId,
+			[edge]: options.edge
 		};
 
 		if (options.data) {
@@ -186,9 +228,11 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 				...fields.values
 			};
 		}
-		*/
 		
-		return this.#append('', {}, z.string());
+		return this.#push({
+			query: query,
+			schema: z.void()
+		}, params);
 	}
 
 	/**
@@ -197,6 +241,9 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * @returns The query results
 	 */
 	transaction() {
+		this.queryPrefix = 'BEGIN TRANSACTION';
+		this.querySuffix = 'COMMIT TRANSACTION';
+
 		return this.execute();
 	}
 
@@ -205,15 +252,44 @@ export class CirqlQuery<T extends readonly ZodTypeAny[]> {
 	 * 
 	 * @returns The query results
 	 */
-	async execute(): CirqlResult<T> {
-		if (!this.parent.isConnected) {
-			throw new Error('There is no active connection to the database');
+	async execute(): Result<T> {
+		const queryList = [this.queryPrefix, ...this.queries.map(q => q.query), this.querySuffix];
+		const queries = queryList.filter(q => !!q).join(';\n');
+		const results: any[] = [];
+
+		if (!this.parent.isConnected || !this.parent.handle) {
+			throw new CirqlError('There is no active connection to the database', 'no_connection');
 		}
 
-		console.log('QUERIES =', this.queries);
-		console.log('PARAMS =', this.params);
+		if (this.parent.options.logging) {
+			this.parent.options.logPrinter(queries, this.params);
+		}
 
-		return this.schemas.map(schema => schema) as any;
+		const response = await this.parent.handle.query(queries, this.params);
+	
+		if (!Array.isArray(response) || response.length !== this.queries.length) {
+			throw new CirqlError('The response from the database was invalid', 'invalid_response');
+		}
+
+		for (let i = 0; i < response.length; i++) {
+			const { schema, transform } = this.queries[i];
+			const { status, result } = response[i];
+
+			if (status !== 'OK') {
+				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}`, 'invalid_response');
+			}
+
+			const transformed = transform?.(result) ?? result;
+			const parsed = schema.safeParse(transformed);
+
+			if (!parsed.success) {
+				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
+			}
+
+			results.push(parsed.data);
+		}
+
+		return results as any;
 	}
 
 }
