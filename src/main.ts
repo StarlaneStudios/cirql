@@ -25,7 +25,7 @@ const AlertBanner = z.object({
 
 // Execute a selectOne, count, and create query
 function execute() {
-	return cirql
+	return cirql.prepare()
 		.selectOne({ 
 			query: 'SELECT * FROM alertBanner LIMIT 1',
 			schema: AlertBanner
