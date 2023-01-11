@@ -4,7 +4,8 @@ import { ConnectionDetails } from '../types';
 
 export type RawQuery = { [Raw]: string };
 export type Params = Record<string, any>;
-export type Result<T extends readonly Query<ZodTypeAny>[]> = Promise<{ [K in keyof T]: TypeOf<T[K]['schema']> }>;
+export type Result<T extends readonly Query<ZodTypeAny>[]> = { [K in keyof T]: TypeOf<T[K]['schema']> };
+export type SingleResult<T extends readonly Query<ZodTypeAny>[]> = TypeOf<T[0]['schema']>;
 export type Input<D> = { [K in keyof Omit<D, 'id'>]: D[K] | RawQuery };
 
 export interface Query<T extends ZodTypeAny> {

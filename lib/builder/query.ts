@@ -1,4 +1,4 @@
-import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result } from "./types";
+import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult } from "./types";
 import { nextId, table, thing } from "../helpers";
 import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
@@ -236,23 +236,11 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 
 	/**
-	 * Execute the query as a transaction and return the results
-	 * 
-	 * @returns The query results
-	 */
-	transaction() {
-		this.queryPrefix = 'BEGIN TRANSACTION';
-		this.querySuffix = 'COMMIT TRANSACTION';
-
-		return this.execute();
-	}
-
-	/**
 	 * Execute the query and return the results
 	 * 
 	 * @returns The query results
 	 */
-	async execute(): Result<T> {
+	async execute(): Promise<Result<T>> {
 		if (!this.parent.isConnected || !this.parent.handle) {
 			throw new CirqlError('There is no active connection to the database', 'no_connection');
 		}
@@ -294,6 +282,33 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		}
 
 		return results as any;
+	}
+
+	/**
+	 * Execute the query and return only the first query result
+	 * 
+	 * @returns The result of the first query
+	 */
+	async single(): Promise<SingleResult<T>> {
+		const results = await this.execute();
+
+		if (results.length === 0) {
+			throw new CirqlError('You must specify at least on query', 'invalid_request');
+		}
+		
+		return results[0];
+	}
+
+	/**
+	 * Execute the query as a transaction and return the results
+	 * 
+	 * @returns The query results
+	 */
+	transaction() {
+		this.queryPrefix = 'BEGIN TRANSACTION';
+		this.querySuffix = 'COMMIT TRANSACTION';
+
+		return this.execute();
 	}
 
 }

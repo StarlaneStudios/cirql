@@ -1,6 +1,6 @@
 import { ZodError } from "zod";
 
-export type ErrorCodes = 'no_connection' | 'invalid_response' | 'parse_failure' | 'too_many_results';
+export type ErrorCodes = 'no_connection' | 'invalid_request' | 'invalid_response' | 'parse_failure' | 'too_many_results';
 
 const formatZodError = (err: ZodError) => {
 	const reports = err.errors.map(issue => {

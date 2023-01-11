@@ -101,7 +101,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
-		return this.prepare().query(options);
+		return this.prepare().query(options).single();
 	}
 
 	/**
@@ -111,7 +111,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectMany(options);
+		return this.prepare().selectMany(options).single();
 	}
 
 	/**
@@ -121,7 +121,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectOne(options);
+		return this.prepare().selectOne(options).single();
 	}
 
 	/**
@@ -132,7 +132,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		return this.prepare().create(options);
+		return this.prepare().create(options).single();
 	}
 
 	/**
@@ -143,7 +143,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		return this.prepare().update(options);
+		return this.prepare().update(options).single();
 	}
 
 	/**
@@ -153,7 +153,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	delete(options: DeleteQueryOptions) {
-		return this.prepare().delete(options);
+		return this.prepare().delete(options).single();
 	}
 
 	/**
@@ -164,7 +164,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	count(options: CountQueryOptions) {
-		return this.prepare().count(options);
+		return this.prepare().count(options).single();
 	}
 	
 	/**
@@ -174,7 +174,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
-		return this.prepare().relate(options);
+		return this.prepare().relate(options).single();
 	}
 
 }
