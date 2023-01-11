@@ -5,7 +5,7 @@ export default defineConfig({
 		lib: {
 			entry: './lib/index.ts',
 			name: 'Cirql',
-			fileName: 'Cirql'
+			fileName: 'cirql'
 		},
 		rollupOptions: {
 			external: ['zod', 'isomorphic-ws'],

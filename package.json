@@ -1,22 +1,21 @@
 {
 	"name": "cirql",
-	"private": true,
 	"version": "0.1.0",
 	"type": "module",
 	"files": [
 		"dist"
 	],
-	"main": "./dist/counter.umd.cjs",
-	"module": "./dist/counter.js",
-	"types": "./index.d.ts",
+	"main": "./dist/cirql.umd.cjs",
+	"module": "./dist/cirql.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
-		"types": "./index.d.ts",
-		"import": "./dist/counter.js",
-		"require": "./dist/counter.umd.cjs"
+		"types": "./dist/index.d.ts",
+		"import": "./dist/cirql.js",
+		"require": "./dist/cirql.umd.cjs"
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build"
+		"build": "tsc && vite build && tsup ./lib/index.ts --dts --dts-only"
 	},
 	"devDependencies": {
 		"@types/ws": "^8.5.4",
