@@ -5,7 +5,9 @@ import { CirqlQuery } from "./query";
 import { ZodTypeAny } from 'zod';
 
 /**
- * A Cirql instance which will automatically connect to the Surreal database
+ * A self-contained SurrealDB database connection and query builder instance.
+ * You may connect and disconnect from the database as many times as you
+ * want.
  */
 export class Cirql extends EventTarget {
 
@@ -95,83 +97,81 @@ export class Cirql extends EventTarget {
 	}
 	
 	/**
-	 * Start a new query and execute a raw query with support for parameters
+	 * Execute a raw query with support for parameters and return the result
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
 		return this.prepare().query(options).single();
 	}
 
 	/**
-	 * Start a new query and select multiple records with support for parameters
+	 * Select multiple records with support for parameters and return the result
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.prepare().selectMany(options).single();
 	}
 
 	/**
-	 * Start a new query and aelect a single record with support for parameters
+	 * Select a single record with support for parameters and return the result
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.prepare().selectOne(options).single();
 	}
 
 	/**
-	 * Start a new query and create a new record from the given data. You can
-	 * use the raw() function to insert a raw value into the query.
+	 * Create a new record from the given data and return the result.
+	 * You can use the raw() function to insert a raw value into the query.
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
 		return this.prepare().create(options).single();
 	}
 
 	/**
-	 * Start a new query and update one or more records with the given data. You
-	 * can use the raw() function to insert a raw value into the query.
+	 * Update one or more records with the given data and return the result.
+	 * You can use the raw() function to insert a raw value into the query.
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
 		return this.prepare().update(options).single();
 	}
 
 	/**
-	 * Start a new query and remove a single record by its unique ID
+	 * Remove a single record by its unique id
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
 	 */
 	delete(options: DeleteQueryOptions) {
 		return this.prepare().delete(options).single();
 	}
 
 	/**
-	 * Start a new query and return the amount of records that match the given
+	 * Return the amount of records that match the given
 	 * query.
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
+	 * @returns The query result
 	 */
 	count(options: CountQueryOptions) {
 		return this.prepare().count(options).single();
 	}
 	
 	/**
-	 * Start a new query and relate a record to another record over an edge.
+	 * Relate a record to another record over an edge.
 	 * 
 	 * @param options The query options
-	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
 		return this.prepare().relate(options).single();
