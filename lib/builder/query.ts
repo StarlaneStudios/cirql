@@ -253,13 +253,17 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns The query results
 	 */
 	async execute(): Result<T> {
-		const queryList = [this.queryPrefix, ...this.queries.map(q => q.query), this.querySuffix];
-		const queries = queryList.filter(q => !!q).join(';\n');
-		const results: any[] = [];
-
 		if (!this.parent.isConnected || !this.parent.handle) {
 			throw new CirqlError('There is no active connection to the database', 'no_connection');
 		}
+		
+		if (this.queries.length === 0) {
+			return [] as any;
+		}
+
+		const queryList = [this.queryPrefix, ...this.queries.map(q => q.query), this.querySuffix];
+		const queries = queryList.filter(q => !!q).join(';\n');
+		const results: any[] = [];
 
 		if (this.parent.options.logging) {
 			this.parent.options.logPrinter(queries, this.params);

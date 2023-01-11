@@ -83,6 +83,16 @@ export class Cirql extends EventTarget {
 
 		this.#surreal?.close();
 	}
+
+	/**
+	 * Create a new empty query instance. This is useful for chaining multiple
+	 * queries together without having to specify an initial query.
+	 * 
+	 * @returns Cirql query builder
+	 */
+	prepare() {
+		return new CirqlQuery(this, [] as const);
+	}
 	
 	/**
 	 * Start a new query and execute a raw query with support for parameters
@@ -91,7 +101,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
-		return this.#init().query(options);
+		return this.prepare().query(options);
 	}
 
 	/**
@@ -101,7 +111,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.#init().selectMany(options);
+		return this.prepare().selectMany(options);
 	}
 
 	/**
@@ -111,7 +121,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.#init().selectOne(options);
+		return this.prepare().selectOne(options);
 	}
 
 	/**
@@ -122,7 +132,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		return this.#init().create(options);
+		return this.prepare().create(options);
 	}
 
 	/**
@@ -133,7 +143,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		return this.#init().update(options);
+		return this.prepare().update(options);
 	}
 
 	/**
@@ -143,7 +153,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	delete(options: DeleteQueryOptions) {
-		return this.#init().delete(options);
+		return this.prepare().delete(options);
 	}
 
 	/**
@@ -154,7 +164,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	count(options: CountQueryOptions) {
-		return this.#init().count(options);
+		return this.prepare().count(options);
 	}
 	
 	/**
@@ -164,11 +174,7 @@ export class Cirql extends EventTarget {
 	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
-		return this.#init().relate(options);
-	}
-
-	#init() {
-		return new CirqlQuery(this, [] as const);
+		return this.prepare().relate(options);
 	}
 
 }
