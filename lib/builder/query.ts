@@ -1,10 +1,11 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult } from "./types";
-import { nextId, table, thing } from "../helpers";
+import { nextId, parseQuery, table, thing } from "../helpers";
 import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
 import { Cirql } from "./cirql";
 import { CirqlError, CirqlParseError } from "../errors";
 import { Raw } from "../constants";
+import { select, SelectQueryWriter } from "../writer/select";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
@@ -77,6 +78,12 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
+		let query = options.query;
+
+		if (query instanceof SelectQueryWriter) {
+			query = query.limit(1);
+		}
+
 		return this.#push({
 			query: options.query,
 			schema: options.schema,
@@ -179,7 +186,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 */
 	count(options: CountQueryOptions) {
 		const tb = nextId('tb');
-		const query = `SELECT count() FROM ${table(tb)}${options.where ? ` WHERE ${options.where[Raw]}` : ''} GROUP BY ALL`;
+		const query = select('count()').from(table(tb)).where(options.where?.[Raw] || '').groupAll();
 
 		const params = {
 			...options.params,
@@ -249,15 +256,14 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 			return [] as any;
 		}
 
-		const queryList = [this.queryPrefix, ...this.queries.map(q => q.query), this.querySuffix];
-		const queries = queryList.filter(q => !!q).join(';\n');
+		const query = this.#buildQuery();
 		const results: any[] = [];
 
 		if (this.parent.options.logging) {
-			this.parent.options.logPrinter(queries, this.params);
+			this.parent.options.logPrinter(query, this.params);
 		}
 
-		const response = await this.parent.handle.query(queries, this.params);
+		const response = await this.parent.handle.query(query, this.params);
 	
 		if (!Array.isArray(response) || response.length !== this.queries.length) {
 			throw new CirqlError('The response from the database was invalid', 'invalid_response');
@@ -309,6 +315,20 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		this.querySuffix = 'COMMIT TRANSACTION';
 
 		return this.execute();
+	}
+
+	#buildQuery() {
+		let queries = this.queries.map(q => parseQuery(q.query));
+
+		if (this.queryPrefix) {
+			queries = [this.queryPrefix, ...queries];
+		}
+
+		if (this.querySuffix) {
+			queries = [...queries, this.querySuffix];
+		}
+
+		return queries.join(';\n');
 	}
 
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Cirql, raw } from '../lib';
+import { select } from '../lib/writer/select';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({
@@ -28,7 +29,7 @@ const AlertBanner = z.object({
 function execute() {
 	return cirql.prepare()
 		.selectOne({ 
-			query: 'SELECT * FROM alertBanner LIMIT 1',
+			query: select().from('alertBanner').limit(1),
 			schema: AlertBanner
 		})
 		.count({

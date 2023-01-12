@@ -1,3 +1,5 @@
+import { QueryWriter } from "./writer/types";
+
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 /** Generate a random id */
@@ -19,4 +21,13 @@ export function thing(tb: string, id: string) {
 /** Generate a table query type */
 export function table(tb: string) {
 	return `type::table($${tb})`;
+}
+
+/** Parse the input into a valid query */
+export function parseQuery(query: string|QueryWriter): string {
+	if (typeof query === 'string') {
+		return query;
+	} else {
+		return query.toQuery();
+	}
 }

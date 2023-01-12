@@ -1,6 +1,7 @@
 import { input, TypeOf, ZodTypeAny } from 'zod';
 import { Raw } from '../constants';
 import { ConnectionDetails } from '../types';
+import { QueryWriter } from '../writer/types';
 
 export type RawQuery = { [Raw]: string };
 export type Params = Record<string, any>;
@@ -9,7 +10,7 @@ export type SingleResult<T extends readonly Query<ZodTypeAny>[]> = TypeOf<T[0]['
 export type Input<D> = { [K in keyof Omit<D, 'id'>]: D[K] | RawQuery };
 
 export interface Query<T extends ZodTypeAny> {
-	query: string;
+	query: string | QueryWriter;
 	schema: T;
 	transform?: (data: any[]) => any;
 }
@@ -37,7 +38,7 @@ export interface ParameterizedQuery {
 }
 
 export interface StringQuery {
-	query: string;
+	query: string | QueryWriter;
 }
 
 export type CountQueryOptions = ParameterizedQuery & { table: string, where?: RawQuery };
