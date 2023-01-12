@@ -4,8 +4,8 @@ import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
 import { Cirql } from "./cirql";
 import { CirqlError, CirqlParseError } from "../errors";
-import { Raw } from "../constants";
 import { select, SelectQueryWriter } from "../writer/select";
+import { Raw } from "../raw";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can

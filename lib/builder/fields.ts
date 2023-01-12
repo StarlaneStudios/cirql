@@ -1,17 +1,6 @@
-import { FieldMap, RawQuery } from "./types";
+import { FieldMap } from "./types";
 import { nextId } from "../helpers";
-import { Raw } from "../constants";
-
-/**
- * Used to insert raw values into a query
- * 
- * @param value The raw query content
- */
-export function raw(value: string): RawQuery {
-	return {
-		[Raw]: value
-	};
-}
+import { Raw } from "../raw";
 
 /**
  * Builds the SET operators for a query based on the input object

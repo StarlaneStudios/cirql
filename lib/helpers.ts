@@ -1,3 +1,4 @@
+import { Raw, RawQuery } from "./raw";
 import { QueryWriter } from "./writer/types";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -30,4 +31,14 @@ export function parseQuery(query: string|QueryWriter): string {
 	} else {
 		return query.toQuery();
 	}
+}
+
+/** Returns whether the given input is a raw query */
+export function isRaw(input: any): input is RawQuery {
+	return typeof input === 'object' && !!input[Raw]
+}
+
+/** Returns the JSON stringified value unless it is raw */
+export function useValueOrRaw(value: any) {
+	return isRaw(value) ? value[Raw] : JSON.stringify(value);
 }

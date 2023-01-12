@@ -1,5 +1,10 @@
 export type Ordering = Record<string, 'asc' | 'desc'>;
 
+export type Where = {
+	OR?: Where;
+	AND?: Where;
+} & Record<string, any>;
+
 /**
  * The query writer interface is implemented by all query writers.
  */

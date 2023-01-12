@@ -1,1 +1,0 @@
-export const Raw = Symbol('Query Raw');

@@ -1,9 +1,8 @@
 import { input, TypeOf, ZodTypeAny } from 'zod';
-import { Raw } from '../constants';
+import { RawQuery } from '../raw';
 import { ConnectionDetails } from '../types';
 import { QueryWriter } from '../writer/types';
 
-export type RawQuery = { [Raw]: string };
 export type Params = Record<string, any>;
 export type Result<T extends readonly Query<ZodTypeAny>[]> = { [K in keyof T]: TypeOf<T[K]['schema']> };
 export type SingleResult<T extends readonly Query<ZodTypeAny>[]> = TypeOf<T[0]['schema']>;

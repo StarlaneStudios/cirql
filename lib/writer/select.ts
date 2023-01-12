@@ -1,4 +1,6 @@
-import { Ordering, QueryWriter } from "./types";
+import { isRaw } from "../helpers";
+import { Raw } from "../raw";
+import { Ordering, QueryWriter, Where } from "./types";
 
 interface SelectQueryState {
 	projections: string | undefined;
@@ -52,7 +54,11 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string) {	
+	where(where: string|Where) {
+		if (typeof where === 'object') {
+			where = this.#parseWhereClause(where, true);	
+		}
+
 		return new SelectQueryWriter({
 			...this.#state,
 			where
@@ -248,6 +254,31 @@ export class SelectQueryWriter implements QueryWriter {
 		}
 
 		return builder;
+	}
+
+	#parseWhereClause(clause: Where, and: boolean) {
+		const keys = Object.keys(clause);
+		const clauses: string[] = [];
+
+		for (const key of keys) {
+			if (key === 'OR' || key === 'AND') {
+				const subClause = clause[key];
+				
+				if (subClause) {
+					clauses.push(`(${this.#parseWhereClause(subClause, key === 'AND')})`);
+				}
+			} else {
+				const value = clause[key];
+
+				if (isRaw(value)) {
+					clauses.push(`${key} ${value[Raw]}`);
+				} else {
+					clauses.push(`${key} = ${JSON.stringify(value)}`);
+				}
+			}
+		}
+
+		return clauses.join(` ${and ? 'AND' : 'OR'} `);
 	}
 
 }
