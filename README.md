@@ -28,7 +28,7 @@ Cirql (pronounced Circle) is a simple and lightweight query builder for [Surreal
 
 ## Features
 - 🔗 Connect directly to SurrealDB without dependencies
-- 📦 Chain queries for batching & transactions
+- 📦 Immutable query chaining for batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
 
