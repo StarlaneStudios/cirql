@@ -59,21 +59,35 @@ const cirql = new Cirql({
 });
 ```
 
-Once you have your cirql connection opened, you will be able to execute queries on the database. While you can use `cirql.query()` to send any query to SurrealDB, Cirql provides additional easy to use functions for common operations.
+Once you have your cirql connection opened, you will be able to execute queries on the database. While you can use `cirql.query()` to send any query to SurrealDB, Cirql provides additional easy to use functions for common operations. You can use the `raw` function to include raw query strings into your create, update, count, and relate queries. This is especially useful when inserting SurrealDB functions or params which would otherwise get escaped.
 
 ```ts
 // Define a schema using Zod
 const UserProfile = z.object({
 	firstName: z.string(),
 	lastName: z.string(),
+	createdAt: z.string(),
 	email: z.string(),
 	age: z.number()
 });
 
 // Select all user profiles
-const profiles = cirql.selectMany({ 
+const profiles = await cirql.selectMany({ 
 	query: 'SELECT * FROM profile',
 	schema: UserProfile
+});
+
+// Create a new user profile
+await cirql.create({
+	table: 'userProfile',
+	schema: UserProfile,
+	data: {
+		firstName: 'John',
+		localhost: 'Doe',
+		email: 'john@example.com',
+		createdAt: raw('time::now()'),
+		age: 42
+	}
 });
 ```
 
@@ -96,6 +110,7 @@ const [profiles, total, john] = cirql.prepare()
 			firstName: 'John',
 			localhost: 'Doe',
 			email: 'john@example.com',
+			createdAt: raw('time::now()'),
 			age: 42
 		}
 	})
