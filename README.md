@@ -24,13 +24,14 @@
   <img src="https://img.shields.io/github/contributors/StarlaneStudios/cirql">
 </p>
 
-Cirql (pronounced Circle) is a simple and lightweight query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod).
+Cirql (pronounced Circle) is a simple and lightweight query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod). Unlike most query builders, Cirql takes a very open approach, providing you with complete control over your queries.
 
 ## Features
 - 🔗 Connect directly to SurrealDB without dependencies
 - 📦 Immutable query chaining for batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
+- 💎 Write flexible queries using strings or via chained functions
 
 ## Notice
 Cirql is still in early developmental stages. While you can use it for production applications, it may still lack specific features and edge cases. Feel free to submit feature requests or pull requests to add additional functionality to Cirql. We do ask you to please read our [Contributor Guide](CONTRIBUTING.md).
@@ -43,6 +44,7 @@ The first step to use Cirql is to install the package from npm
 npm install cirql zod
 ```
 
+### Connecting to SurrealDB
 You can now instantiate a Cirql instance which will automatically attempt to connect to SurrealDB. If you require manual control over connecting you can disable auto connect in the options.
 
 ```ts
@@ -59,10 +61,26 @@ const cirql = new Cirql({
 });
 ```
 
-Once you have your cirql connection opened, you will be able to execute queries on the database. While you can use `cirql.query()` to send any query to SurrealDB, Cirql provides additional easy to use functions for common operations. You can use the `raw` function to include raw query strings into your create, update, count, and relate queries. This is especially useful when inserting SurrealDB functions or params which would otherwise get escaped.
+### String based queries
+Once you have your cirql connection opened, you will be able to execute queries on the database. 
 
 ```ts
-// Define a schema using Zod
+const profiles = await cirql.selectMany({ 
+	query: 'SELECT * FROM profile WHERE age > $minAge',
+	params: {
+		minAge: 42
+	}
+});
+```
+
+In order to prevent potential SQL injection attacks avoid inserting user-generated variables directly into your queries. Instead, make use of Surreal's parameter functionality as demonstrated above.
+
+If you need more control over your query you can also use the `query()` function to send any query string with no limitations.
+
+### Result validation & TypeScript typings
+By utilizing zod, Cirql is able to efficiently validate query responses against predefined schemas. While specifying schemas is useful for client-side record validation, it also has the added benefit of providing full type completion for TypeScript codebases. 
+
+```ts
 const UserProfile = z.object({
 	firstName: z.string(),
 	lastName: z.string(),
@@ -71,25 +89,62 @@ const UserProfile = z.object({
 	age: z.number()
 });
 
-// Select all user profiles
 const profiles = await cirql.selectMany({ 
-	query: 'SELECT * FROM profile',
-	schema: UserProfile
+	query: 'SELECT * FROM profile WHERE age > $minAge',
+	schema: UserProfile,
+	params: {
+		minAge: 42
+	}
 });
 
-// Create a new user profile
+// 'profiles' is of type UserProfile[]
+```
+
+### Simplified create & update queries
+Using the query functions for sending create and update queries will allow you to provide any JavaScript object which will be automatically serialized. You can use the `eq` function to insert raw query values such as SurrealDB functions.
+
+```ts
 await cirql.create({
-	table: 'userProfile',
+	table: 'profile',
 	schema: UserProfile,
 	data: {
 		firstName: 'John',
-		localhost: 'Doe',
+		lastName: 'Doe',
 		email: 'john@example.com',
-		createdAt: raw('time::now()'),
+		createdAt: eq('time::now()'),
 		age: 42
 	}
 });
 ```
+
+When adding or subtracting items from arrays, you can use the `add` and `remove` functions for inserting `+=` and `-=` operators.
+
+### Writing programmatic queries
+Having to write your queries as plain strings is fine for most use-cases, however Cirql also provides an API for writing programmatic queries. You can pass these directly to any operation expecting a `query` and will automatically convert your input to a string.
+
+You can import any of Surreal's comparison operators for use in your WHERE clause. You can find a complete list [here](https://github.com/StarlaneStudios/cirql/blob/main/lib/operators.ts). By default values will use a simple value comparison (`=`).
+
+```ts
+await cirql.selectOne({
+	schema: UserProfile,
+	params: {
+		name: "John"
+	},
+	query: select()
+		.from('profile')
+		.where({
+			firstName: eq(raw('$name')),
+			lastName: 'Doe',
+			age: 42
+		})
+		.fetch(['friends', 'activities'])
+		.orderBy({
+			createdAt: 'desc'
+		})
+});
+```
+
+For added convinience, passing a programmatic query to `selectOne` will automatically set its limit to 1.
 
 ### Batch queries
 You can send multiple queries in a single request by chaining multiple operations together after using the `.prepare()` function. The execute function will return a spreadable array containing all query results.
@@ -97,7 +152,7 @@ You can send multiple queries in a single request by chaining multiple operation
 ```ts
 const [profiles, total, john] = cirql.prepare()
 	.selectMany({ 
-		query: 'SELECT * FROM profile',
+		query: select().from('profile'),
 		schema: UserProfile
 	})
 	.count({
