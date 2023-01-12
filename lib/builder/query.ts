@@ -67,7 +67,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.#push({
 			query: options.query,
-			schema: options.schema.array()
+			schema: options.schema?.array() || z.any().array() as unknown as R
 		}, options.params || {});
 	}
 
@@ -86,7 +86,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: options.query,
-			schema: options.schema.nullable(),
+			schema: options.schema?.nullable() || z.any() as unknown as R,
 			transform(data) {
 				if (data.length > 1) {
 					throw new CirqlError('Query returned multiple results, only one was expected', 'too_many_results');
@@ -119,7 +119,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: query,
-			schema: options.schema,
+			schema: options.schema || z.any() as unknown as R,
 			transform(data) {
 				return data[0];
 			}
@@ -147,7 +147,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: query,
-			schema: options.schema,
+			schema: options.schema || z.any() as unknown as R,
 			transform(data) {
 				return data[0];
 			}
