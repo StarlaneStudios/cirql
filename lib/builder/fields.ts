@@ -20,7 +20,7 @@ export function buildFieldMap(input: object): FieldMap {
 				const raw = value[Raw];
 
 				if (raw) {
-					changes.push(`${path}${key} = ${raw}`);
+					changes.push(`${path}${key} ${raw}`);
 				} else {
 					process(value, `${path}${key}.`);
 				}
