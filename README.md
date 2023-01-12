@@ -112,6 +112,9 @@ Before you open an issue or PR please read our [Contributor Guide](CONTRIBUTING.
 ### Requirements
 - [PNPM](https://pnpm.io/) (npm i -g pnpm)
 
+### Roadmap
+You can find the roadmap of intended features [here](ROADMAP.md).
+
 ### Live Development
 To run in live development mode, run `pnpm dev` in the project directory. This will start the Vite development server.
 
