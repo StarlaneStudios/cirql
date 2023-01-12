@@ -40,7 +40,7 @@ While we try to prevent making any significant API changes, we cannot guarantee 
 ## Getting started
 The first step to use Cirql is to install the package from npm
 ```
-npm install cirql
+npm install cirql zod
 ```
 
 You can now instantiate a Cirql instance which will automatically attempt to connect to SurrealDB. If you require manual control over connecting you can disable auto connect in the options.
@@ -50,7 +50,7 @@ import { Cirql } from 'cirql';
 
 const cirql = new Cirql({
 	connection: {
-		endpoint: 'http://localhost:8000',
+		endpoint: 'http://localhost:8000/',
 		username: 'root',
 		password: 'root',
 		namespace: 'test',
