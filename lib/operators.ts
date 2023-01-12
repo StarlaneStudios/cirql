@@ -263,3 +263,23 @@ export function outside(value: any): RawQuery {
 export function intersects(value: any): RawQuery {
 	return raw(`INTERSECTS ${useValueOrRaw(value)}`);
 }
+
+/**
+ * Returns a raw query operator for `+=`
+ * 
+ * @param value The value to add
+ * @returns The raw query
+ */
+export function add(value: any): RawQuery {
+	return raw(`+= ${useValueOrRaw(value)}`);
+}
+
+/**
+ * Returns a raw query operator for `-=`
+ * 
+ * @param value The value to remove
+ * @returns The raw query
+ */
+export function remove(value: any): RawQuery {
+	return raw(`-= ${useValueOrRaw(value)}`);
+}
