@@ -1,12 +1,7 @@
 <br>
 
 <div align="center">
-    <a href="#gh-light-mode-only">
-        <img src=".github/branding/logo-dark.png">
-    </a>
-    <a href="#gh-dark-mode-only">
-        <img src=".github/branding/logo-light.png">
-    </a>
+	<img src=".github/branding/logo.png">
 </div>
 
 <hr />
@@ -24,7 +19,7 @@
   <img src="https://img.shields.io/github/contributors/StarlaneStudios/cirql">
 </p>
 
-Cirql (pronounced Circle) is a simple and lightweight query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod). Unlike most query builders, Cirql takes a very open approach, providing you with complete control over your queries.
+Cirql (pronounced Circle) is a simple and lightweight ORM and query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod). Unlike most query builders, Cirql takes a very open approach, providing you with complete control over your queries.
 
 ## Features
 - 🔗 Connect directly to SurrealDB without dependencies
@@ -165,7 +160,7 @@ const [profiles, total, john] = cirql.prepare()
             firstName: 'John',
             localhost: 'Doe',
             email: 'john@example.com',
-            createdAt: raw('time::now()'),
+            createdAt: eq('time::now()'),
             age: 42
         }
     })
@@ -189,11 +184,8 @@ You can find the roadmap of intended features [here](ROADMAP.md).
 To run in live development mode, run `pnpm dev` in the project directory. This will start the Vite development server.
 
 ## Maintainers
-<a href="https://starlane.studio#gh-light-mode-only">
-  <img src=".github/branding/starlane-dark.png" height="64">
-</a>
-<a href="https://starlane.studio#gh-dark-mode-only">
-  <img src=".github/branding/starlane-light.png" height="64">
+<a href="https://starlane.studio">
+  <img src=".github/branding/starlane.png" height="64">
 </a>
 
 Cirql is built and maintained by <a href="https://starlane.studio/">Starlane Studios</a> at no cost. If you would like to support our work feel free to [donate to us](https://paypal.me/ExodiusStudios) ⚡
