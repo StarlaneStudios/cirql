@@ -1,12 +1,12 @@
 <br>
 
 <div align="center">
-	<a href="#gh-light-mode-only">
-		<img src=".github/branding/logo-dark.png">
-	</a>
-	<a href="#gh-dark-mode-only">
-		<img src=".github/branding/logo-light.png">
-	</a>
+    <a href="#gh-light-mode-only">
+        <img src=".github/branding/logo-dark.png">
+    </a>
+    <a href="#gh-dark-mode-only">
+        <img src=".github/branding/logo-light.png">
+    </a>
 </div>
 
 <hr />
@@ -18,7 +18,7 @@
     <img src="https://img.shields.io/github/license/StarlaneStudios/cirql"> 
   </a>
   <a href="https://discord.gg/exaQDX2">
-  	<img src="https://img.shields.io/discord/414532188722298881">
+      <img src="https://img.shields.io/discord/414532188722298881">
   </a>
   <img src="https://img.shields.io/bundlephobia/min/cirql">
   <img src="https://img.shields.io/github/contributors/StarlaneStudios/cirql">
@@ -51,13 +51,13 @@ You can now instantiate a Cirql instance which will automatically attempt to con
 import { Cirql } from 'cirql';
 
 const cirql = new Cirql({
-	connection: {
-		endpoint: 'http://localhost:8000/',
-		username: 'root',
-		password: 'root',
-		namespace: 'test',
-		database: 'test',
-	}
+    connection: {
+        endpoint: 'http://localhost:8000/',
+        username: 'root',
+        password: 'root',
+        namespace: 'test',
+        database: 'test',
+    }
 });
 ```
 
@@ -66,10 +66,10 @@ Once you have your cirql connection opened, you will be able to execute queries 
 
 ```ts
 const profiles = await cirql.selectMany({ 
-	query: 'SELECT * FROM profile WHERE age > $minAge',
-	params: {
-		minAge: 42
-	}
+    query: 'SELECT * FROM profile WHERE age > $minAge',
+    params: {
+        minAge: 42
+    }
 });
 ```
 
@@ -82,19 +82,19 @@ By utilizing zod, Cirql is able to efficiently validate query responses against 
 
 ```ts
 const UserProfile = z.object({
-	firstName: z.string(),
-	lastName: z.string(),
-	createdAt: z.string(),
-	email: z.string(),
-	age: z.number()
+    firstName: z.string(),
+    lastName: z.string(),
+    createdAt: z.string(),
+    email: z.string(),
+    age: z.number()
 });
 
 const profiles = await cirql.selectMany({ 
-	query: 'SELECT * FROM profile WHERE age > $minAge',
-	schema: UserProfile,
-	params: {
-		minAge: 42
-	}
+    query: 'SELECT * FROM profile WHERE age > $minAge',
+    schema: UserProfile,
+    params: {
+        minAge: 42
+    }
 });
 
 // 'profiles' is of type UserProfile[]
@@ -105,15 +105,15 @@ Using the query functions for sending create and update queries will allow you t
 
 ```ts
 await cirql.create({
-	table: 'profile',
-	schema: UserProfile,
-	data: {
-		firstName: 'John',
-		lastName: 'Doe',
-		email: 'john@example.com',
-		createdAt: eq('time::now()'),
-		age: 42
-	}
+    table: 'profile',
+    schema: UserProfile,
+    data: {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        createdAt: eq('time::now()'),
+        age: 42
+    }
 });
 ```
 
@@ -126,21 +126,21 @@ You can import any of Surreal's comparison operators for use in your WHERE claus
 
 ```ts
 await cirql.selectOne({
-	schema: UserProfile,
-	params: {
-		name: "John"
-	},
-	query: select()
-		.from('profile')
-		.where({
-			firstName: eq(raw('$name')),
-			lastName: 'Doe',
-			age: 42
-		})
-		.fetch(['friends', 'activities'])
-		.orderBy({
-			createdAt: 'desc'
-		})
+    schema: UserProfile,
+    params: {
+        name: "John"
+    },
+    query: select()
+        .from('profile')
+        .where({
+            firstName: eq(raw('$name')),
+            lastName: 'Doe',
+            age: 42
+        })
+        .fetch(['friends', 'activities'])
+        .orderBy({
+            createdAt: 'desc'
+        })
 });
 ```
 
@@ -151,25 +151,25 @@ You can send multiple queries in a single request by chaining multiple operation
 
 ```ts
 const [profiles, total, john] = cirql.prepare()
-	.selectMany({ 
-		query: select().from('profile'),
-		schema: UserProfile
-	})
-	.count({
-		table: 'userProfile'
-	})
-	.create({
-		table: 'userProfile',
-		schema: UserProfile,
-		data: {
-			firstName: 'John',
-			localhost: 'Doe',
-			email: 'john@example.com',
-			createdAt: raw('time::now()'),
-			age: 42
-		}
-	})
-	.execute();
+    .selectMany({ 
+        query: select().from('profile'),
+        schema: UserProfile
+    })
+    .count({
+        table: 'userProfile'
+    })
+    .create({
+        table: 'userProfile',
+        schema: UserProfile,
+        data: {
+            firstName: 'John',
+            localhost: 'Doe',
+            email: 'john@example.com',
+            createdAt: raw('time::now()'),
+            age: 42
+        }
+    })
+    .execute();
 ```
 
 If you would like to run the batched queries as transaction instead, simply replace `.execute()` with `.transaction()`.
