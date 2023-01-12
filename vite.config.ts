@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(e => ({
+	publicDir: e.command == 'serve' ? 'public' : false,
 	build: {
 		lib: {
 			entry: './lib/index.ts',
@@ -17,4 +18,4 @@ export default defineConfig({
 			},
 		}
 	}
-})
+}))
