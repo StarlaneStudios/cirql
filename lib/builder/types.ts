@@ -24,6 +24,8 @@ export interface CirqlOptions {
 	autoConnect?: boolean;
 	logging?: boolean;
 	logPrinter?: (query: string, params: any) => void;
+	retryCount?: number;
+	retryDelay?: number;
 }
 
 export interface SchemafulQuery<S extends ZodTypeAny> {

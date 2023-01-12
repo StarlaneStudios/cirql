@@ -10,7 +10,8 @@ const cirql = new Cirql({
 		password: 'root',
 		username: 'root'
 	},
-	logging: true
+	logging: true,
+	retryCount: -1
 });
 
 // Use Zod to define our model schema
