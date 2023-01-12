@@ -27,28 +27,6 @@ const AlertBanner = z.object({
 
 // Execute a selectOne, count, and create query
 function execute() {
-
-	const exampleQuery = select()
-		.from('alertBanner')
-		.where({
-			first: 123,
-			second: eq(raw('$name')),
-			OR: {
-				third: gt(5),
-				fourth: false,
-				AND: {
-					fifth: any('a'),
-					sixth: 'no',
-					seventh: ['a', 'b', 'c']
-				}
-			}
-		})
-		.fetch(['first', 'some.value'])
-		.timeout(2)
-		.orderBy({
-			createdAt: 'desc'
-		});
-
 	return cirql.prepare()
 		.selectOne({ 
 			query: select().from('alertBanner').limit(1),
@@ -69,8 +47,30 @@ function execute() {
 			}
 		})
 		.selectOne({
-			query: exampleQuery,
-			schema: AlertBanner
+			query: select()
+				.from('alertBanner')
+				.where({
+					first: 123,
+					second: eq(raw('$name')),
+					OR: {
+						third: gt(5),
+						fourth: false,
+						AND: {
+							fifth: any('a'),
+							sixth: 'no',
+							seventh: ['a', 'b', 'c']
+						}
+					}
+				})
+				.fetch(['first', 'some.value'])
+				.timeout(2)
+				.orderBy({
+					createdAt: 'desc'
+				}),
+			schema: AlertBanner,
+			params: {
+				name: "John"
+			}
 		})
 		.execute();
 }

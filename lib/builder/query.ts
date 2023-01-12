@@ -86,13 +86,13 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: options.query,
-			schema: options.schema,
+			schema: options.schema.nullable(),
 			transform(data) {
 				if (data.length > 1) {
 					throw new CirqlError('Query returned multiple results, only one was expected', 'too_many_results');
 				}
 
-				return data[0];
+				return data[0] ?? null;
 			}
 		}, options.params || {});
 	}
@@ -277,10 +277,11 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}`, 'invalid_response');
 			}
 
-			const transformed = transform?.(result) ?? result;
+			const transformed = transform ? transform(result) : result;
 			const parsed = schema.safeParse(transformed);
-
+			
 			if (!parsed.success) {
+				console.log(transformed);
 				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
 			}
 
