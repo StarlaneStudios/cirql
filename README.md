@@ -34,7 +34,7 @@ Cirql is still in early developmental stages. While you can use it for productio
 While we try to prevent making any significant API changes, we cannot guarantee this.
 
 ## Getting started
-The first step to use Cirql is to install the package from npm
+The first step to use Cirql is to install the package from npm, together with a supported version of zod.
 ```
 npm install cirql zod
 ```
