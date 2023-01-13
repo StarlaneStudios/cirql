@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-	<img src=".github/branding/logo.png">
+    <img src=".github/branding/logo.png">
 </div>
 
 <hr />
@@ -61,10 +61,10 @@ const cirql = new Cirql({
         namespace: 'test',
         database: 'test',
     },
-	credentials: {
-		user: 'root',
+    credentials: {
+        user: 'root',
         pass: 'root',
-	}
+    }
 });
 ```
 
@@ -195,10 +195,10 @@ const cirql = new CirqlStateless({
         namespace: 'test',
         database: 'test',
     },
-	credentials: {
-		user: 'root',
+    credentials: {
+        user: 'root',
         pass: 'root',
-	}
+    }
 });
 
 // You can now use the cirql instance as normal without
