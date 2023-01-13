@@ -87,6 +87,13 @@ export interface CirqlQueries {
 	 */
 	relate(options: RelateQueryOptions): Promise<void>;
 
+	/**
+	 * Store a value as parameter in the database for later retrieval.
+	 * 
+	 * @param options The query options
+	 */
+	let(options: LetQueryOptions): Promise<void>;
+
 }
 
 export interface Query<T extends ZodTypeAny> {
@@ -129,6 +136,7 @@ export interface StringQuery {
 	query: string | QueryWriter;
 }
 
+export type LetQueryOptions = { name: string, value: any|RawQuery|QueryWriter };
 export type CountQueryOptions = ParameterizedQuery & { table: string, where?: RawQuery };
 export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: RawQuery };
 export type SelectQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;

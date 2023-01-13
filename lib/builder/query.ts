@@ -1,5 +1,5 @@
-import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult } from "./types";
-import { nextId, parseQuery, table, thing } from "../helpers";
+import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions } from "./types";
+import { nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
 import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
@@ -235,6 +235,27 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 			query: query,
 			schema: z.void()
 		}, params);
+	}
+
+	/**
+	 * Store a value as parameter in the database for later retrieval.
+	 * 
+	 * @param options The query options
+	 * @returns Cirql query builder
+	 */
+	let(options: LetQueryOptions) {
+		let value: string;
+
+		if ('toQuery' in options.value) {
+			value = `(${options.value.toQuery()})`;
+		} else {
+			value = useValueOrRaw(options.value);
+		}
+
+		return this.#push({
+			query: `LET $${options.name} = ${value}`,
+			schema: z.null()
+		}, {});
 	}
 
 	/**

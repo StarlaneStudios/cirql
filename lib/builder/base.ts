@@ -1,6 +1,6 @@
 import { ZodTypeAny } from "zod";
 import { CirqlQuery } from "./query";
-import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params } from "./types";
+import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, LetQueryOptions } from "./types";
 
 /**
  * The adapter used to connect to Cirql implementations
@@ -58,6 +58,10 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 
 	relate(options: RelateQueryOptions) {
 		return this.prepare().relate(options).single();
+	}
+
+	let(options: LetQueryOptions) {
+		return this.prepare().let(options).single();
 	}
 
 }
