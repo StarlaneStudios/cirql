@@ -1,8 +1,8 @@
 # Roadmap
 
-- Rework where to support array fields for AND and OR
+- ~~Rework where to support array fields for AND and OR~~
 	- The current implementation is fairly limited
-- Improved authentication support
+- ~~Improved authentication support~~
 	- Handle more use-cases
 	- Would be good to receive community input
 - Automatic zod schema generation
