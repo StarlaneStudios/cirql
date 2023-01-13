@@ -32,7 +32,7 @@ async function testCreate() {
 }
 
 async function testDelete() {
-	const res = await cirql.prepare()
+	await cirql.prepare()
 		.delete({
 			table: 'organisation',
 			id: ''
