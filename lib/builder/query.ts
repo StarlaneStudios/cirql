@@ -1,5 +1,5 @@
-import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions } from "./types";
-import { nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
+import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
+import { isRaw, nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
 import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
@@ -246,7 +246,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	let(options: LetQueryOptions) {
 		let value: string;
 
-		if ('toQuery' in options.value) {
+		if (typeof options.value == 'object' && 'toQuery' in options.value) {
 			value = `(${options.value.toQuery()})`;
 		} else {
 			value = useValueOrRaw(options.value);
@@ -255,6 +255,31 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		return this.#push({
 			query: `LET $${options.name} = ${value}`,
 			schema: z.null()
+		}, {});
+	}
+
+	/**
+	 * Perform an if statement in the database. Since Cirql cannot statically
+	 * determine the result of the if statement, it will return a union of the
+	 * two possible results.
+	 * 
+	 * @param options The query options
+	 * @returns Cirql query builder
+	 */
+	if<T extends ZodTypeAny, E extends ZodTypeAny>(options: IfQueryOptions<T, E>) {
+		const { thenSchema, elseSchema } = options;
+
+		if((thenSchema || elseSchema) && (!thenSchema || !elseSchema)) {
+			throw new CirqlError('Both thenSchema and elseSchema must be provided if either is specified', 'invalid_request');
+		}
+
+		const ifQuery = isRaw(options.if) ? options.if[Raw] : parseQuery(options.if);
+		const thenQuery = isRaw(options.then) ? options.then[Raw] : parseQuery(options.then);
+		const elseQuery = isRaw(options.else) ? options.else[Raw] : parseQuery(options.else);
+
+		return this.#push({
+			query: `IF ${ifQuery} THEN (${thenQuery}) ELSE (${elseQuery}) END`,
+			schema: (thenSchema && elseSchema) ? thenSchema.or(elseSchema) : z.any() as unknown as T | E
 		}, {});
 	}
 
@@ -293,8 +318,12 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 			const transformed = transform ? transform(result) : result;
 			const parsed = schema.safeParse(transformed);
+
 			
 			if (!parsed.success) {
+				console.log('check =', transformed);
+				console.log('schema =', schema);
+
 				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
 			}
 

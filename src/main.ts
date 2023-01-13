@@ -1,4 +1,5 @@
-import { Cirql, select } from '../lib';
+import { z } from 'zod';
+import { Cirql, raw } from '../lib';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({
@@ -19,11 +20,15 @@ const cirql = new Cirql({
 async function execute() {
 	return cirql.prepare()
 		.let({
-			name: 'struct',
-			value: select().from('test')
+			name: 'active',
+			value: true
 		})
-		.selectOne({
-			query: 'SELECT * FROM $struct'
+		.if({
+			if: raw('$active'),
+			then: 'SELECT * FROM { success: "Yay!" }',
+			else: 'SELECT * FROM { success: 0 }',
+			thenSchema: z.object({ success: z.string() }).array(),
+			elseSchema: z.object({ success: z.number() }).array(),
 		})
 		.execute();
 }

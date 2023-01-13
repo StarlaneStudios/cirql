@@ -5,7 +5,7 @@ export type ErrorCodes = 'no_connection' | 'invalid_query' | 'invalid_request' |
 
 const formatZodError = (err: ZodError) => {
 	const reports = err.errors.map(issue => {
-		return `- ${issue.path.join('.')}: ${issue.message}`;
+		return `- @${issue.path.join('.')}: ${issue.message}`;
 	}).join('\n');
 
 	return reports;

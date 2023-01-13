@@ -92,7 +92,16 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 */
-	let(options: LetQueryOptions): Promise<void>;
+	let(options: LetQueryOptions): Promise<null>;
+
+	/**
+	 * Perform an if statement in the database. Since Cirql cannot statically
+	 * determine the result of the if statement, it will return a union of the
+	 * two possible results.
+	 * 
+	 * @param options The query options
+	 */
+	if<T extends ZodTypeAny, E extends ZodTypeAny>(options: IfQueryOptions<T, E>): Promise<SingleResult<readonly [Query<T | E>]>>;
 
 }
 
@@ -136,7 +145,7 @@ export interface StringQuery {
 	query: string | QueryWriter;
 }
 
-export type LetQueryOptions = { name: string, value: any|RawQuery|QueryWriter };
+export type LetQueryOptions = { name: string, value: any | RawQuery | QueryWriter };
 export type CountQueryOptions = ParameterizedQuery & { table: string, where?: RawQuery };
 export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: RawQuery };
 export type SelectQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
@@ -144,3 +153,4 @@ export type SimpleQueryOptions<S extends ZodTypeAny> = StringQuery & Parameteriz
 export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & { table: string, id?: string, data: Input<D> };
 export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & { table: string, id: string, data: Partial<Input<D>> };
 export type RelateQueryOptions<D extends {} = {}> = { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
+export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema?: T, elseSchema?: E };
