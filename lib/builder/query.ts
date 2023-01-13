@@ -281,7 +281,6 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 			const parsed = schema.safeParse(transformed);
 			
 			if (!parsed.success) {
-				console.log(transformed);
 				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
 			}
 

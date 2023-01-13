@@ -1,3 +1,4 @@
+import { CirqlError } from "../errors";
 import { isRaw } from "../helpers";
 import { Raw } from "../raw";
 import { Ordering, QueryWriter, Where } from "./types";
@@ -56,7 +57,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 */
 	where(where: string|Where) {
 		if (typeof where === 'object') {
-			where = this.#parseWhereClause(where, true);	
+			where = this.#parseWhereClause(where);	
 		}
 
 		return new SelectQueryWriter({
@@ -256,17 +257,24 @@ export class SelectQueryWriter implements QueryWriter {
 		return builder;
 	}
 
-	#parseWhereClause(clause: Where, and: boolean) {
+	#parseWhereClause(clause: Where) {
 		const keys = Object.keys(clause);
 		const clauses: string[] = [];
 
 		for (const key of keys) {
 			if (key === 'OR' || key === 'AND') {
-				const subClause = clause[key];
-				
-				if (subClause) {
-					clauses.push(`(${this.#parseWhereClause(subClause, key === 'AND')})`);
+				const subValue = clause[key];
+				const subClauses = [];
+
+				if (subValue === undefined) {
+					throw new CirqlError('Received expected undefined property in where clause', 'invalid_request');
 				}
+
+				for (const sub of subValue) {
+					subClauses.push(`(${this.#parseWhereClause(sub!)})`);
+				}
+
+				clauses.push(`(${subClauses.join(` ${key} `)})`);
 			} else {
 				const value = clause[key];
 
@@ -278,7 +286,7 @@ export class SelectQueryWriter implements QueryWriter {
 			}
 		}
 
-		return clauses.join(` ${and ? 'AND' : 'OR'} `);
+		return clauses.join(` AND `);
 	}
 
 }

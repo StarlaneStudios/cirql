@@ -1,8 +1,8 @@
 export type Ordering = Record<string, 'asc' | 'desc'>;
 
 export type Where = {
-	OR?: Where;
-	AND?: Where;
+	OR?: Where[];
+	AND?: Where[];
 } & Record<string, any>;
 
 /**
