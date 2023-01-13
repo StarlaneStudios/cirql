@@ -2,10 +2,10 @@ import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQuery
 import { nextId, parseQuery, table, thing } from "../helpers";
 import { buildFieldMap } from "./fields";
 import { z, ZodTypeAny } from 'zod';
-import { Cirql } from "./cirql";
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
 import { Raw } from "../raw";
+import { CirqlAdapter } from "./base";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
@@ -13,35 +13,30 @@ import { Raw } from "../raw";
  */
 export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
-	private parent: Cirql;
-	private params: Record<string, any>;
-	private queries: T;
+	#adapter: CirqlAdapter;
+	#params: Record<string, any>;
+	#queries: T;
 
-	private queryPrefix?: string;
-	private querySuffix?: string;
+	#queryPrefix?: string;
+	#querySuffix?: string;
 
-	constructor(previous: any, queries: T, params?: Record<string, any>) {
-		this.queries = queries;
-		this.params = params || {};
-
-		if (previous instanceof Cirql) {
-			this.parent = previous;
-		} else {
-			this.parent = previous.parent;
-		}
+	constructor(previous: CirqlAdapter, queries: T, params?: Record<string, any>) {
+		this.#adapter = previous;
+		this.#queries = queries;
+		this.#params = params || {};
 	}
 
 	#push<R extends ZodTypeAny>(query: Query<R>, params: Params) {
 		for (const param of Object.keys(params)) {
-			if (this.params[param]) {
+			if (this.#params[param]) {
 				throw new Error(`Duplicate parameter name: ${param}`);
 			}
 		}
 
 		return new CirqlQuery(
-			this,
-			[...this.queries, query] as const,
-			{...this.params, ...params}
+			this.#adapter,
+			[...this.#queries, query] as const,
+			{...this.#params, ...params}
 		);
 	}
 
@@ -248,29 +243,27 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns The query results
 	 */
 	async execute(): Promise<Result<T>> {
-		if (!this.parent.isConnected || !this.parent.handle) {
+		if (!this.#adapter.onRequest()) {
 			throw new CirqlError('There is no active connection to the database', 'no_connection');
 		}
 		
-		if (this.queries.length === 0) {
+		if (this.#queries.length === 0) {
 			return [] as any;
 		}
 
 		const query = this.#buildQuery();
 		const results: any[] = [];
 
-		if (this.parent.options.logging) {
-			this.parent.options.logPrinter(query, this.params);
-		}
+		this.#adapter.onLog(query, this.#params);
 
-		const response = await this.parent.handle.query(query, this.params);
+		const response = await this.#adapter.onQuery(query, this.#params);
 	
-		if (!Array.isArray(response) || response.length !== this.queries.length) {
+		if (!Array.isArray(response) || response.length !== this.#queries.length) {
 			throw new CirqlError('The response from the database was invalid', 'invalid_response');
 		}
 
 		for (let i = 0; i < response.length; i++) {
-			const { schema, transform } = this.queries[i];
+			const { schema, transform } = this.#queries[i];
 			const { status, result } = response[i];
 
 			if (status !== 'OK') {
@@ -311,21 +304,21 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns The query results
 	 */
 	transaction() {
-		this.queryPrefix = 'BEGIN TRANSACTION';
-		this.querySuffix = 'COMMIT TRANSACTION';
+		this.#queryPrefix = 'BEGIN TRANSACTION';
+		this.#querySuffix = 'COMMIT TRANSACTION';
 
 		return this.execute();
 	}
 
 	#buildQuery() {
-		let queries = this.queries.map(q => parseQuery(q.query));
+		let queries = this.#queries.map(q => parseQuery(q.query));
 
-		if (this.queryPrefix) {
-			queries = [this.queryPrefix, ...queries];
+		if (this.#queryPrefix) {
+			queries = [this.#queryPrefix, ...queries];
 		}
 
-		if (this.querySuffix) {
-			queries = [...queries, this.querySuffix];
+		if (this.#querySuffix) {
+			queries = [...queries, this.#querySuffix];
 		}
 
 		return queries.join(';\n');

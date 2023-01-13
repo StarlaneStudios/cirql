@@ -1,5 +1,4 @@
-import { z } from 'zod';
-import { any, Cirql, eq, gt, lt, raw } from '../lib';
+import { Cirql, CirqlStateless } from '../lib';
 import { select } from '../lib/writer/select';
 
 // Create a Cirql instance and connect to the database
@@ -15,69 +14,70 @@ const cirql = new Cirql({
 	retryCount: -1
 });
 
-// Use Zod to define our model schema
-const AlertBanner = z.object({
-	"backgroundColor": z.string(),
-	"content": z.string(),
-	"createdAt": z.string(),
-	"filter": z.any().array().optional(),
-	"orderNumber": z.number(),
-	"target": z.string()
+const cirqlStateless = new CirqlStateless({
+	connection: {
+		namespace: 'test',
+		database: 'test',
+		endpoint: 'http://localhost:8000',
+		password: 'root',
+		username: 'root'
+	},
+	logging: true
 });
 
+// Use Zod to define our model schema
+// const AlertBanner = z.object({
+// 	"backgroundColor": z.string(),
+// 	"content": z.string(),
+// 	"createdAt": z.string(),
+// 	"filter": z.any().array().optional(),
+// 	"orderNumber": z.number(),
+// 	"target": z.string()
+// });
+
 // Execute a selectOne, count, and create query
-function execute() {
+async function execute() {
 	const exampleQuery = select()
 		.from('alertBanner')
-		.where({
-			// first: 123,
-			// second: eq(raw('$name')),
-			OR: [
-				{
-					third: gt(5),
-					fourth: false
-				},
-				{
-					third: lt(5),
-					fifth: any('a'),
-					sixth: 'no',
-					seventh: ['a', 'b', 'c']
-				}
-			]
-		})
 		.fetch(['first', 'some.value'])
 		.timeout(2)
 		.orderBy({
 			createdAt: 'desc'
 		});
 
-	return cirql.prepare()
-		// .selectOne({ 
-		// 	query: select().from('alertBanner').limit(1),
-		// 	schema: AlertBanner
-		// })
-		// .count({
-		// 	table: 'alertBanner',
-		// })
-		// .create({
-		// 	table: 'alertBanner',
-		// 	schema: AlertBanner,
-		// 	data: {
-		// 		content: 'Alpha beta',
-		// 		backgroundColor: 'red',
-		// 		createdAt: raw('time::now()'),
-		// 		orderNumber: 1,
-		// 		target: 'https://google.com',
-		// 	}
-		// })
-		.selectOne({
-			query: exampleQuery,
-			schema: AlertBanner,
-			params: {
-				name: "John"
-			}
-		})
-		.execute();
+	const res = await cirqlStateless.query({
+		query: exampleQuery,
+	});
+
+	return [res];
+
+	// return cirql.prepare()
+	// 	// .selectOne({ 
+	// 	// 	query: select().from('alertBanner').limit(1),
+	// 	// 	schema: AlertBanner
+	// 	// })
+	// 	// .count({
+	// 	// 	table: 'alertBanner',
+	// 	// })
+	// 	// .create({
+	// 	// 	table: 'alertBanner',
+	// 	// 	schema: AlertBanner,
+	// 	// 	data: {
+	// 	// 		content: 'Alpha beta',
+	// 	// 		backgroundColor: 'red',
+	// 	// 		createdAt: raw('time::now()'),
+	// 	// 		orderNumber: 1,
+	// 	// 		target: 'https://google.com',
+	// 	// 	}
+	// 	// })
+	// 	.selectOne({
+	// 		query: exampleQuery,
+	// 		schema: AlertBanner,
+	// 		params: {
+	// 			name: "John"
+	// 		}
+	// 	})
+	// 	.execute();
 }
 
 cirql.addEventListener('open', () => {

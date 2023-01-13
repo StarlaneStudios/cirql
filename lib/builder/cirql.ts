@@ -1,13 +1,12 @@
-import { CirqlOptions, CountQueryOptions, CreateQueryOptions, DeleteQueryOptions, RelateQueryOptions, SelectQueryOptions, SimpleQueryOptions, UpdateQueryOptions } from "./types";
+import { CirqlOptions, CirqlStatelessOptions, Params } from "./types";
 import { SurrealHandle } from "../connection/types";
 import { openConnection } from "../connection";
-import { CirqlQuery } from "./query";
-import { ZodTypeAny } from 'zod';
+import { CirqlBaseImpl } from "./base";
+import { CirqlError } from "../errors";
 
 /**
- * A self-contained SurrealDB database connection and query builder instance.
- * You may connect and disconnect from the database as many times as you
- * want.
+ * A stateful connection to a Surreal database. This class provides full access
+ * to all of Cirql's ORM functionality.
  * 
  * Events:
  * - connect: The connection is being established
@@ -15,7 +14,7 @@ import { ZodTypeAny } from 'zod';
  * - close: The connection was closed
  * - error: An error occured in the connection
  */
-export class Cirql extends EventTarget {
+export class Cirql extends CirqlBaseImpl {
 
 	readonly options: Required<CirqlOptions>;
 	
@@ -26,7 +25,15 @@ export class Cirql extends EventTarget {
 	#retryTask: any|undefined;
 
 	constructor(options: CirqlOptions) {
-		super();
+		super({
+			onQuery: (query, params) => this.handle!.query(query, params),
+			onRequest: () => this.isConnected && !!this.handle,
+			onLog: (query, params) => {
+				if (this.options.logging) {
+					this.options.logPrinter(query, params);
+				}
+			}
+		});
 
 		this.options = {
 			autoConnect: true,
@@ -109,95 +116,76 @@ export class Cirql extends EventTarget {
 		this.#surreal?.close();
 	}
 
-	/**
-	 * Create a new empty query instance. This is useful for chaining multiple
-	 * queries together without having to specify an initial query.
-	 * 
-	 * @returns Cirql query builder
-	 */
-	prepare() {
-		return new CirqlQuery(this, [] as const);
+}
+ 
+/**
+ * A stateless class used to send one-off queries to a Surreal database.
+ * This class provides full access to all of Cirql's ORM functionality.
+ */
+export class CirqlStateless extends CirqlBaseImpl {
+
+	readonly options: Required<CirqlStatelessOptions>;
+
+	constructor(options: CirqlStatelessOptions) {
+		super({
+			onQuery: (query, params) => this.#executeQuery(query, params),
+			onRequest: () => true,
+			onLog: (query, params) => {
+				if (this.options.logging) {
+					this.options.logPrinter(query, params);
+				}
+			}
+		});
+
+		this.options = {
+			logging: false,
+			logPrinter: (query) => console.log(query),
+			...options
+		};
+	}
+
+	async #executeQuery(query: string, params: Params) {
+		if (Object.keys(params).length > 0) {
+			throw new CirqlError('Stateless queries do not support parameters yet. ', 'invalid_request');
+		}
+
+		const { endpoint, username, password, token, namespace, database, scope } = this.options.connection;
+
+		const url = new URL('sql', endpoint);
+
+		if (!username && !password && !token) {
+			throw new CirqlError('Missing username & password or token', 'invalid_request');
+		}
+
+		const authString = token
+			? `Bearer ${token}`
+			: `Basic ${btoa(`${username}:${password}`)}`;
+
+		const headers: Record<string, string> = {
+			'User-Agent': 'Cirql',
+			'Authorization': authString,
+			'Accept': 'application/json'
+		};
+
+		if (namespace) {
+			headers['NS'] = namespace;
+		}
+
+		if (database) {
+			headers['DB'] = database;
+		}
+
+		if (scope) {
+			headers['SC'] = scope;
+		}
+
+		const result = await fetch(url, {
+			method: 'POST',
+			headers: headers,
+			body: query
+		}).then(res => res.json());
+
+		return result;
 	}
 	
-	/**
-	 * Execute a raw query with support for parameters and return the result
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
-		return this.prepare().query(options).single();
-	}
-
-	/**
-	 * Select multiple records with support for parameters and return the result
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectMany(options).single();
-	}
-
-	/**
-	 * Select a single record with support for parameters and return the result
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectOne(options).single();
-	}
-
-	/**
-	 * Create a new record from the given data and return the result.
-	 * You can use the raw() function to insert a raw value into the query.
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		return this.prepare().create(options).single();
-	}
-
-	/**
-	 * Update one or more records with the given data and return the result.
-	 * You can use the raw() function to insert a raw value into the query.
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		return this.prepare().update(options).single();
-	}
-
-	/**
-	 * Remove a single record by its unique id
-	 * 
-	 * @param options The query options
-	 */
-	delete(options: DeleteQueryOptions) {
-		return this.prepare().delete(options).single();
-	}
-
-	/**
-	 * Return the amount of records that match the given
-	 * query.
-	 * 
-	 * @param options The query options
-	 * @returns The query result
-	 */
-	count(options: CountQueryOptions) {
-		return this.prepare().count(options).single();
-	}
-	
-	/**
-	 * Relate a record to another record over an edge.
-	 * 
-	 * @param options The query options
-	 */
-	relate(options: RelateQueryOptions) {
-		return this.prepare().relate(options).single();
-	}
-
 }
