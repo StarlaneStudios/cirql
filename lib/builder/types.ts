@@ -69,7 +69,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 */
-	delete(options: DeleteQueryOptions): Promise<void>;
+	delete(options: DeleteQueryOptions): Promise<undefined>;
 
 	/**
 	 * Return the amount of records that match the given
@@ -85,14 +85,14 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 */
-	relate(options: RelateQueryOptions): Promise<void>;
+	relate(options: RelateQueryOptions): Promise<undefined>;
 
 	/**
 	 * Store a value as parameter in the database for later retrieval.
 	 * 
 	 * @param options The query options
 	 */
-	let(options: LetQueryOptions): Promise<null>;
+	let(options: LetQueryOptions): Promise<undefined>;
 
 	/**
 	 * Perform an if statement in the database. Since Cirql cannot statically
