@@ -108,6 +108,7 @@ export interface CirqlQueries {
 export interface Query<T extends ZodTypeAny> {
 	query: string | QueryWriter;
 	schema: T;
+	skip?: boolean;
 	transform?: (data: any[]) => any;
 }
 

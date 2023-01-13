@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cirql, raw } from '../lib';
+import { Cirql } from '../lib';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({
@@ -16,19 +16,30 @@ const cirql = new Cirql({
 	retryCount: -1
 });
 
-// Execute a selectOne, count, and create query
-async function execute() {
-	return cirql.prepare()
-		.let({
-			name: 'active',
-			value: true
+export const Organisation = z.object({
+    id: z.string(),
+    name: z.string().min(1)
+});
+
+async function testCreate() {
+	cirql.create({
+		table: 'organisation',
+		schema: Organisation,
+		data: {
+			name: 'Test'
+		}
+	});
+}
+
+async function testDelete() {
+	const res = await cirql.prepare()
+		.delete({
+			table: 'organisation',
+			id: ''
 		})
-		.if({
-			if: raw('$active'),
-			then: 'SELECT * FROM { success: "Yay!" }',
-			else: 'SELECT * FROM { success: 0 }',
-			thenSchema: z.object({ success: z.string() }).array(),
-			elseSchema: z.object({ success: z.number() }).array(),
+		.selectMany({
+			query: 'SELECT * FROM organisation',
+			schema: Organisation
 		})
 		.execute();
 }
@@ -61,31 +72,31 @@ function setConnected(connected: boolean) {
 	}
 }
 
-async function sendQuery() {
-	try {
-		const results = await execute();
+// async function sendQuery() {
+// 	try {
+// 		const results = await execute();
 
-		let output = '';
+// 		let output = '';
 
-		for (let i = 0; i < results.length; i++) {
-			output += `
-				<div><b>Query #${i + 1}</b></div>
-				<pre>${JSON.stringify(results[i], null, 4)}</pre>
-				<hr />
-			`;
-		}
+// 		for (let i = 0; i < results.length; i++) {
+// 			output += `
+// 				<div><b>Query #${i + 1}</b></div>
+// 				<pre>${JSON.stringify(results[i], null, 4)}</pre>
+// 				<hr />
+// 			`;
+// 		}
 
-		get('output').innerHTML = output;
-	} catch(err) {
-		console.error(err);
+// 		get('output').innerHTML = output;
+// 	} catch(err) {
+// 		console.error(err);
 		
-		get('output').innerHTML = `
-			<div><b>Query failure</div>
-			<pre style="color: red">${err}</pre>
-		`;
-	}
+// 		get('output').innerHTML = `
+// 			<div><b>Query failure</div>
+// 			<pre style="color: red">${err}</pre>
+// 		`;
+// 	}
 
-}
+// }
 
 setConnected(false);
 
@@ -97,6 +108,10 @@ get('disconnect').addEventListener('click', () => {
 	cirql.disconnect();
 });
 
-get('send').addEventListener('click', () => {
-	sendQuery();
+get('create').addEventListener('click', () => {
+	testCreate();
+});
+
+get('delete').addEventListener('click', () => {
+	testDelete();
 });

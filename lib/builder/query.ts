@@ -169,7 +169,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: query,
-			schema: z.void()
+			schema: z.undefined(),
+			skip: true
 		}, params);
 	}
 
@@ -233,7 +234,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		
 		return this.#push({
 			query: query,
-			schema: z.void()
+			schema: z.undefined(),
+			skip: true
 		}, params);
 	}
 
@@ -254,7 +256,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: `LET $${options.name} = ${value}`,
-			schema: z.null()
+			schema: z.undefined(),
+			skip: true
 		}, {});
 	}
 
@@ -309,25 +312,25 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		}
 
 		for (let i = 0; i < response.length; i++) {
-			const { schema, transform } = this.#queries[i];
+			const { schema, transform, skip } = this.#queries[i];
 			const { status, result } = response[i];
 
 			if (status !== 'OK') {
 				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}`, 'invalid_response');
 			}
 
-			const transformed = transform ? transform(result) : result;
-			const parsed = schema.safeParse(transformed);
+			if (skip) {
+				results.push(undefined);
+			} else {
+				const transformed = transform ? transform(result) : result;
+				const parsed = schema.safeParse(transformed);
+				
+				if (!parsed.success) {
+					throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
+				}
 
-			
-			if (!parsed.success) {
-				console.log('check =', transformed);
-				console.log('schema =', schema);
-
-				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
+				results.push(parsed.data);
 			}
-
-			results.push(parsed.data);
 		}
 
 		return results as any;
