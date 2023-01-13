@@ -33,11 +33,21 @@ Cirql is still in early developmental stages. While you can use it for productio
 
 While we try to prevent making any significant API changes, we cannot guarantee this.
 
-## Getting started
+## Installation
 The first step to use Cirql is to install the package from npm, together with a supported version of zod.
 ```
 npm install cirql zod
 ```
+
+## Getting started
+### Navigation
+- [Connecting to SurrealDB](#connecting-to-surrealdb)
+- [String based queries](#string-based-queries)
+- [Result validation & TypeScript typings](#result-validation--typescript-typings)
+- [Simplified create & update queries](#simplified-create--update-queries)
+- [Writing programmatic queries](#writing-programmatic-queries)
+- [Batched queries & transactions](#batched-queries--transactions)
+- [Stateless requests](#stateless-requests)
 
 ### Connecting to SurrealDB
 You can now instantiate a Cirql instance which will automatically attempt to connect to SurrealDB. If you require manual control over connecting you can disable auto connect in the options.
@@ -143,7 +153,7 @@ await cirql.selectOne({
 
 For added convinience, passing a programmatic query to `selectOne` will automatically set its limit to 1.
 
-### Batch queries
+### Batched queries & transactions
 You can send multiple queries in a single request by chaining multiple operations together after using the `.prepare()` function. The execute function will return a spreadable array containing all query results.
 
 ```ts
