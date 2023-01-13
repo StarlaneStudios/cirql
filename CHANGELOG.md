@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.6 - Improved return types
+- Fixed delete operations failing
+- Delete, relate, and let queries now return `Promise<undefined>`
+	- This makes the typings for arrays returned by chaning more accurate
+
 ## 0.1.5 - Stateless queries
 - Added support for stateless queries
 	- Use the new `CirqlStateless` class
