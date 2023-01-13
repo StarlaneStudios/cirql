@@ -22,7 +22,7 @@
 Cirql (pronounced Circle) is a simple and lightweight ORM and query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod). Unlike most query builders, Cirql takes a very open approach, providing you with complete control over your queries.
 
 ## Features
-- 🔗 Connect directly to SurrealDB without dependencies
+- 🔗 Connect to SurrealDB over stateful WebSockets or stateless requests
 - 📦 Immutable query chaining for batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
@@ -48,11 +48,13 @@ import { Cirql } from 'cirql';
 const cirql = new Cirql({
     connection: {
         endpoint: 'http://localhost:8000/',
-        username: 'root',
-        password: 'root',
         namespace: 'test',
         database: 'test',
-    }
+    },
+	credentials: {
+		user: 'root',
+        pass: 'root',
+	}
 });
 ```
 
@@ -168,6 +170,37 @@ const [profiles, total, john] = cirql.prepare()
 ```
 
 If you would like to run the batched queries as transaction instead, simply replace `.execute()` with `.transaction()`.
+
+### Stateless requests
+When making requests from environments where execution times might be short lived, or where you don't need to maintain persistence between requests, you can run Cirql in stateless mode. This will cause Cirql to make individual HTTP requests for each query.
+
+You can easily construct a stateless Cirql instance, execute a query, and discard it without having to close a connection. Keep in mind that stateless requests may take longer than stateful requests, so this is not recommended for long-running applications.
+
+```ts
+import { CirqlStateless } from 'cirql';
+
+const cirql = new CirqlStateless({
+    connection: {
+        endpoint: 'http://localhost:8000/',
+        namespace: 'test',
+        database: 'test',
+    },
+	credentials: {
+		user: 'root',
+        pass: 'root',
+	}
+});
+
+// You can now use the cirql instance as normal without
+// having to call .disconnect()
+
+const profiles = await cirql.selectMany({ 
+    query: 'SELECT * FROM profile WHERE age > $minAge',
+    params: {
+        minAge: 42
+    }
+});
+```
 
 ## Contributing
 We welcome any issues and PRs submitted to Cirql. Since we currently work on multiple other projects and our time is limited, we value any community help in supporting a rich future for Cirql.
