@@ -1,6 +1,6 @@
 import { input, TypeOf, ZodArray, ZodNullable, ZodTypeAny } from 'zod';
 import { RawQuery } from '../raw';
-import { ConnectionDetails } from '../types';
+import { ConnectionDetails, CredentialDetails } from '../types';
 import { QueryWriter } from '../writer/types';
 import { CirqlQuery } from './query';
 
@@ -102,6 +102,7 @@ export interface FieldMap {
 
 export interface CirqlBaseOptions {
 	connection: ConnectionDetails;
+	credentials: CredentialDetails;
 	logging?: boolean;
 	logPrinter?: (query: string, params: any) => void;
 }

@@ -1,3 +1,39 @@
+export interface RootAuth {
+	user: string;
+	pass: string;
+}
+
+export interface NamespaceAuth {
+	NS: string;
+	user: string;
+	pass: string;
+}
+
+export interface DatabaseAuth {
+	NS: string;
+	DB: string;
+	user: string;
+	pass: string;
+}
+
+export interface ScopeAuth {
+	NS: string;
+	DB: string;
+	SC: string;
+	[key: string]: unknown;
+}
+
+export interface TokenAuth {
+	token: string;
+}
+
+export type CredentialDetails =
+	| RootAuth
+	| NamespaceAuth
+	| DatabaseAuth
+	| ScopeAuth
+	| TokenAuth;
+
 export interface ConnectionDetails {
 
 	/**
@@ -6,32 +42,13 @@ export interface ConnectionDetails {
 	endpoint: string;
 
 	/**
-	 * The username to authenticate with
-	 */
-	username?: string;
-
-	/**
-	 * The password to authenticate with
-	 */
-	password?: string;
-
-	/**
-	 * The namespace to connect to
+	 * The namespace to connect to for executing queries
 	 */
 	namespace?: string;
 
 	/**
-	 * The database to connect to
+	 * The database to connect to for executing queries
 	 */
 	database?: string;
 
-	/**
-	 * The scope to use for the connection
-	 */
-	scope?: string;
-
-	/**
-	 * A JWT token to use for authentication. If this is provided, the username and password will be ignored
-	 */
-	token?: string;
 }

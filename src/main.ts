@@ -6,9 +6,11 @@ const cirql = new Cirql({
 	connection: {
 		namespace: 'test',
 		database: 'test',
-		endpoint: 'http://localhost:8000',
-		password: 'root',
-		username: 'root'
+		endpoint: 'http://localhost:8000'
+	},
+	credentials: {
+		user: 'root',
+		pass: 'root'
 	},
 	logging: true,
 	retryCount: -1
@@ -18,9 +20,11 @@ const cirqlStateless = new CirqlStateless({
 	connection: {
 		namespace: 'test',
 		database: 'test',
-		endpoint: 'http://localhost:8000',
-		password: 'root',
-		username: 'root'
+		endpoint: 'http://localhost:8000'
+	},
+	credentials: {
+		user: 'root',
+		pass: 'root'
 	},
 	logging: true
 });

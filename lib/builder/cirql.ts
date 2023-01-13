@@ -76,6 +76,7 @@ export class Cirql extends CirqlBaseImpl {
 		this.#isPending = true;
 		this.#surreal = openConnection({
 			connection: this.options.connection,
+			credentials: this.options.credentials,
 			onConnect: () => {
 				clearTimeout(this.#retryTask);
 
@@ -149,17 +150,18 @@ export class CirqlStateless extends CirqlBaseImpl {
 			throw new CirqlError('Stateless queries do not support parameters yet. ', 'invalid_request');
 		}
 
-		const { endpoint, username, password, token, namespace, database, scope } = this.options.connection;
+		const { endpoint, namespace, database } = this.options.connection;
+		const { user, pass, DB, NS, SC, token } = this.options.credentials as any;
 
 		const url = new URL('sql', endpoint);
 
-		if (!username && !password && !token) {
+		if (!user && !pass && !token) {
 			throw new CirqlError('Missing username & password or token', 'invalid_request');
 		}
 
 		const authString = token
 			? `Bearer ${token}`
-			: `Basic ${btoa(`${username}:${password}`)}`;
+			: `Basic ${btoa(`${user}:${pass}`)}`;
 
 		const headers: Record<string, string> = {
 			'User-Agent': 'Cirql',
@@ -167,16 +169,19 @@ export class CirqlStateless extends CirqlBaseImpl {
 			'Accept': 'application/json'
 		};
 
-		if (namespace) {
-			headers['NS'] = namespace;
+		// NOTE I have no idea what I'm supposed to do with the credentials DB and NS, since
+		// in the WebSocket protocol they are seperate from the USE-related database and namespace (I think).
+
+		if (NS || namespace) {
+			headers['NS'] = NS || namespace;
 		}
 
-		if (database) {
-			headers['DB'] = database;
+		if (DB || database) {
+			headers['DB'] = DB || database;
 		}
 
-		if (scope) {
-			headers['SC'] = scope;
+		if (SC) {
+			headers['SC'] = SC;
 		}
 
 		const result = await fetch(url, {

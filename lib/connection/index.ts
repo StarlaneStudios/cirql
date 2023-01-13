@@ -64,21 +64,15 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	};
 
 	socket.addEventListener('open', async () => {
-		const { username, password, namespace, database, scope, token } = options.connection;
+		const { namespace, database } = options.connection;
 
 		options.onConnect?.();
  
 		try {
-			if (token) {
-				await message('authenticate', [token]);
+			if ('token' in options.credentials) {
+				await message('authenticate', [options.credentials.token]);
 			} else {
-				await message('signin', [{
-					user: username,
-					pass: password,
-					NS: namespace,
-					DB: database,
-					SC: scope
-				}]);
+				await message('signin', [options.credentials]);
 			}
 		} catch {
 			close();
