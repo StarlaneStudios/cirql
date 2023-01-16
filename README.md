@@ -144,7 +144,7 @@ await cirql.selectOne({
             lastName: 'Doe',
             age: 42
         })
-        .fetch(['friends', 'activities'])
+        .fetch('friends', 'activities')
         .orderBy({
             createdAt: 'desc'
         })
