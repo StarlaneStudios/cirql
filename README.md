@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-    <img src=".github/branding/logo.png">
+    <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/logo.png">
 </div>
 
 <hr />
@@ -231,7 +231,7 @@ To run in live development mode, run `pnpm dev` in the project directory. This w
 
 ## Maintainers
 <a href="https://starlane.studio">
-  <img src=".github/branding/starlane.png" height="64">
+  <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/starlane.png" height="64">
 </a>
 
 Cirql is built and maintained by <a href="https://starlane.studio/">Starlane Studios</a> at no cost. If you would like to support our work feel free to [donate to us](https://paypal.me/ExodiusStudios) ⚡
