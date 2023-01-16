@@ -116,6 +116,10 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 		}
 	});
 
+	socket.addEventListener('error', () => {
+		// Prevent crash on node
+	});
+
 	return {
 		close,
 		query,

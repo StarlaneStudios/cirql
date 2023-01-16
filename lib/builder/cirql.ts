@@ -1,8 +1,8 @@
 import { CirqlOptions, CirqlStatelessOptions, Params } from "./types";
+import { CirqlError, CirqlErrorEvent } from "../errors";
 import { SurrealHandle } from "../connection/types";
 import { openConnection } from "../connection";
 import { CirqlBaseImpl } from "./base";
-import { CirqlError } from "../errors";
 
 /**
  * A stateful connection to a Surreal database. This class provides full access
@@ -98,10 +98,8 @@ export class Cirql extends CirqlBaseImpl {
 					this.#retryTask = setTimeout(() => this.connect(), retryDelay);
 				}
 			},
-			onError: (error) => {
-				this.dispatchEvent(new CustomEvent('error', {
-					detail: error
-				}));
+			onError: (error, reason) => {
+				this.dispatchEvent(new CirqlErrorEvent(error, reason));
 			}
 		});
 	}

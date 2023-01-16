@@ -52,3 +52,19 @@ export class CirqlWriterError extends CirqlError {
 	}
 
 }
+
+/**
+ * An event thrown when a Cirql connection encounters an error
+ */
+export class CirqlErrorEvent extends Event {
+	
+	readonly code: number;
+	readonly reason: string;
+
+	constructor(code: number, reason: string) {
+		super('error');
+		this.code = code;
+		this.reason = reason;
+	}
+
+}
