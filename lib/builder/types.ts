@@ -36,7 +36,7 @@ export interface CirqlQueries {
 	 * @param options The query options
 	 * @returns The query result
 	 */
-	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<R | ZodArray<R, "many">>]>>;
+	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<ZodArray<R, "many">>]>>;
 
 	/**
 	 * Select a single record with support for parameters and return the result
