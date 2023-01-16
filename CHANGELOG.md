@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.7 - Fix node compatibility
+- Avoid useage of CustomEvent for `error` event as node LTS does not support it
+	- Custom event is now emitted containing `code` and `reason` properties
+
 ## 0.1.6 - Improved return types
 - Fixed delete operations failing
 - Delete, relate, and let queries now return `Promise<undefined>`
