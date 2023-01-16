@@ -1,4 +1,5 @@
-export type Ordering = Record<string, 'asc' | 'desc'>;
+export type Order = 'asc' | 'desc';
+export type Ordering = Record<string, Order>;
 
 export type Where = {
 	OR?: Where[];

@@ -1,7 +1,7 @@
 import { CirqlError } from "../errors";
 import { isRaw } from "../helpers";
 import { Raw } from "../raw";
-import { Ordering, QueryWriter, Where } from "./types";
+import { Order, Ordering, QueryWriter, Where } from "./types";
 
 interface SelectQueryState {
 	projections: string | undefined;
@@ -115,10 +115,16 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param order The fields to order by
 	 * @returns The query writer
 	 */
-	orderBy(order: Ordering) {
+	orderBy(table: string, order?: Order): SelectQueryWriter;
+	orderBy(order: Ordering): SelectQueryWriter;
+	orderBy(tableOrOrder: string|Ordering, order?: Order) {
+		const ordering: Ordering = typeof tableOrOrder === 'string'
+			? { [tableOrOrder]: order || 'asc' }
+			: tableOrOrder;
+
 		return new SelectQueryWriter({
 			...this.#state,
-			order
+			order: ordering
 		});
 	}
 
