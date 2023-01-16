@@ -214,7 +214,7 @@ export class SelectQueryWriter implements QueryWriter {
 		}
 
 		if (split.length > 0) {
-			builder += ` SPLIT AT ${split.join(', ')}`;
+			builder += ` SPLIT ${split.join(', ')}`;
 		}
 
 		if (group === 'all') {

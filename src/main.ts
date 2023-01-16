@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cirql } from '../lib';
+import { Cirql, select } from '../lib';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({
@@ -15,6 +15,13 @@ const cirql = new Cirql({
 	logging: true,
 	retryCount: -1
 });
+
+const query = select()
+	.fromRecord('profile', 'dangerous:eikel\\"SELECT * FROM organisation\\"')
+	.split('teel', 'bal')
+	.toQuery();
+
+console.log(query);
 
 export const Organisation = z.object({
     id: z.string(),
