@@ -42,9 +42,9 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	/**
 	 * Clean up any resources
 	 */
-	const cleanUp = () => {
+	const cleanUp = (code: number, reason: string) => {
 		clearInterval(pinger);
-		options.onDisconnect?.();
+		options.onDisconnect?.(code, reason);
 	}
 
 	/**
@@ -53,7 +53,7 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	const close = () => {
 		isClosed = true;
 		socket.close();
-		cleanUp();
+		cleanUp(-1, 'connection terminated');
 	};
 
 	/**
@@ -86,11 +86,7 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 
 	socket.addEventListener('close', (event) => {
 		if (!isClosed) {
-			cleanUp();
-		}
-
-		if (event.code !== 1000) {
-			options.onError?.(event.code, event.reason);
+			cleanUp(event.code, event.reason);
 		}
 	});
 
@@ -116,8 +112,12 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 		}
 	});
 
-	socket.addEventListener('error', () => {
-		// Prevent crash on node
+	socket.addEventListener('error', (e) => {
+		console.log(e.error);
+		console.log(e.message);
+		console.log(e.type);
+
+		options.onError?.(e.error);
 	});
 
 	return {

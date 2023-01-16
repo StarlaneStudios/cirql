@@ -1,7 +1,8 @@
 import { CirqlOptions, CirqlStatelessOptions, Params } from "./types";
-import { CirqlError, CirqlErrorEvent } from "../errors";
+import { CirqlCloseEvent, CirqlErrorEvent } from "../events";
 import { SurrealHandle } from "../connection/types";
 import { openConnection } from "../connection";
+import { CirqlError } from "../errors";
 import { CirqlBaseImpl } from "./base";
 
 /**
@@ -86,10 +87,10 @@ export class Cirql extends CirqlBaseImpl {
 				this.#isPending = false;
 				this.dispatchEvent(new Event('open'));
 			},
-			onDisconnect: () => {
+			onDisconnect: (error, reason) => {
 				this.#isConnected = false;
 				this.#isPending = false;
-				this.dispatchEvent(new Event('close'));
+				this.dispatchEvent(new CirqlCloseEvent(error, reason));
 
 				const { retryCount, retryDelay } = this.options;
 
@@ -98,8 +99,8 @@ export class Cirql extends CirqlBaseImpl {
 					this.#retryTask = setTimeout(() => this.connect(), retryDelay);
 				}
 			},
-			onError: (error, reason) => {
-				this.dispatchEvent(new CirqlErrorEvent(error, reason));
+			onError: (error) => {
+				this.dispatchEvent(new CirqlErrorEvent(error));
 			}
 		});
 	}

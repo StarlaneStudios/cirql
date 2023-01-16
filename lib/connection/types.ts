@@ -6,8 +6,8 @@ export interface SurrealOptions {
 	connection: ConnectionDetails;
 	credentials: CredentialDetails;
 	onConnect?: () => void;
-	onDisconnect?: () => void;
-	onError?: (code: number, reason: string) => void;
+	onDisconnect?: (code: number, reason: string) => void;
+	onError?: (error: any) => void;
 }
 
 export interface SurrealHandle {
