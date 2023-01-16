@@ -19,7 +19,14 @@ interface SelectQueryState {
 
 /**
  * The query writer implementations for SELECT queries. Remember to
- * always make sure of parameters to avoid potential SurSQL injection.
+ * always make sure of parameters to avoid potential SQL injection.
+ * 
+ * When prevention of SQL injections is important, avoid passing
+ * variables to all functions except `where`.
+ * 
+ * When using Cirql server side, never trust record ids directly
+ * passed to the query writer. Always use the `fromRecord` function
+ * to ensure the record id has an intended table name.
  */
 export class SelectQueryWriter implements QueryWriter {
 	
@@ -30,27 +37,45 @@ export class SelectQueryWriter implements QueryWriter {
 	}
 
 	/**
-	 * Specify the targets for the query. This can either be a table name,
-	 * list of records, or a subquery.
+	 * Specify the targets for the query. This can include table names,
+	 * record ids, and subqueries.
 	 * 
 	 * @param targets The targets for the query
 	 * @returns The query writer
 	 */
-	from(targets: string|string[]|QueryWriter): SelectQueryWriter {
-		if (Array.isArray(targets)) {
-			targets = targets.join(', ');
-		} else if (typeof targets === 'object') {
-			targets = `(${targets.toQuery()})`;
-		}
+	from(...targets: string[]|QueryWriter[]): SelectQueryWriter {
+		const columns = targets.map(target => {
+			if (typeof target === 'string') {
+				return target;
+			} else {
+				return `(${target.toQuery()})`;
+			}
+		});
 
-		return new SelectQueryWriter({
-			...this.#state,
-			targets
+		return this.#push({
+			targets: columns.join(', ')
 		});
 	}
 
 	/**
-	 * Define the where clause for the query
+	 * Specify the target for the query as a record pointer. This function
+	 * is especially useful in situations where the table name within a
+	 * record pointer may be spoofed, and a specific table name is required.
+	 * 
+	 * @param table The table name
+	 * @param id The record id, either the full id or just the unique id
+	 * @returns 
+	 */
+	fromRecord(table: string, id: string): SelectQueryWriter {
+		return this.#push({
+			targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`
+		});
+	}
+
+	/**
+	 * Define the where clause for the query. All values will be escaped
+	 * automatically. Use of `raw` is supported, as well as any operators
+	 * wrapping the raw function.
 	 * 
 	 * @param where The where clause
 	 * @returns The query writer
@@ -60,10 +85,7 @@ export class SelectQueryWriter implements QueryWriter {
 			where = this.#parseWhereClause(where);	
 		}
 
-		return new SelectQueryWriter({
-			...this.#state,
-			where
-		});
+		return this.#push({ where });
 	}
 
 	/**
@@ -72,13 +94,8 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The split fields
 	 * @returns The query writer
 	 */
-	split(fields: string|string[]) {
-		const split = Array.isArray(fields) ? fields : [fields];
-
-		return new SelectQueryWriter({
-			...this.#state,
-			split
-		});
+	split(...split: string[]) {
+		return this.#push({ split });
 	}
 
 	/**
@@ -88,13 +105,8 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The fields to group by
 	 * @returns The query writer
 	 */
-	groupBy(fields: string|string[]) {
-		const group = Array.isArray(fields) ? fields : [fields];
-
-		return new SelectQueryWriter({
-			...this.#state,
-			group
-		});
+	groupBy(...group: string[]) {
+		return this.#push({ group });
 	}
 
 	/**
@@ -103,10 +115,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @returns The query writer
 	 */
 	groupAll() {
-		return new SelectQueryWriter({
-			...this.#state,
-			group: 'all'
-		});
+		return this.#push({ group: 'all' });
 	}
 
 	/**
@@ -122,8 +131,7 @@ export class SelectQueryWriter implements QueryWriter {
 			? { [tableOrOrder]: order || 'asc' }
 			: tableOrOrder;
 
-		return new SelectQueryWriter({
-			...this.#state,
+		return this.#push({
 			order: ordering
 		});
 	}
@@ -135,10 +143,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @returns The query writer
 	 */
 	limit(limit: number) {
-		return new SelectQueryWriter({
-			...this.#state,
-			limit
-		});
+		return this.#push({ limit });
 	}
 
 	/**
@@ -148,10 +153,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @returns The query writer
 	 */
 	start(start: number) {
-		return new SelectQueryWriter({
-			...this.#state,
-			start
-		});
+		return this.#push({ start });
 	}
 
 	/**
@@ -160,26 +162,18 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The fields to fetch
 	 * @returns The query writer
 	 */
-	fetch(fields: string | string[]) {
-		const fetch = Array.isArray(fields) ? fields : [fields];
-
-		return new SelectQueryWriter({
-			...this.#state,
-			fetch
-		});
+	fetch(...fetch: string[]) {
+		return this.#push({ fetch });
 	}
 
 	/**
 	 * Set the timeout for the query
 	 * 
-	 * @param seconds The timeout in milliseconds
+	 * @param seconds The timeout in seconds
 	 * @returns The query writer
 	 */
-	timeout(seconds: number) {
-		return new SelectQueryWriter({
-			...this.#state,
-			timeout: seconds
-		});
+	timeout(timeout: number) {
+		return this.#push({ timeout });
 	}
 
 	/**
@@ -188,10 +182,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @returns The query writer
 	 */
 	parallel() {
-		return new SelectQueryWriter({
-			...this.#state,
-			parallel: true
-		});
+		return this.#push({ parallel: true });
 	}
 
 	toQuery(): string {
@@ -277,7 +268,7 @@ export class SelectQueryWriter implements QueryWriter {
 				}
 
 				for (const sub of subValue) {
-					subClauses.push(`(${this.#parseWhereClause(sub!)})`);
+					subClauses.push(`(${this.#parseWhereClause(sub)})`);
 				}
 
 				clauses.push(`(${subClauses.join(` ${key} `)})`);
@@ -295,6 +286,13 @@ export class SelectQueryWriter implements QueryWriter {
 		return clauses.join(` AND `);
 	}
 
+	#push(extra: Partial<SelectQueryState>) {
+		return new SelectQueryWriter({
+			...this.#state,
+			...extra
+		});
+	}
+
 }
 
 /**
@@ -304,13 +302,9 @@ export class SelectQueryWriter implements QueryWriter {
  * @param projections The projections to select
  * @returns The query writer
  */
-export function select(projections?: string|string[]): SelectQueryWriter {
-	if (Array.isArray(projections)) {
-		projections = projections.join(', ');
-	}
-	
+export function select(...projections: string[]): SelectQueryWriter {
 	return new SelectQueryWriter({
-		projections: projections || '*',
+		projections: projections.join(', ') || '*',
 		targets: undefined,
 		where: undefined,
 		split: [],
