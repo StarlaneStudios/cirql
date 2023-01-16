@@ -44,7 +44,7 @@ export interface CirqlQueries {
 	 * @param options The query options
 	 * @returns The query result
 	 */
-	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<R | ZodNullable<R>>]>>;
+	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<ZodNullable<R>>]>>;
 
 	/**
 	 * Create a new record from the given data and return the result.
