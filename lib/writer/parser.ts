@@ -8,7 +8,7 @@ import { Where } from "./types";
  * 
  * @param input The input object
  */
-export function buildFields(input: object): string {
+export function parseSetFields(input: object): string {
 	const values: string[] = [];
 
 	function process(obj: object, path: string) {

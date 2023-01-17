@@ -1,5 +1,5 @@
 import { CirqlWriterError } from "../errors";
-import { parseWhereClause } from "./helpers";
+import { parseWhereClause } from "./parser";
 import { QueryWriter, ReturnMode, Where } from "./types";
 
 interface DeleteQueryState {

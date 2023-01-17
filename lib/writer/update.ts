@@ -1,5 +1,5 @@
 import { CirqlWriterError } from "../errors";
-import { buildFields, parseWhereClause } from "./helpers";
+import { parseSetFields, parseWhereClause } from "./parser";
 import { QueryWriter, ReturnMode, Where } from "./types";
 
 type ContentMode = 'replace' | 'merge';
@@ -194,7 +194,7 @@ export class UpdateQueryWriter implements QueryWriter {
 		let builder = `UPDATE ${targets}`;
 
 		if (this.#hasSetFields()) {
-			builder += ` SET ${buildFields(setFields)}`;
+			builder += ` SET ${parseSetFields(setFields)}`;
 		} else if (this.#hasContent()) {
 			const keyword = contentMode === 'merge' ? 'MERGE' : 'CONTENT';
 

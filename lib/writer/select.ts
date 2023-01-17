@@ -1,4 +1,4 @@
-import { parseWhereClause } from "./helpers";
+import { parseWhereClause } from "./parser";
 import { Order, Ordering, QueryWriter, Where } from "./types";
 
 interface SelectQueryState {

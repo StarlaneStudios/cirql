@@ -1,5 +1,5 @@
 import { CirqlWriterError } from "../errors";
-import { buildFields } from "./helpers";
+import { parseSetFields } from "./parser";
 import { QueryWriter, ReturnMode } from "./types";
 
 interface CreateQueryState {
@@ -148,7 +148,7 @@ export class CreateQueryWriter implements QueryWriter {
 		let builder = `CREATE ${targets}`;
 
 		if (this.#hasSetFields()) {
-			builder += ` SET ${buildFields(setFields)}`;
+			builder += ` SET ${parseSetFields(setFields)}`;
 		} else if (this.#hasContent()) {
 			builder += ` CONTENT ${JSON.stringify(content)}`;
 		}
