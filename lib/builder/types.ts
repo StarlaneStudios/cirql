@@ -1,7 +1,7 @@
 import { input, TypeOf, ZodArray, ZodNullable, ZodTypeAny } from 'zod';
 import { RawQuery } from '../raw';
 import { ConnectionDetails, CredentialDetails } from '../types';
-import { QueryWriter } from '../writer/types';
+import { QueryWriter, Where } from '../writer/types';
 import { CirqlQuery } from './query';
 
 export type Params = Record<string, any>;
@@ -142,11 +142,11 @@ export interface StringQuery {
 }
 
 export type LetQueryOptions = { name: string, value: any | RawQuery | QueryWriter };
-export type CountQueryOptions = ParameterizedQuery & { table: string, where?: RawQuery };
-export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: RawQuery };
+export type CountQueryOptions = ParameterizedQuery & { table: string, where?: string| Where };
+export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: string| Where };
 export type SelectQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
 export type SimpleQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
 export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & ParameterizedQuery & { table: string, id?: string, data: Input<D> };
-export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & ParameterizedQuery & { table: string, id: string, data: Partial<Input<D>> };
-export type RelateQueryOptions<D extends {} = {}> = ParameterizedQuery &{ fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
+export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & ParameterizedQuery & { table: string, id?: string, data: Partial<Input<D>> };
+export type RelateQueryOptions<D extends {} = {}> = ParameterizedQuery & { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
 export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema?: T, elseSchema?: E };

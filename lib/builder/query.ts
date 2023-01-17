@@ -1,12 +1,14 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
-import { isRaw, nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
-import { buildFields } from "../writer/fields";
+import { isRaw, parseQuery, useValueOrRaw } from "../helpers";
 import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
 import { Raw } from "../raw";
 import { CirqlAdapter } from "./base";
-import { create } from "../writer/create";
+import { create, createRecord } from "../writer/create";
+import { update, updateRecord } from "../writer/update";
+import { del, delRecord } from "../writer/delete";
+import { relateRecords } from "../writer/relate";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
@@ -101,10 +103,12 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		const query = create();
+		const query = options.id
+			? createRecord(options.table, options.id)
+			: create(options.table);
 
 		return this.#push({
-			query: query,
+			query: query.setAll(options.data),
 			schema: options.schema || z.any() as unknown as R,
 			transform(data) {
 				if (data.length > 1) {
@@ -124,24 +128,17 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		const tb = nextId('tb'); 
-		const id = nextId('id');
-		const fields = buildFields(options.data);
-		const query = `UPDATE ${thing(tb, id)} SET ${fields.query}`;
-
-		const params = {
-			...fields.values,
-			[tb]: options.table,
-			[id]: options.id
-		};
+		const query = options.id
+			? updateRecord(options.table, options.id)
+			: update(options.table);
 
 		return this.#push({
-			query: query,
+			query: query.setAll(options.data),
 			schema: options.schema || z.any() as unknown as R,
 			transform(data) {
 				return data[0];
 			}
-		}, params);
+		}, options.params || {});
 	}
 
 	/**
@@ -151,22 +148,19 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	delete(options: DeleteQueryOptions) {
-		const tb = nextId('tb'); 
-		const id = nextId('id');
-		const target = options.id ? thing(tb, id) : table(tb);
-		const query = `DELETE ${target}${options.where ? ` WHERE ${options.where[Raw]}` : ''}`;
-
-		const params = {
-			...options.params,
-			[tb]: options.table,
-			[id]: options.id
-		};
+		let query = options.id
+			? delRecord(options.table, options.id)
+			: del(options.table);
+		
+		if (options.where) {
+			query = query.where(options.where);
+		}
 
 		return this.#push({
 			query: query,
 			schema: z.undefined(),
 			skip: true
-		}, params);
+		}, options.params || {});
 	}
 
 	/**
@@ -176,12 +170,10 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	count(options: CountQueryOptions) {
-		const tb = nextId('tb');
-		const query = select('count()').from(table(tb)).where(options.where?.[Raw] || '').groupAll();
+		let query = select('count()').from(options.table).groupAll();
 
-		const params = {
-			...options.params,
-			[tb]: options.table
+		if (options.where) {
+			query = query.where(options.where);
 		}
 
 		return this.#push({
@@ -190,7 +182,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 			transform(data) {
 				return data[0].count;
 			},
-		}, params);
+		}, options.params || {});
 	}
 	
 	/**
@@ -200,38 +192,17 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	relate(options: RelateQueryOptions) {
-		const fromTable = nextId('fromTable');
-		const fromId = nextId('fromId');
-		const toTable = nextId('toTable');
-		const toId = nextId('toId');
-		const edge = nextId('edge');
-		const from = thing(fromTable, fromId);
-		const to = thing(toTable, toId);
-
-		let query = `RELATE ${from}->$${edge}->${to}`;
-		let params = {
-			[fromTable]: options.fromTable,
-			[fromId]: options.fromId,
-			[toTable]: options.toTable,
-			[toId]: options.toId,
-			[edge]: options.edge
-		};
+		let query = relateRecords(options.fromTable, options.fromId, options.edge, options.toTable, options.toId);
 
 		if (options.data) {
-			const fields = buildFields(options.data);
-
-			query += ` SET ${fields.query}`;
-			params = {
-				...params,
-				...fields.values
-			};
+			query = query.setAll(options.data);
 		}
 		
 		return this.#push({
 			query: query,
 			schema: z.undefined(),
 			skip: true
-		}, params);
+		}, options.params || {});
 	}
 
 	/**
