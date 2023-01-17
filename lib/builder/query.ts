@@ -1,6 +1,6 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
 import { isRaw, parseQuery, useValueOrRaw } from "../helpers";
-import { z, ZodTypeAny } from 'zod';
+import { z, ZodArray, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
 import { Raw } from "../raw";
@@ -54,7 +54,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.#push({
 			query: options.query,
-			schema: options.schema?.array() || z.any().array() as unknown as R
+			schema: options.schema?.array() || z.any().array() as unknown as ZodArray<R>
 		}, options.params || {});
 	}
 
