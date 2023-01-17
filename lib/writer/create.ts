@@ -1,5 +1,5 @@
 import { CirqlWriterError } from "../errors";
-import { buildFields } from "./fields";
+import { buildFields } from "./helpers";
 import { QueryWriter, ReturnMode } from "./types";
 
 interface CreateQueryState {
@@ -14,6 +14,13 @@ interface CreateQueryState {
 
 /**
  * The query writer implementations for CREATE queries.
+ * 
+ * When prevention of SQL injections is important, avoid passing
+ * variables to all functions except `set`, `setAll`, and `content`.
+ * 
+ * When using Cirql server side, never trust record ids directly
+ * passed to the query writer. Always use the `createRecord` function
+ * to ensure the record id has an intended table name.
  */
 export class CreateQueryWriter implements QueryWriter {
 	

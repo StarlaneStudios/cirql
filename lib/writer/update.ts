@@ -18,6 +18,14 @@ interface UpdateQueryState {
 
 /**
  * The query writer implementations for UPDATE queries.
+ * 
+ * When prevention of SQL injections is important, avoid passing
+ * variables to all functions except `where`, `set`, `setAll`,
+ * `content`, and `merge`.
+ * 
+ * When using Cirql server side, never trust record ids directly
+ * passed to the query writer. Always use the `updateRecord` function
+ * to ensure the record id has an intended table name.
  */
 export class UpdateQueryWriter implements QueryWriter {
 	
