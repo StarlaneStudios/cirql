@@ -29,22 +29,10 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		this.#params = params || {};
 	}
 
-	#push<R extends ZodTypeAny>(query: Query<R>, params: Params) {
-		for (const param of Object.keys(params)) {
-			if (this.#params[param]) {
-				throw new Error(`Duplicate parameter name: ${param}`);
-			}
-		}
-
-		return new CirqlQuery(
-			this.#adapter,
-			[...this.#queries, query] as const,
-			{...this.#params, ...params}
-		);
-	}
-
 	/**
-	 * Execute a raw query with support for parameters
+	 * Execute any query with support for parameters and schema
+	 * validation. When possible, use the more specific query
+	 * methods instead.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -58,6 +46,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 	/**
 	 * Start a new query and select multiple records with support for parameters
+	 * and schema validation.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -70,7 +59,9 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 
 	/**
-	 * Select a single record with support for parameters
+	 * Select a single record with support for parameters and schema validation.
+	 * When passing a `SelectQueryWriter` the `limit` will automatically be set
+	 * to 1.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -96,8 +87,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 
 	/**
-	 * Create a new record from the given data. You can use the raw() function
-	 * to insert a raw value into the query.
+	 * Create a new record from the given data. `data` supports using
+	 * `raw` values as well as operator functions.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -121,8 +112,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 
 	/**
-	 * Update one or more records with the given data. You can use the raw()
-	 * function to insert a raw value into the query.
+	 * Update one or more records with the given data. `data` supports using
+	 * `raw` values as well as operator functions.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -142,7 +133,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 
 	/**
-	 * Remove a single record by its unique ID
+	 * Remove one or more records from the database.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -186,7 +177,8 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	}
 	
 	/**
-	 * Relate a record to another record over an edge.
+	 * Relate a record to another record over an edge. `data` supports using
+	 * `raw` values as well as operator functions.
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
@@ -327,6 +319,20 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		this.#querySuffix = 'COMMIT TRANSACTION';
 
 		return this.execute();
+	}
+
+	#push<R extends ZodTypeAny>(query: Query<R>, params: Params) {
+		for (const param of Object.keys(params)) {
+			if (this.#params[param]) {
+				throw new Error(`Duplicate parameter name: ${param}`);
+			}
+		}
+
+		return new CirqlQuery(
+			this.#adapter,
+			[...this.#queries, query] as const,
+			{...this.#params, ...params}
+		);
 	}
 
 	#buildQuery() {
