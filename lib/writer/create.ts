@@ -1,15 +1,13 @@
-import { CirqlError, CirqlWriterError } from "../errors";
-import { isRaw } from "../helpers";
-import { Raw } from "../raw";
-import { QueryWriter, Where } from "./types";
-
-export type Return = 'none' | 'before' | 'after' | 'diff';
+import { CirqlWriterError } from "../errors";
+import { buildFields } from "./fields";
+import { QueryWriter, ReturnMode } from "./types";
 
 interface CreateQueryState {
 	targets: string;
 	setFields: object;
 	content: object;
-	return: Return;
+	returnMode: ReturnMode | 'fields' | undefined;
+	returnFields: string[];
 	timeout: number | undefined;
 	parallel: boolean;
 }
@@ -83,10 +81,28 @@ export class CreateQueryWriter implements QueryWriter {
 		return this.#push({ content });
 	}
 
-	return() {
-
+	/**
+	 * Define the return behavior for the query
+	 * 
+	 * @param value The return behavior
+	 * @returns The query writer
+	 */
+	return(mode: ReturnMode) {
+		return this.#push({ returnMode: mode });
 	}
-		
+	
+	/**
+	 * Define the return behavior for the query
+	 * 
+	 * @param value The return behavior
+	 * @returns The query writer
+	 */
+	returnFields(...fields: string[]) {
+		return this.#push({
+			returnMode: 'fields',
+			returnFields: fields
+		});
+	}
 
 	/**
 	 * Set the timeout for the query
@@ -109,60 +125,31 @@ export class CreateQueryWriter implements QueryWriter {
 
 	toQuery(): string {
 		const {
-			projections,
 			targets,
-			where,
-			split,
-			group,
-			order,
-			limit,
-			start,
-			fetch,
+			content,
+			setFields,
+			returnMode,
+			returnFields,
 			timeout,
 			parallel
 		} = this.#state;
 
-		if (!projections) {
-			throw new Error('No projections specified');
-		} else if (!targets) {
+		if (!targets) {
 			throw new Error('No targets specified');
 		}
+		
+		let builder = `CREATE ${targets}`;
 
-		const orders = Object.entries(order);
-		let builder = `SELECT ${projections} FROM ${targets}`;
-
-		if (where) {
-			builder += ` WHERE ${where}`;
+		if (this.#hasSetFields()) {
+			builder += ` SET ${buildFields(setFields)}`;
+		} else if (this.#hasContent()) {
+			builder += ` CONTENT ${JSON.stringify(content)}`;
 		}
 
-		if (split.length > 0) {
-			builder += ` SPLIT ${split.join(', ')}`;
-		}
-
-		if (group === 'all') {
-			builder += ' GROUP BY ALL';
-		} else if(group.length > 0) {
-			builder += ` GROUP BY ${group.join(', ')}`;
-		}
-
-		if (orders.length > 0) {
-			const orderFields = orders.map(([field, direction]) => {
-				return `${field} ${direction.toUpperCase()}`;
-			});
-
-			builder += ` ORDER BY ${orderFields.join(', ')}`;
-		}
-
-		if (limit) {
-			builder += ` LIMIT BY ${limit}`;
-		}
-
-		if (start) {
-			builder += ` START AT ${start}`;
-		}
-
-		if (fetch.length > 0) {
-			builder += ` FETCH ${fetch.join(', ')}`;
+		if (returnMode === 'fields') {
+			builder += ` RETURN ${returnFields.join(', ')}`;
+		} else if(returnMode) {
+			builder += ` RETURN ${returnMode.toUpperCase()}`;
 		}
 
 		if (timeout) {
@@ -176,40 +163,8 @@ export class CreateQueryWriter implements QueryWriter {
 		return builder;
 	}
 
-	#parseWhereClause(clause: Where) {
-		const keys = Object.keys(clause);
-		const clauses: string[] = [];
-
-		for (const key of keys) {
-			if (key === 'OR' || key === 'AND') {
-				const subValue = clause[key];
-				const subClauses = [];
-
-				if (subValue === undefined) {
-					throw new CirqlError('Received expected undefined property in where clause', 'invalid_request');
-				}
-
-				for (const sub of subValue) {
-					subClauses.push(`(${this.#parseWhereClause(sub)})`);
-				}
-
-				clauses.push(`(${subClauses.join(` ${key} `)})`);
-			} else {
-				const value = clause[key];
-
-				if (isRaw(value)) {
-					clauses.push(`${key} ${value[Raw]}`);
-				} else {
-					clauses.push(`${key} = ${JSON.stringify(value)}`);
-				}
-			}
-		}
-
-		return clauses.join(` AND `);
-	}
-
-	#push(extra: Partial<SelectQueryState>) {
-		return new SelectQueryWriter({
+	#push(extra: Partial<CreateQueryState>) {
+		return new CreateQueryWriter({
 			...this.#state,
 			...extra
 		});
@@ -240,8 +195,22 @@ export function create(...targets: string[]): CreateQueryWriter {
 		targets: targets.join(', '),
 		setFields: {},
 		content: {},
-		return: 'none',
+		returnMode: undefined,
+		returnFields: [],
 		timeout: undefined,
 		parallel: false
 	});
+}
+
+/**
+ * Start a new CREATE query for the given record. This function
+ * is especially useful in situations where the table name within a
+ * record pointer may be spoofed, and a specific table name is required.
+ * 
+ * @param table The record table
+ * @param id The record id, either the full id or just the unique id
+ * @returns The query writer
+ */
+export function createRecord(table: string, id: string): CreateQueryWriter {
+	return create(`type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`);
 }

@@ -1,6 +1,6 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
 import { isRaw, nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
-import { buildFieldMap } from "../writer/fields";
+import { buildFields } from "../writer/fields";
 import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
@@ -102,7 +102,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
 		const tb = nextId('tb'); 
 		const id = nextId('id');
-		const fields = buildFieldMap(options.data);
+		const fields = buildFields(options.data);
 		const target = options.id ? thing(tb, id) : table(tb);
 		const query = `CREATE ${target} SET ${fields.query}`;
 
@@ -131,7 +131,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
 		const tb = nextId('tb'); 
 		const id = nextId('id');
-		const fields = buildFieldMap(options.data);
+		const fields = buildFields(options.data);
 		const query = `UPDATE ${thing(tb, id)} SET ${fields.query}`;
 
 		const params = {
@@ -223,7 +223,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 		};
 
 		if (options.data) {
-			const fields = buildFieldMap(options.data);
+			const fields = buildFields(options.data);
 
 			query += ` SET ${fields.query}`;
 			params = {

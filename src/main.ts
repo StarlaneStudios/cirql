@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Cirql, select } from '../lib';
+import { createRecord } from '../lib/writer/create';
 
 // Create a Cirql instance and connect to the database
 const cirql = new Cirql({
@@ -17,11 +18,24 @@ const cirql = new Cirql({
 });
 
 const query = select()
-	.fromRecord('profile', 'dangerous:eikel\\"SELECT * FROM organisation\\"')
-	.split('teel', 'bal')
+	.fromRecord('profile', 'john')
 	.toQuery();
 
 console.log(query);
+
+const creation = createRecord('profile', 'john')
+	.set('name', 'John Doe')
+	.setAll({
+		age: 30,
+		inner: {
+			value: true,
+			text: "Yes"
+		}
+	})
+	.returnFields('age')
+	.toQuery();
+
+console.log(creation);
 
 export const Organisation = z.object({
     id: z.string(),

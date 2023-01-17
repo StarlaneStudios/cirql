@@ -5,7 +5,7 @@ import { Raw } from "../raw";
  * 
  * @param input The input object
  */
-export function buildFieldMap(input: object): string {
+export function buildFields(input: object): string {
 	const values: string[] = [];
 
 	function process(obj: object, path: string) {

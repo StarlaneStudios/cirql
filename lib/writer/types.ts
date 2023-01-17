@@ -1,5 +1,6 @@
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;
+export type ReturnMode = 'none' | 'before' | 'after' | 'diff';
 
 export type Where = {
 	OR?: Where[];
