@@ -146,7 +146,7 @@ export type CountQueryOptions = ParameterizedQuery & { table: string, where?: Ra
 export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: RawQuery };
 export type SelectQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
 export type SimpleQueryOptions<S extends ZodTypeAny> = StringQuery & ParameterizedQuery & SchemafulQuery<S>;
-export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & { table: string, id?: string, data: Input<D> };
-export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & { table: string, id: string, data: Partial<Input<D>> };
-export type RelateQueryOptions<D extends {} = {}> = { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
+export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & ParameterizedQuery & { table: string, id?: string, data: Input<D> };
+export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = SchemafulQuery<S> & ParameterizedQuery & { table: string, id: string, data: Partial<Input<D>> };
+export type RelateQueryOptions<D extends {} = {}> = ParameterizedQuery &{ fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
 export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema?: T, elseSchema?: E };

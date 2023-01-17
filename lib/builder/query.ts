@@ -6,6 +6,7 @@ import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
 import { Raw } from "../raw";
 import { CirqlAdapter } from "./base";
+import { create } from "../writer/create";
 
 /**
  * The main Cirql query builder class on which all queries are built. You can
@@ -100,25 +101,19 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * @returns Cirql query builder
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		const tb = nextId('tb'); 
-		const id = nextId('id');
-		const fields = buildFields(options.data);
-		const target = options.id ? thing(tb, id) : table(tb);
-		const query = `CREATE ${target} SET ${fields.query}`;
-
-		const params = {
-			...fields.values,
-			[tb]: options.table,
-			[id]: options.id || ''
-		};
+		const query = create();
 
 		return this.#push({
 			query: query,
 			schema: options.schema || z.any() as unknown as R,
 			transform(data) {
+				if (data.length > 1) {
+					throw new CirqlError('Create only supports single targets', 'too_many_results');
+				}
+
 				return data[0];
 			}
-		}, params);
+		}, options.params || {});
 	}
 
 	/**
