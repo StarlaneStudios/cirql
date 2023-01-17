@@ -1,6 +1,6 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
 import { isRaw, nextId, parseQuery, table, thing, useValueOrRaw } from "../helpers";
-import { buildFieldMap } from "./fields";
+import { buildFieldMap } from "../writer/fields";
 import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";

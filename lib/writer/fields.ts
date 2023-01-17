@@ -1,5 +1,3 @@
-import { FieldMap } from "./types";
-import { nextId } from "../helpers";
 import { Raw } from "../raw";
 
 /**
@@ -7,12 +5,8 @@ import { Raw } from "../raw";
  * 
  * @param input The input object
  */
-export function buildFieldMap(input: object): FieldMap {
-	const data: Record<string, any> = {};
-	const changes: string[] = [];
-	const pre = nextId();
-
-	let index = 0;
+export function buildFieldMap(input: object): string {
+	const values: string[] = [];
 
 	function process(obj: object, path: string) {
 		Object.entries(obj).forEach(([key, value]) => {
@@ -20,23 +14,17 @@ export function buildFieldMap(input: object): FieldMap {
 				const raw = value[Raw];
 
 				if (raw) {
-					changes.push(`${path}${key} ${raw}`);
+					values.push(`${path}${key} ${raw}`);
 				} else {
 					process(value, `${path}${key}.`);
 				}
 			} else {
-				const name = `${pre}${index++}`;
-
-				changes.push(`${path}${key} = $${name}`);
-				data[name] = value;
+				values.push(`${path}${key} = ${JSON.stringify(value)}`);
 			}
 		});
 	}
 
 	process(input, '');
 
-	return {
-		query: changes.join(', '),
-		values: data
-	};
+	return values.join(', ');
 }

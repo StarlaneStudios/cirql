@@ -112,11 +112,6 @@ export interface Query<T extends ZodTypeAny> {
 	transform?: (data: any[]) => any;
 }
 
-export interface FieldMap {
-	query: string,
-	values: Record<string, any>
-};
-
 export interface CirqlBaseOptions {
 	connection: ConnectionDetails;
 	credentials: CredentialDetails;

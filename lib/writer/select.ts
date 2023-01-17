@@ -43,7 +43,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param targets The targets for the query
 	 * @returns The query writer
 	 */
-	from(...targets: string[]|QueryWriter[]): SelectQueryWriter {
+	from(...targets: string[]|QueryWriter[]) {
 		const columns = targets.map(target => {
 			if (typeof target === 'string') {
 				return target;
@@ -66,7 +66,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param id The record id, either the full id or just the unique id
 	 * @returns 
 	 */
-	fromRecord(table: string, id: string): SelectQueryWriter {
+	fromRecord(table: string, id: string) {
 		return this.#push({
 			targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`
 		});
