@@ -22,7 +22,7 @@ export function parseSetFields(input: object): string {
 					process(value, `${path}${key}.`);
 				}
 			} else {
-				values.push(`${path}${key} = ${JSON.stringify(value)}`);
+				values.push(`${path}${key} = ${value === null ? 'NONE' : JSON.stringify(value)}`);
 			}
 		});
 	}

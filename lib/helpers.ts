@@ -40,5 +40,5 @@ export function isRaw(input: any): input is RawQuery {
 
 /** Returns the JSON stringified value unless it is raw */
 export function useValueOrRaw(value: any) {
-	return isRaw(value) ? value[Raw] : JSON.stringify(value);
+	return isRaw(value) ? value[Raw] : value === null ? 'NONE' : JSON.stringify(value);
 }
