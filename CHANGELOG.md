@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.1.10 - Set improvements
+- Ignore `undefined` values in set fields
+
 ## 0.1.9 - Field unsetting
 - Convert `null` to `NONE` when passed to SET query fields
 	- This allows unsetting properties using `cirql.update()`
