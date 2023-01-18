@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import { Cirql, select } from '../lib';
+import * as cirql from '../lib';
+
+(window as any).cirql = cirql;
 
 // Create a Cirql instance and connect to the database
-const cirql = new Cirql({
+const database = new Cirql({
 	connection: {
 		namespace: 'test',
 		database: 'test',
@@ -23,7 +26,7 @@ export const Organisation = z.object({
 });
 
 async function execute() {
-	return cirql.prepare()
+	return database.prepare()
 		.create({
 			table: 'organisation',
 			schema: Organisation,
@@ -42,11 +45,11 @@ async function execute() {
 		.execute();
 }
 
-cirql.addEventListener('open', () => {
+database.addEventListener('open', () => {
 	setConnected(true);
 });
 
-cirql.addEventListener('close', () => {
+database.addEventListener('close', () => {
 	setConnected(false);
 });
 
@@ -99,11 +102,11 @@ async function sendQuery() {
 setConnected(false);
 
 get('connect').addEventListener('click', () => {
-	cirql.connect();
+	database.connect();
 });
 
 get('disconnect').addEventListener('click', () => {
-	cirql.disconnect();
+	database.disconnect();
 });
 
 get('send').addEventListener('click', () => {

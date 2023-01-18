@@ -13,6 +13,10 @@ export function parseSetFields(input: object): string {
 
 	function process(obj: object, path: string) {
 		Object.entries(obj).forEach(([key, value]) => {
+			if (value === undefined) {
+				return;
+			}
+
 			if (typeof value === 'object' && !Array.isArray(value)) {
 				const raw = value[Raw];
 

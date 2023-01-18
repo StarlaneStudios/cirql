@@ -148,7 +148,11 @@ export class CreateQueryWriter implements QueryWriter {
 		let builder = `CREATE ${targets}`;
 
 		if (this.#hasSetFields()) {
-			builder += ` SET ${parseSetFields(setFields)}`;
+			const fields = parseSetFields(setFields);
+
+			if (fields) {
+				builder += ` SET ${fields}`;
+			}
 		} else if (this.#hasContent()) {
 			builder += ` CONTENT ${JSON.stringify(content)}`;
 		}
