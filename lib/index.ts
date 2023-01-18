@@ -2,4 +2,5 @@ export * from './builder';
 export * from './writer';
 export * from './types';
 export * from './errors';
-export * from './operators';
+export * from './sql/operators';
+export * from './sql/functions';

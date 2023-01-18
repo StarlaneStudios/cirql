@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Cirql, select } from '../lib';
+import { Cirql, eq, select, timeNow } from '../lib';
 import * as cirql from '../lib';
 
 (window as any).cirql = cirql;
@@ -23,6 +23,7 @@ export const Organisation = z.object({
     id: z.string(),
     name: z.string().min(1),
 	isEnabled: z.boolean(),
+	createdAt: z.string()
 });
 
 async function execute() {
@@ -32,7 +33,8 @@ async function execute() {
 			schema: Organisation,
 			data: {
 				name: 'Test',
-				isEnabled: Math.random() > 0.5
+				isEnabled: Math.random() > 0.5,
+				createdAt: eq(timeNow())
 			}
 		})
 		.count({

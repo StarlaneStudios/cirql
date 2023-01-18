@@ -1,18 +1,6 @@
-import { useValueOrRaw } from "./helpers";
-import { Raw, RawQuery } from "./raw";
-
-// --- Raw Query Operators ---
-
-/**
- * Used to insert raw values into a query
- * 
- * @param value The raw query content
- */
-export function raw(value: string): RawQuery {
-	return {
-		[Raw]: value
-	};
-}
+import { useValueOrRaw } from "../helpers";
+import { RawQuery } from "../raw";
+import { raw } from "./raw";
 
 /**
  * Returns a raw query operator for `=`
