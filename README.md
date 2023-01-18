@@ -74,6 +74,7 @@ Once you have your cirql connection opened, you will be able to execute queries 
 ```ts
 const profiles = await cirql.selectMany({ 
     query: 'SELECT * FROM profile WHERE age > $minAge',
+	schema: z.any(),
     params: {
         minAge: 42
     }
@@ -108,7 +109,7 @@ const profiles = await cirql.selectMany({
 ```
 
 ### Simplified create & update queries
-Using the query functions for sending create and update queries will allow you to provide any JavaScript object which will be automatically serialized. You can use the `eq` function to insert raw query values such as SurrealDB functions.
+Using the query functions for sending create and update queries will allow you to provide any JavaScript object which will be automatically serialized. You can use the `raw` function in conjunction with `eq` to insert raw query values such as SurrealDB functions or parameter names.
 
 ```ts
 await cirql.create({
@@ -118,13 +119,13 @@ await cirql.create({
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@example.com',
-        createdAt: eq('time::now()'),
+        createdAt: eq(raw('time::now()')),
         age: 42
     }
 });
 ```
 
-When adding or subtracting items from arrays, you can use the `add` and `remove` functions for inserting `+=` and `-=` operators.
+When adding or subtracting items from arrays, you can use the `add` and `remove` functions instead of eq for inserting `+=` and `-=` operators.
 
 ### Writing programmatic queries
 Having to write your queries as plain strings is fine for most use-cases, however Cirql also provides an API for writing programmatic queries. You can pass these directly to any operation expecting a `query` and will automatically convert your input to a string.
@@ -142,16 +143,14 @@ await cirql.selectOne({
         .where({
             firstName: eq(raw('$name')),
             lastName: 'Doe',
-            age: 42
+            age: gt(42)
         })
         .fetch('friends', 'activities')
-        .orderBy({
-            createdAt: 'desc'
-        })
+        .orderBy('createdAt', 'desc')
 });
 ```
 
-For added convinience, passing a programmatic query to `selectOne` will automatically set its limit to 1.
+For convinience, passing a programmatic query to `selectOne` will automatically set its limit to 1.
 
 ### Batched queries & transactions
 You can send multiple queries in a single request by chaining multiple operations together after using the `.prepare()` function. The execute function will return a spreadable array containing all query results.
@@ -163,16 +162,16 @@ const [profiles, total, john] = cirql.prepare()
         schema: UserProfile
     })
     .count({
-        table: 'userProfile'
+        table: 'profile'
     })
     .create({
-        table: 'userProfile',
+        table: 'profile',
         schema: UserProfile,
         data: {
             firstName: 'John',
             localhost: 'Doe',
             email: 'john@example.com',
-            createdAt: eq('time::now()'),
+            createdAt: eq(raw('time::now()')),
             age: 42
         }
     })
@@ -206,6 +205,7 @@ const cirql = new CirqlStateless({
 
 const profiles = await cirql.selectMany({ 
     query: 'SELECT * FROM profile WHERE age > $minAge',
+	schema: UserProfile,
     params: {
         minAge: 42
     }
