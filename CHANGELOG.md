@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.1.9 - Field unsetting
+- Convert `null` to `NONE` when passed to SET query fields
+	- This allows unsetting properties using `cirql.update()`
+
 ## 0.1.8 - More query writers
 - Implemented remaining query writers for `CREATE`, `UPDATE`, `DELETE`, and `RELATE`
 - Restricted `queryOne` and `queryMany` to only accept `SelectQueryWriter` instead of all writers
