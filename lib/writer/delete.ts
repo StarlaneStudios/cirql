@@ -1,6 +1,7 @@
+import { ZodArray, ZodTypeAny } from "zod";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
-import { QueryWriter, ReturnMode, Where } from "./types";
+import { BuiltQuery, QueryWriter, ReturnMode, Where } from "./types";
 
 interface DeleteQueryState {
 	targets: string;
@@ -122,6 +123,10 @@ export class DeleteQueryWriter implements QueryWriter {
 		}
 
 		return builder;
+	}
+
+	apply<T extends ZodTypeAny>(model: T): BuiltQuery<ZodArray<T>> {
+		return [this.toQuery(), model.array()];
 	}
 
 	#push(extra: Partial<DeleteQueryState>) {

@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.1.11 - Required schemas
+- Schemas are required for all query functions again
+	- This fits better with the design goals of Cirql
+	- You can still "opt-out" by setting schema to `z.any()`
+- Export convinience `timeNow()` function
+
 ## 0.1.10 - Set improvements
 - Ignore `undefined` values in set fields
 

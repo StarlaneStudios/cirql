@@ -1,4 +1,7 @@
-import { ZodTypeAny } from "zod";
+import { TypeOf, z, ZodTypeAny } from "zod";
+import { Organisation } from "../../src/main";
+import { BuiltQuery, QueryWriter, select } from "../writer";
+import { query } from "../writer/query";
 import { CirqlQuery } from "./query";
 import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, LetQueryOptions, IfQueryOptions } from "./types";
 
@@ -22,7 +25,21 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 	constructor(config: CirqlAdapter) {
 		super();
 		this.#adapter = config;
+
+		const q = select().from('users').where({ id: 1 }).one().apply(z.any());
+
+		const res = await this.transaction(
+			select().from('users').where({ id: 1 }).apply(Organisation),
+			select().from('users').apply(Organisation),
+			query('SELECT * FROM users').apply()
+		);
 	}
+
+	transaction<T extends readonly BuiltQuery<ZodTypeAny>[]>(...queries: T): { [K in keyof T]: TypeOf<T[K][1]> } {
+		return {} as any;
+	}
+
+	// - Functions API
 
 	prepare(): CirqlQuery<readonly []> {
 		return new CirqlQuery(this.#adapter, [] as const);

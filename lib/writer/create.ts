@@ -1,6 +1,7 @@
+import { ZodTypeAny } from "zod";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { QueryWriter, ReturnMode } from "./types";
+import { BuiltQuery, QueryWriter, ReturnMode } from "./types";
 
 interface CreateQueryState {
 	targets: string;
@@ -172,6 +173,10 @@ export class CreateQueryWriter implements QueryWriter {
 		}
 
 		return builder;
+	}
+
+	apply<T extends ZodTypeAny>(model: T): BuiltQuery<T> {
+		return [this.toQuery(), model];
 	}
 
 	#push(extra: Partial<CreateQueryState>) {

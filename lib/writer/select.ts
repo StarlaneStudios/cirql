@@ -1,5 +1,6 @@
+import { ZodArray, ZodTypeAny } from "zod";
 import { parseWhereClause } from "./parser";
-import { Order, Ordering, QueryWriter, Where } from "./types";
+import { BuiltQuery, Order, Ordering, QueryWriter, Where } from "./types";
 
 interface SelectQueryState {
 	projections: string | undefined;
@@ -15,6 +16,8 @@ interface SelectQueryState {
 	parallel: boolean;
 }
 
+type Quantity = 'one' | 'many';
+
 /**
  * The query writer implementations for SELECT queries. Remember to
  * always make sure of parameters to avoid potential SQL injection.
@@ -26,7 +29,7 @@ interface SelectQueryState {
  * passed to the query writer. Always use the `fromRecord` function
  * to ensure the record id has an intended table name.
  */
-export class SelectQueryWriter implements QueryWriter {
+export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
 	
 	readonly #state: SelectQueryState;
 
@@ -41,7 +44,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param targets The targets for the query
 	 * @returns The query writer
 	 */
-	from(...targets: string[]|QueryWriter[]) {
+	from(...targets: string[]|QueryWriter[]): SelectQueryWriter<Q> {
 		const columns = targets.map(target => {
 			if (typeof target === 'string') {
 				return target;
@@ -64,7 +67,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param id The record id, either the full id or just the unique id
 	 * @returns 
 	 */
-	fromRecord(table: string, id: string) {
+	fromRecord(table: string, id: string): SelectQueryWriter<'one'> {
 		return this.#push({
 			targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`
 		});
@@ -78,7 +81,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where) {
+	where(where: string|Where): SelectQueryWriter<Q> {
 		if (typeof where === 'object') {
 			where = parseWhereClause(where);	
 		}
@@ -92,7 +95,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The split fields
 	 * @returns The query writer
 	 */
-	split(...split: string[]) {
+	split(...split: string[]): SelectQueryWriter<Q> {
 		return this.#push({ split });
 	}
 
@@ -103,7 +106,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The fields to group by
 	 * @returns The query writer
 	 */
-	groupBy(...group: string[]) {
+	groupBy(...group: string[]): SelectQueryWriter<Q> {
 		return this.#push({ group });
 	}
 
@@ -112,7 +115,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * 
 	 * @returns The query writer
 	 */
-	groupAll() {
+	groupAll(): SelectQueryWriter<Q> {
 		return this.#push({ group: 'all' });
 	}
 
@@ -122,9 +125,9 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param order The fields to order by
 	 * @returns The query writer
 	 */
-	orderBy(table: string, order?: Order): SelectQueryWriter;
-	orderBy(order: Ordering): SelectQueryWriter;
-	orderBy(tableOrOrder: string|Ordering, order?: Order) {
+	orderBy(table: string, order?: Order): SelectQueryWriter<Q>;
+	orderBy(order: Ordering): SelectQueryWriter<Q>;
+	orderBy(tableOrOrder: string|Ordering, order?: Order): SelectQueryWriter<Q> {
 		const ordering: Ordering = typeof tableOrOrder === 'string'
 			? { [tableOrOrder]: order || 'asc' }
 			: tableOrOrder;
@@ -140,8 +143,17 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param limit The limit
 	 * @returns The query writer
 	 */
-	limit(limit: number) {
-		return this.#push({ limit });
+	limit(limit: number): SelectQueryWriter<Q> {
+		return this.#push({ limit: limit });
+	}
+
+	/**
+	 * Limit the number of records returned by the query to one.
+	 * This is useful for queries that are expected to return
+	 * a single record.
+	 */
+	one(): SelectQueryWriter<'one'> {
+		return this.#push({ limit: 1 });
 	}
 
 	/**
@@ -150,7 +162,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param start The start index
 	 * @returns The query writer
 	 */
-	start(start: number) {
+	start(start: number): SelectQueryWriter<Q> {
 		return this.#push({ start });
 	}
 
@@ -160,7 +172,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param fields The fields to fetch
 	 * @returns The query writer
 	 */
-	fetch(...fetch: string[]) {
+	fetch(...fetch: string[]): SelectQueryWriter<Q> {
 		return this.#push({ fetch });
 	}
 
@@ -170,7 +182,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * @param seconds The timeout in seconds
 	 * @returns The query writer
 	 */
-	timeout(timeout: number) {
+	timeout(timeout: number): SelectQueryWriter<Q> {
 		return this.#push({ timeout });
 	}
 
@@ -179,7 +191,7 @@ export class SelectQueryWriter implements QueryWriter {
 	 * 
 	 * @returns The query writer
 	 */
-	parallel() {
+	parallel(): SelectQueryWriter<Q> {
 		return this.#push({ parallel: true });
 	}
 
@@ -252,6 +264,10 @@ export class SelectQueryWriter implements QueryWriter {
 		return builder;
 	}
 
+	apply<T extends ZodTypeAny>(model: T): BuiltQuery<Q extends 'many' ? ZodArray<T> : T> {
+		return [this.toQuery(), this.#state.limit == 1 ? model : model.array() as any];
+	}
+
 	#push(extra: Partial<SelectQueryState>) {
 		return new SelectQueryWriter({
 			...this.#state,
@@ -268,7 +284,7 @@ export class SelectQueryWriter implements QueryWriter {
  * @param projections The projections to select
  * @returns The query writer
  */
-export function select(...projections: string[]): SelectQueryWriter {
+export function select(...projections: string[]): SelectQueryWriter<'many'> {
 	return new SelectQueryWriter({
 		projections: projections.join(', ') || '*',
 		targets: undefined,
