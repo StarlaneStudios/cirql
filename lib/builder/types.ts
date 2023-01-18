@@ -130,7 +130,7 @@ export interface CirqlStatelessOptions extends CirqlBaseOptions {
 }
 
 export interface SchemafulQuery<S extends ZodTypeAny> {
-	schema?: S;
+	schema: S;
 }
 
 export interface ParameterizedQuery {
@@ -145,4 +145,4 @@ export type SimpleQueryOptions<S extends ZodTypeAny> = ParameterizedQuery & Sche
 export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = ParameterizedQuery & SchemafulQuery<S> & { table: string, id?: string, data: Input<D> };
 export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = ParameterizedQuery & SchemafulQuery<S> & { table: string, id?: string, data: Partial<Input<D>> };
 export type RelateQueryOptions<D extends {} = {}> = ParameterizedQuery & { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
-export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema?: T, elseSchema?: E };
+export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema: T, elseSchema: E };

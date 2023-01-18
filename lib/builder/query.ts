@@ -1,6 +1,6 @@
 import { SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, Query, Result, SingleResult, LetQueryOptions, IfQueryOptions } from "./types";
 import { isRaw, parseQuery, useValueOrRaw } from "../helpers";
-import { z, ZodArray, ZodTypeAny } from 'zod';
+import { z, ZodTypeAny } from 'zod';
 import { CirqlError, CirqlParseError } from "../errors";
 import { select, SelectQueryWriter } from "../writer/select";
 import { Raw } from "../raw";
@@ -40,7 +40,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
 		return this.#push({
 			query: options.query,
-			schema: options.schema || z.any() as unknown as R
+			schema: options.schema
 		}, options.params || {});
 	}
 
@@ -54,7 +54,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.#push({
 			query: options.query,
-			schema: options.schema?.array() || z.any().array() as unknown as ZodArray<R>
+			schema: options.schema.array()
 		}, options.params || {});
 	}
 
@@ -75,7 +75,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: options.query,
-			schema: options.schema?.nullable() || z.any() as unknown as R,
+			schema: options.schema.nullable(),
 			transform(data) {
 				if (data.length > 1) {
 					throw new CirqlError('Query returned multiple results, only one was expected', 'too_many_results');
@@ -100,7 +100,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: query.setAll(options.data),
-			schema: options.schema || z.any() as unknown as R,
+			schema: options.schema,
 			transform(data) {
 				if (data.length > 1) {
 					throw new CirqlError('Create only supports single targets', 'too_many_results');
@@ -125,7 +125,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: query.setAll(options.data),
-			schema: options.schema || z.any() as unknown as R,
+			schema: options.schema,
 			transform(data) {
 				return data[0];
 			}
@@ -240,7 +240,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
 		return this.#push({
 			query: `IF ${ifQuery} THEN (${thenQuery}) ELSE (${elseQuery}) END`,
-			schema: (thenSchema && elseSchema) ? thenSchema.or(elseSchema) : z.any() as unknown as T | E
+			schema: thenSchema.or(elseSchema)
 		}, {});
 	}
 
