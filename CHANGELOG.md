@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.1.8 - More query writers
+- Implemented remaining query writers for `CREATE`, `UPDATE`, `DELETE`, and `RELATE`
+- Restricted `queryOne` and `queryMany` to only accept `SelectQueryWriter` instead of all writers
+- Delete query record id is now optional
+- Update expected types for `where` fields
+- Improved query writer parameters
+	- Most functions now accept varargs
+	- `orderBy` can now be passed a single field and ordering
+- Improve `error` and `close` events
+- Improve internal logic 
+
 ## 0.1.7 - Fix node compatibility
 - Avoid useage of CustomEvent for `error` event as node LTS does not support it
 	- Custom event is now emitted containing `code` and `reason` properties
