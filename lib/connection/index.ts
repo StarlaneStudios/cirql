@@ -65,9 +65,7 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 
 	socket.addEventListener('open', async () => {
 		const { namespace, database } = options.connection;
-
-		options.onConnect?.();
- 
+		
 		try {
 			if ('token' in options.credentials) {
 				await message('authenticate', [options.credentials.token]);
@@ -78,10 +76,12 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 			close();
 			return;
 		}
-
+		
 		if (namespace && database) {
 			message('use', [namespace, database]);
 		}
+
+		options.onConnect?.();
 	});
 
 	socket.addEventListener('close', (event) => {

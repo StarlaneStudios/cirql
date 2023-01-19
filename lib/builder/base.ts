@@ -76,11 +76,11 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 
 		for (let i = 0; i < response.length; i++) {
 			const { query, schema } = options.queries[i];
-			const { status, result } = response[i];
+			const { status, result, detail } = response[i];
 			const quantity = query._quantity as Quantity;
 
 			if (status !== 'OK') {
-				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}`, 'invalid_response');
+				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}: ${detail}`, 'invalid_response');
 			}
 
 			if (quantity == 'zero') {
