@@ -2,6 +2,7 @@ import { Cirql, create, eq, select, timeNow } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 import { count } from '../lib/writer/count';
+import { query } from '../lib/writer/query';
 
 (window as any).cirql = cirql;
 
@@ -37,6 +38,10 @@ async function execute() {
 				createdAt: eq(timeNow())
 			}),
 			schema: Organisation
+		},
+		{
+			query: query('SELECT * FROM test').single(),
+			schema: z.any()
 		},
 		{
 			query: count('organisation')
