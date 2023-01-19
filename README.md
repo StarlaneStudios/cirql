@@ -65,6 +65,10 @@ const cirql = new Cirql({
         pass: 'root',
     }
 });
+
+cirql.addEventListener('open', () => {
+    // Cirql has now connected to SurrealDB
+});
 ```
 
 ### String based queries
