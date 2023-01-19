@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.2.2 - LET Query Writer
+- Implemented query writer for `LET`
+- Added `cirql.ready()` for awaiting stateful connection opening
+- Fixed some issues in the new API
+
 ## 0.2.0 - API Redesign
 - Completely rewritten the API to be more consistent and easier to use
 - Original API is still available but marked as deprecated
