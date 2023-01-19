@@ -1,5 +1,5 @@
-import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, Params, IfQueryOptions, QueryRequest, CountQueryOptions, DeleteQueryOptions, LetQueryOptions, RelateQueryOptions, MultiTypeOf } from "./types";
-import { TypeOf, ZodTypeAny } from "zod";
+import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, Params, IfQueryOptions, QueryRequest, CountQueryOptions, DeleteQueryOptions, LetQueryOptions, RelateQueryOptions, MultiTypeOf, QuantitativeTypeOf } from "./types";
+import { ZodTypeAny } from "zod";
 import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
 import { CirqlQuery } from "./query";
 import { CirqlError, CirqlParseError } from "../errors";
@@ -33,8 +33,10 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 		this.#adapter = config;
 	}
 
-	async execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<TypeOf<S>> {
-		return (await this.batch(request))[0];
+	async execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<QuantitativeTypeOf<Q, S>> {
+		const [result] = await this.batch(request);
+
+		return result as any;
 	}
 
 	async batch<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
