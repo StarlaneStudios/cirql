@@ -16,6 +16,15 @@ export type Where = {
  */
 export interface QueryWriter<Q extends Quantity> {
 
+	/**
+	 * The expected quantity of the query. This is used to determine whether
+	 * the query writer should return a single value or an array of values.
+	 * 
+	 * - `zero` - The query writer should return undefined, any result is ignored
+	 * - `one` - The query writer should return exactly one result, or throw an error
+	 * - `maybe` - The query writer should return a single result, or null
+	 * - `many` - The query writer should return an array of results
+	 */
 	readonly _quantity: Q;
 
 	/**

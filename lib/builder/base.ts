@@ -3,6 +3,7 @@ import { CirqlQuery } from "./query";
 import { Quantity } from "../writer";
 import { TypeOf, ZodTypeAny } from "zod";
 
+// Provides the correct return type based on the expected quantity
 type QuantativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q extends 'one'
 	? TypeOf<S>
 	: Q extends 'maybe'
@@ -11,6 +12,7 @@ type QuantativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q extends 'one
 			? TypeOf<S>[]
 			: undefined;
 
+// Finds the return type based on if the schema is generic or schemaful
 type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
 	[K in keyof T]: T[K] extends SchemafulQueryRequest<any, any>
 		? QuantativeTypeOf<T[K]['query']['_quantity'], T[K]['query']['_schema']>
