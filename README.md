@@ -125,6 +125,7 @@ We currently provide the following query writers:
 - `updateRecord()`
 - `relate()`
 - `relateRecords()`
+- `letValue()`
 - `query()`
 
 ### Raw query values & operators

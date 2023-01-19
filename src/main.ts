@@ -3,6 +3,7 @@ import * as cirql from '../lib';
 import { z } from 'zod';
 import { count } from '../lib/writer/count';
 import { query } from '../lib/writer/query';
+import { letValue } from '../lib/writer/let';
 
 (window as any).cirql = cirql;
 
@@ -49,6 +50,13 @@ async function execute() {
 		{
 			query: select('id').from('organisation').where({ isEnabled: true }),
 			schema: Organisation.pick({ id: true })
+		},
+		{
+			query: letValue('orgs', select('name').from('organisation')),
+		},
+		{
+			query: select().from('$orgs'),
+			schema: z.any()
 		}
 	);
 
