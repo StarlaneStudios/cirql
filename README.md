@@ -124,7 +124,7 @@ We currently provide the following query writers:
 - `query()`
 
 ### Raw query values & operators
-While the Query Writer API provides a safe way to write queries, it is still possible to insert raw values into your queries. This can be useful for inserting SurrealDB functions or parameter names into `WHERE` clauses and `SET` expressions. You can import any of Surreal's comparison operators, of which you can find a complete list [here](https://github.com/StarlaneStudios/cirql/blob/main/lib/operators.ts). By default values will use a simple value comparison (`=`).
+While the Query Writer API provides a safe way to write queries, it is still possible to insert raw values into your queries. This can be useful for inserting SurrealDB [functions](https://github.com/StarlaneStudios/cirql/blob/main/lib/sql/functions.ts), [operators](https://github.com/StarlaneStudios/cirql/blob/main/lib/sql/operators.ts) or parameter names into `WHERE` clauses and `SET` expressions. By default values will use an equals sign (`=`).
 
 In the following example we are creating a new organisation, and setting the `createdAt` field to the current time using the Surreal `time::now()` function.
 
