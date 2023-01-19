@@ -4,11 +4,7 @@ import { ConnectionDetails, CredentialDetails } from '../types';
 import { CirqlQuery } from './query';
 import { RawQuery } from '../raw';
 
-export type BaseQueryRequest = {
-	params?: Params;
-}
-
-export type SchemafulQueryRequest<Q extends Quantity, S extends ZodTypeAny> = BaseQueryRequest & {
+export type SchemafulQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
 	query: SchemafulQueryWriter<S, Q>;
 	params?: Params;
 	schema?: never;
@@ -20,6 +16,20 @@ export type GenericQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
 	schema: S;
 }
 
+export type QuantitativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q extends 'one'
+	? TypeOf<S>
+	: Q extends 'maybe'
+	? TypeOf<S> | null
+	: Q extends 'many'
+	? TypeOf<S>[]
+	: undefined;
+
+export type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
+	[K in keyof T]: T[K] extends SchemafulQueryRequest<any, any>
+	? QuantitativeTypeOf<T[K]['query']['_quantity'], T[K]['query']['_schema']>
+	: QuantitativeTypeOf<T[K]['query']['_quantity'], T[K]['schema']>
+}
+
 export type Params = Record<string, any>;
 export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = SchemafulQueryRequest<Q, S> | GenericQueryRequest<Q, S>;
 export type Result<T extends readonly Query<ZodTypeAny>[]> = { [K in keyof T]: TypeOf<T[K]['schema']> };
@@ -27,15 +37,58 @@ export type SingleResult<T extends readonly Query<ZodTypeAny>[]> = TypeOf<T[0]['
 export type Input<D> = { [K in keyof Omit<D, 'id'>]: D[K] | RawQuery };
 
 /**
- * The base contract describing all essential Cirql methods
+ * The base contract describing all available query methods
  */
 export interface CirqlQueries {
+
+	/**
+	 * Execute a single query on the database. Queries can be defined using the
+	 * Query Writer API.
+	 * 
+	 * If you need to execute a raw query string, import and use the
+	 * `query` function to wrap the string in a Query Writer.
+	 * 
+	 * @param request The request to execute
+	 * @returns The result of the query
+	 */
+	execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<TypeOf<S>>
+
+	/**
+	 * Execute a collection of queries on the database. Queries can be defined using the
+	 * Query Writer API.
+	 * 
+	 * f you need to execute a raw query string, import and use the
+	 * `query` function to wrap the string in a Query Writer.
+	 * 
+	 * The result array will be in the same order as the request array, allowing it to be
+	 * destructured into the individual results.
+	 * 
+	 * @param request 
+	 * @returns The results of the queries
+	 */
+	batch<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>>
+
+	/**
+	 * Execute a collection of queries on the database. Queries can be defined using the
+	 * Query Writer API. The queries will be executed in a transaction.
+	 * 
+	 * f you need to execute a raw query string, import and use the
+	 * `query` function to wrap the string in a Query Writer.
+	 * 
+	 * The result array will be in the same order as the request array, allowing it to be
+	 * destructured into the individual results.
+	 * 
+	 * @param request 
+	 * @returns The results of the queries
+	 */
+	transaction<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>>
 
 	/**
 	 * Create a new empty query instance. This is useful for chaining multiple
 	 * queries together without having to specify an initial query.
 	 * 
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	prepare(): CirqlQuery<readonly []>;
 
@@ -44,6 +97,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>): Promise<SingleResult<readonly [Query<R>]>>;
 
@@ -52,6 +106,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<ZodArray<R, "many">>]>>;
 
@@ -60,6 +115,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>): Promise<SingleResult<readonly [Query<ZodNullable<R>>]>>;
 
@@ -69,6 +125,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>): Promise<SingleResult<readonly [Query<R>]>>;
 
@@ -78,6 +135,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>): Promise<SingleResult<readonly [Query<R>]>>;
 
@@ -85,6 +143,7 @@ export interface CirqlQueries {
 	 * Remove a single record by its unique id
 	 * 
 	 * @param options The query options
+	 * @deprecated Use the new Query API instead
 	 */
 	delete(options: DeleteQueryOptions): Promise<undefined>;
 
@@ -94,6 +153,7 @@ export interface CirqlQueries {
 	 * 
 	 * @param options The query options
 	 * @returns The query result
+	 * @deprecated Use the new Query API instead
 	 */
 	count(options: CountQueryOptions): Promise<number>;
 
@@ -101,6 +161,7 @@ export interface CirqlQueries {
 	 * Relate a record to another record over an edge.
 	 * 
 	 * @param options The query options
+	 * @deprecated Use the new Query API instead
 	 */
 	relate(options: RelateQueryOptions): Promise<undefined>;
 
@@ -108,6 +169,7 @@ export interface CirqlQueries {
 	 * Store a value as parameter in the database for later retrieval.
 	 * 
 	 * @param options The query options
+	 * @deprecated Use the new Query API instead
 	 */
 	let(options: LetQueryOptions): Promise<undefined>;
 
@@ -117,6 +179,7 @@ export interface CirqlQueries {
 	 * two possible results.
 	 * 
 	 * @param options The query options
+	 * @deprecated Use the new Query API instead
 	 */
 	if<T extends ZodTypeAny, E extends ZodTypeAny>(options: IfQueryOptions<T, E>): Promise<SingleResult<readonly [Query<T | E>]>>;
 

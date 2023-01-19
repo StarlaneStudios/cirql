@@ -68,6 +68,10 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 		return builder;
 	}
 
+	_transform(response: any[]): any[] {
+		return response.map(row => row['count']);
+	}
+
 	#push(extra: Partial<CountQueryState>) {
 		return new CountQueryWriter({
 			...this.#state,

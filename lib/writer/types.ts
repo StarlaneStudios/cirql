@@ -34,6 +34,15 @@ export interface QueryWriter<Q extends Quantity> {
 	 */
 	toQuery(): string;
 
+	/**
+	 * Transform the result of the query. This is useful for converting the
+	 * result to a different format, or for performing additional validation.
+	 * 
+	 * @param result The original response
+	 * @returns The transformed response
+	 */
+	_transform?(response: any[]): any[];
+
 }
 
 /**

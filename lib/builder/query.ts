@@ -13,6 +13,8 @@ import { relateRecords } from "../writer/relate";
 /**
  * The main Cirql query builder class on which all queries are built. You can
  * append multiple queries and execute these as transaction.
+ * 
+ * @deprecated Use the new Query API instead
  */
 export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 
@@ -36,6 +38,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
 		return this.#push({
@@ -50,6 +53,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		return this.#push({
@@ -65,6 +69,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
 		let query = options.query;
@@ -92,6 +97,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
 		const query = options.id
@@ -117,6 +123,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
 		const query = options.id
@@ -137,6 +144,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	delete(options: DeleteQueryOptions) {
 		let query = options.id
@@ -159,6 +167,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	count(options: CountQueryOptions) {
 		let query = select('count()').from(options.table).groupAll();
@@ -182,6 +191,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	relate(options: RelateQueryOptions) {
 		let query = relateRecords(options.fromTable, options.fromId, options.edge, options.toTable, options.toId);
@@ -202,6 +212,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	let(options: LetQueryOptions) {
 		let value: string;
@@ -226,6 +237,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * 
 	 * @param options The query options
 	 * @returns Cirql query builder
+	 * @deprecated Use the new Query API instead
 	 */
 	if<T extends ZodTypeAny, E extends ZodTypeAny>(options: IfQueryOptions<T, E>) {
 		const { thenSchema, elseSchema } = options;
@@ -248,6 +260,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * Execute the query and return the results
 	 * 
 	 * @returns The query results
+	 * @deprecated Use the new Query API instead
 	 */
 	async execute(): Promise<Result<T>> {
 		if (!this.#adapter.onRequest()) {
@@ -298,6 +311,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * Execute the query and return only the first query result
 	 * 
 	 * @returns The result of the first query
+	 * @deprecated Use the new Query API instead
 	 */
 	async single(): Promise<SingleResult<T>> {
 		const results = await this.execute();
@@ -313,6 +327,7 @@ export class CirqlQuery<T extends readonly Query<ZodTypeAny>[]> {
 	 * Execute the query as a transaction and return the results
 	 * 
 	 * @returns The query results
+	 * @deprecated Use the new Query API instead
 	 */
 	transaction() {
 		this.#queryPrefix = 'BEGIN TRANSACTION';

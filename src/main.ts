@@ -1,6 +1,7 @@
-import { Cirql, eq, select, timeNow } from '../lib';
+import { Cirql, create, eq, select, timeNow } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
+import { count } from '../lib/writer/count';
 
 (window as any).cirql = cirql;
 
@@ -28,50 +29,42 @@ export const Organisation = z.object({
 
 async function execute() {
 
-	// const res = await database.execute({
-	// 	query: count('5')
-	// })
-
-	// const [a, b, c, d, e] = await database.batch(
-	// 	{
-	// 		query: create('a', 'b', 'c'),
-	// 		schema: z.object({ id: z.string() })
-	// 	},
-	// 	{
-	// 		query: count('5')
-	// 	},
-	// 	{
-	// 		query: delRecord('alpha', 'beta'),
-	// 		schema: z.object({ id: z.string() })
-	// 	},
-	// 	{
-	// 		query: select().from('user'),
-	// 		schema: z.object({ id: z.string() })
-	// 	},
-	// 	{
-	// 		query: select().fromRecord('user', 'john'),
-	// 		schema: z.any()
-	// 	}
-	// )
-
-	return database.prepare()
-		.create({
-			table: 'organisation',
-			schema: Organisation,
-			data: {
+	return await database.transaction(
+		{
+			query: create('organisation').setAll({
 				name: 'Test',
 				isEnabled: Math.random() > 0.5,
 				createdAt: eq(timeNow())
-			}
-		})
-		.count({
-			table: 'organisation',
-		})
-		.selectMany({
+			}),
+			schema: Organisation
+		},
+		{
+			query: count('organisation')
+		},
+		{
 			query: select('id').from('organisation').where({ isEnabled: true }),
-			schema: Organisation.pick({ id: true }),
-		})
-		.execute();
+			schema: Organisation.pick({ id: true })
+		}
+	);
+
+	// return database.prepare()
+	// 	.create({
+	// 		table: 'organisation',
+	// 		schema: Organisation,
+	// 		data: {
+	// 			name: 'Test',
+	// 			isEnabled: Math.random() > 0.5,
+	// 			createdAt: eq(timeNow())
+	// 		}
+	// 	})
+	// 	.count({
+	// 		table: 'organisation',
+	// 	})
+	// 	.selectMany({
+	// 		query: select('id').from('organisation').where({ isEnabled: true }),
+	// 		schema: Organisation.pick({ id: true }),
+	// 	})
+	// 	.execute();
 }
 
 database.addEventListener('open', () => {
