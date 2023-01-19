@@ -66,9 +66,12 @@ const cirql = new Cirql({
     }
 });
 
-cirql.addEventListener('open', () => {
-    // Cirql has now connected to SurrealDB
-});
+await cirql.ready();
+
+// or alternatively...
+
+cirql.addEventListener('open', callback);
+
 ```
 
 ### String based queries
