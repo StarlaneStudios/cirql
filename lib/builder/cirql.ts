@@ -116,6 +116,22 @@ export class Cirql extends CirqlBaseImpl {
 		this.#surreal?.close();
 	}
 
+	/**
+	 * Returns a promise which resolves when the connection is ready
+	 * 
+	 * @returns A promise
+	 */
+	ready() {
+		if (this.isConnected) {
+			return Promise.resolve();
+		}
+
+		return new Promise<void>((resolve, reject) => {
+			this.addEventListener('open', () => resolve(), { once: true });
+			this.addEventListener('error', (e) => reject(e), { once: true });
+		});
+	}
+
 }
  
 /**
