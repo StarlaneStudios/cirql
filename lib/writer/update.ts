@@ -1,10 +1,12 @@
-import { CirqlWriterError } from "../errors";
+import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
-import { QueryWriter, ReturnMode, Where } from "./types";
+import { CirqlWriterError } from "../errors";
+import { Generic } from "./symbols";
 
 type ContentMode = 'replace' | 'merge';
 
-interface UpdateQueryState {
+interface UpdateQueryState<Q extends Quantity> {
+	quantity: Q;
 	targets: string;
 	setFields: object;
 	content: object;
@@ -27,12 +29,18 @@ interface UpdateQueryState {
  * passed to the query writer. Always use the `updateRecord` function
  * to ensure the record id has an intended table name.
  */
-export class UpdateQueryWriter implements QueryWriter {
+export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
 	
-	readonly #state: UpdateQueryState;
+	readonly #state: UpdateQueryState<Q>;
 
-	constructor(state: UpdateQueryState) {
+	constructor(state: UpdateQueryState<Q>) {
 		this.#state = state;
+	}
+
+	readonly [Generic] = true;
+
+	get _quantity() {
+		return this.#state.quantity;
 	}
 
 	/**
@@ -226,7 +234,7 @@ export class UpdateQueryWriter implements QueryWriter {
 		return builder;
 	}
 
-	#push(extra: Partial<UpdateQueryState>) {
+	#push<N extends Quantity = Q>(extra: Partial<UpdateQueryState<N>>) {
 		return new UpdateQueryWriter({
 			...this.#state,
 			...extra
@@ -249,12 +257,13 @@ export class UpdateQueryWriter implements QueryWriter {
  * @param targets The targets to update
  * @returns The query writer
  */
-export function update(...targets: string[]): UpdateQueryWriter {
+export function update(...targets: string[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
 
 	return new UpdateQueryWriter({
+		quantity: 'many',
 		targets: targets.join(', '),
 		setFields: {},
 		content: {},
@@ -276,6 +285,17 @@ export function update(...targets: string[]): UpdateQueryWriter {
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function updateRecord(table: string, id: string): UpdateQueryWriter {
-	return update(`type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`);
+export function updateRecord(table: string, id: string) {
+	return new UpdateQueryWriter({
+		quantity: 'maybe',
+		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		setFields: {},
+		content: {},
+		contentMode: undefined,
+		where: undefined,
+		returnMode: undefined,
+		returnFields: [],
+		timeout: undefined,
+		parallel: false
+	});
 }

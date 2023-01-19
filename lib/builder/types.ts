@@ -1,10 +1,27 @@
+import { SelectQueryWriter, QueryWriter, Where, Quantity, SchemafulQueryWriter, GenericQueryWriter } from '../writer';
 import { input, TypeOf, ZodArray, ZodNullable, ZodTypeAny } from 'zod';
-import { SelectQueryWriter, QueryWriter, Where } from '../writer';
 import { ConnectionDetails, CredentialDetails } from '../types';
 import { CirqlQuery } from './query';
 import { RawQuery } from '../raw';
 
+export type BaseQueryRequest = {
+	params?: Params;
+}
+
+export type SchemafulQueryRequest<Q extends Quantity, S extends ZodTypeAny> = BaseQueryRequest & {
+	query: SchemafulQueryWriter<S, Q>;
+	params?: Params;
+	schema?: never;
+}
+
+export type GenericQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
+	query: GenericQueryWriter<Q>;
+	params?: Params;
+	schema: S;
+}
+
 export type Params = Record<string, any>;
+export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = SchemafulQueryRequest<Q, S> | GenericQueryRequest<Q, S>;
 export type Result<T extends readonly Query<ZodTypeAny>[]> = { [K in keyof T]: TypeOf<T[K]['schema']> };
 export type SingleResult<T extends readonly Query<ZodTypeAny>[]> = TypeOf<T[0]['schema']>;
 export type Input<D> = { [K in keyof Omit<D, 'id'>]: D[K] | RawQuery };
@@ -106,7 +123,7 @@ export interface CirqlQueries {
 }
 
 export interface Query<T extends ZodTypeAny> {
-	query: string | QueryWriter;
+	query: string | QueryWriter<any>;
 	schema: T;
 	skip?: boolean;
 	transform?: (data: any[]) => any;
@@ -137,12 +154,12 @@ export interface ParameterizedQuery {
 	params?: Record<string, any>;
 }
 
-export type LetQueryOptions = { name: string, value: any | RawQuery | QueryWriter };
+export type LetQueryOptions = { name: string, value: any | RawQuery | QueryWriter<any> };
 export type CountQueryOptions = ParameterizedQuery & { table: string, where?: string | Where };
 export type DeleteQueryOptions = ParameterizedQuery & { table: string, id?: string, where?: string | Where };
-export type SelectQueryOptions<S extends ZodTypeAny> = ParameterizedQuery & SchemafulQuery<S> & { query: string | SelectQueryWriter };
-export type SimpleQueryOptions<S extends ZodTypeAny> = ParameterizedQuery & SchemafulQuery<S> & { query: string | QueryWriter };
+export type SelectQueryOptions<S extends ZodTypeAny> = ParameterizedQuery & SchemafulQuery<S> & { query: string | SelectQueryWriter<any> };
+export type SimpleQueryOptions<S extends ZodTypeAny> = ParameterizedQuery & SchemafulQuery<S> & { query: string | QueryWriter<any> };
 export type CreateQueryOptions<S extends ZodTypeAny, D = input<S>> = ParameterizedQuery & SchemafulQuery<S> & { table: string, id?: string, data: Input<D> };
 export type UpdateQueryOptions<S extends ZodTypeAny, D = input<S>> = ParameterizedQuery & SchemafulQuery<S> & { table: string, id?: string, data: Partial<Input<D>> };
 export type RelateQueryOptions<D extends {} = {}> = ParameterizedQuery & { fromTable: string, fromId: string, edge: string, toTable: string, toId: string, data?: D };
-export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter, then: string | QueryWriter, else: string | RawQuery | QueryWriter, thenSchema: T, elseSchema: E };
+export type IfQueryOptions<T extends ZodTypeAny, E extends ZodTypeAny> = { if: string | RawQuery | QueryWriter<any>, then: string | QueryWriter<any>, else: string | RawQuery | QueryWriter<any>, thenSchema: T, elseSchema: E };

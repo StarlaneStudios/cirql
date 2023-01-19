@@ -1,6 +1,8 @@
+import { ReturnMode, SchemafulQueryWriter } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { QueryWriter, ReturnMode } from "./types";
+import { z, ZodUndefined } from "zod";
+import { Schemaful } from "./symbols";
 
 interface RelateQueryState {
 	from: string;
@@ -24,13 +26,17 @@ interface RelateQueryState {
  * passed to the query writer. Always use the `relateRecord` function
  * to ensure the record id has an intended table name.
  */
-export class RelateQueryWriter implements QueryWriter {
+export class RelateQueryWriter implements SchemafulQueryWriter<ZodUndefined, 'zero'> {
 	
 	readonly #state: RelateQueryState;
 
 	constructor(state: RelateQueryState) {
 		this.#state = state;
 	}
+
+	readonly [Schemaful] = true;
+	readonly _schema = z.undefined();
+	readonly _quantity = 'zero';
 
 	/**
 	 * Set an individual field to a value
@@ -229,7 +235,7 @@ export function relate(from: string, edge: string, to: string): RelateQueryWrite
  * @param toId The second record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function relateRecords(fromTable: string, fromId: string, edge: string, toTable: string, toId: string): RelateQueryWriter {
+export function relateRecords(fromTable: string, fromId: string, edge: string, toTable: string, toId: string) {
 	const from = `type::thing(${JSON.stringify(fromTable)}, ${JSON.stringify(fromId)})`;
 	const to = `type::thing(${JSON.stringify(toTable)}, ${JSON.stringify(toId)})`;
 

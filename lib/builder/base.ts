@@ -1,9 +1,21 @@
-import { TypeOf, z, ZodTypeAny } from "zod";
-import { Organisation } from "../../src/main";
-import { BuiltQuery, QueryWriter, select } from "../writer";
-import { query } from "../writer/query";
+import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, Params, IfQueryOptions, QueryRequest, CountQueryOptions, DeleteQueryOptions, LetQueryOptions, RelateQueryOptions, SchemafulQueryRequest } from "./types";
 import { CirqlQuery } from "./query";
-import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, DeleteQueryOptions, CountQueryOptions, RelateQueryOptions, Params, LetQueryOptions, IfQueryOptions } from "./types";
+import { Quantity } from "../writer";
+import { TypeOf, ZodTypeAny } from "zod";
+
+type QuantativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q extends 'one'
+	? TypeOf<S>
+	: Q extends 'maybe'
+		? TypeOf<S> | null
+		: Q extends 'many'
+			? TypeOf<S>[]
+			: undefined;
+
+type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
+	[K in keyof T]: T[K] extends SchemafulQueryRequest<any, any>
+		? QuantativeTypeOf<T[K]['query']['_quantity'], T[K]['query']['_schema']>
+		: QuantativeTypeOf<T[K]['query']['_quantity'], T[K]['schema']>
+}
 
 /**
  * The adapter used to connect to Cirql implementations
@@ -25,18 +37,18 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 	constructor(config: CirqlAdapter) {
 		super();
 		this.#adapter = config;
-
-		const q = select().from('users').where({ id: 1 }).one().apply(z.any());
-
-		const res = await this.transaction(
-			select().from('users').where({ id: 1 }).apply(Organisation),
-			select().from('users').apply(Organisation),
-			query('SELECT * FROM users').apply()
-		);
 	}
 
-	transaction<T extends readonly BuiltQuery<ZodTypeAny>[]>(...queries: T): { [K in keyof T]: TypeOf<T[K][1]> } {
-		return {} as any;
+	execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<TypeOf<S>> {
+		return request as any;
+	}
+
+	batch<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
+		return request as any;
+	}
+
+	transaction<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
+		return request as any;
 	}
 
 	// - Functions API

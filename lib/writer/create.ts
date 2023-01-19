@@ -1,9 +1,10 @@
-import { ZodTypeAny } from "zod";
+import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { BuiltQuery, QueryWriter, ReturnMode } from "./types";
+import { Generic } from "./symbols";
 
-interface CreateQueryState {
+interface CreateQueryState<Q extends Quantity> {
+	quantity: Q;
 	targets: string;
 	setFields: object;
 	content: object;
@@ -23,12 +24,18 @@ interface CreateQueryState {
  * passed to the query writer. Always use the `createRecord` function
  * to ensure the record id has an intended table name.
  */
-export class CreateQueryWriter implements QueryWriter {
+export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
 	
-	readonly #state: CreateQueryState;
+	readonly #state: CreateQueryState<Q>;
 
-	constructor(state: CreateQueryState) {
+	constructor(state: CreateQueryState<Q>) {
 		this.#state = state;
+	}
+
+	readonly [Generic] = true;
+	
+	get _quantity() {
+		return this.#state.quantity;
 	}
 
 	/**
@@ -175,15 +182,8 @@ export class CreateQueryWriter implements QueryWriter {
 		return builder;
 	}
 
-	apply<T extends ZodTypeAny>(model: T): BuiltQuery<T> {
-		return [this.toQuery(), model];
-	}
-
-	#push(extra: Partial<CreateQueryState>) {
-		return new CreateQueryWriter({
-			...this.#state,
-			...extra
-		});
+	#push<N extends Quantity = Q>(extra: Partial<CreateQueryState<N>>) {
+		return new CreateQueryWriter({ ...this.#state, ...extra });
 	}
 
 	#hasSetFields() {
@@ -202,12 +202,13 @@ export class CreateQueryWriter implements QueryWriter {
  * @param targets The targets to create
  * @returns The query writer
  */
-export function create(...targets: string[]): CreateQueryWriter {
+export function create(...targets: string[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
 
 	return new CreateQueryWriter({
+		quantity: 'many',
 		targets: targets.join(', '),
 		setFields: {},
 		content: {},
@@ -227,6 +228,15 @@ export function create(...targets: string[]): CreateQueryWriter {
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function createRecord(table: string, id: string): CreateQueryWriter {
-	return create(`type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`);
+export function createRecord(table: string, id: string) {
+	return new CreateQueryWriter({
+		quantity: 'one',
+		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		setFields: {},
+		content: {},
+		returnMode: undefined,
+		returnFields: [],
+		timeout: undefined,
+		parallel: false
+	});
 }

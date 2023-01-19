@@ -1,9 +1,10 @@
-import { ZodArray, ZodTypeAny } from "zod";
+import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
-import { BuiltQuery, QueryWriter, ReturnMode, Where } from "./types";
+import { Generic } from "./symbols";
 
-interface DeleteQueryState {
+interface DeleteQueryState<Q extends Quantity> {
+	quantity: Q;
 	targets: string;
 	where: string | undefined;
 	returnMode: ReturnMode | 'fields' | undefined;
@@ -22,12 +23,18 @@ interface DeleteQueryState {
  * passed to the query writer. Always use the `deleteRecord` function
  * to ensure the record id has an intended table name.
  */
-export class DeleteQueryWriter implements QueryWriter {
+export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
 	
-	readonly #state: DeleteQueryState;
+	readonly #state: DeleteQueryState<Q>;
 
-	constructor(state: DeleteQueryState) {
+	constructor(state: DeleteQueryState<Q>) {
 		this.#state = state;
+	}
+
+	readonly [Generic] = true;
+
+	get _quantity() {
+		return this.#state.quantity;
 	}
 
 	/**
@@ -125,11 +132,7 @@ export class DeleteQueryWriter implements QueryWriter {
 		return builder;
 	}
 
-	apply<T extends ZodTypeAny>(model: T): BuiltQuery<ZodArray<T>> {
-		return [this.toQuery(), model.array()];
-	}
-
-	#push(extra: Partial<DeleteQueryState>) {
+	#push<N extends Quantity = Q>(extra: Partial<DeleteQueryState<N>>) {
 		return new DeleteQueryWriter({
 			...this.#state,
 			...extra
@@ -145,15 +148,16 @@ export class DeleteQueryWriter implements QueryWriter {
  * @param targets The targets to delete
  * @returns The query writer
  */
-export function del(...targets: string[]): DeleteQueryWriter {
+export function del(...targets: string[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
 
 	return new DeleteQueryWriter({
+		quantity: 'many',
 		targets: targets.join(', '),
 		where: undefined,
-		returnMode: undefined,
+		returnMode: 'before',
 		returnFields: [],
 		timeout: undefined,
 		parallel: false
@@ -169,6 +173,14 @@ export function del(...targets: string[]): DeleteQueryWriter {
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function delRecord(table: string, id: string): DeleteQueryWriter {
-	return del(`type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`);
+export function delRecord(table: string, id: string) {
+	return new DeleteQueryWriter({
+		quantity: 'maybe',
+		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		where: undefined,
+		returnMode: 'before',
+		returnFields: [],
+		timeout: undefined,
+		parallel: false
+	});
 }

@@ -1,20 +1,39 @@
-import { z, ZodTypeAny } from "zod";
-import { BuiltQuery, QueryWriter } from "./types";
+import { GenericQueryWriter, Quantity } from "./types";
+import { Generic } from "./symbols";
 
-class PlainQueryWriter implements QueryWriter {
+/**
+ * A special query writer implementation for executing raw queries.
+ * 
+ * When prevention of SQL injections is important, avoid passing
+ * any variables directly to this query. Instead, use params.
+ */
+class PlainQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
 
 	readonly #query: string;
+	readonly #quantity: Q;
 
-	constructor(query: string) {
+	constructor(query: string, quantity: Q) {
 		this.#query = query;
+		this.#quantity = quantity;
+	}
+
+	readonly [Generic] = true;
+
+	get _quantity() {
+		return this.#quantity;
+	}
+
+	/**
+	 * Expect at most one record to be returned
+	 * 
+	 * @returns The query writer
+	 */
+	single() {
+		return new PlainQueryWriter(this.#query, 'maybe');
 	}
 
 	toQuery(): string {
 		return this.#query;
-	}
-
-	apply<T extends ZodTypeAny = ZodTypeAny>(model?: T): BuiltQuery<T> {
-		return [this.toQuery(), model || z.any() as any];
 	}
 
 }
@@ -25,6 +44,6 @@ class PlainQueryWriter implements QueryWriter {
  * @param rawQuery The 
  * @returns The query writer
  */
-export function query(rawQuery: string): PlainQueryWriter {
-	return new PlainQueryWriter(rawQuery);
+export function query(rawQuery: string) {
+	return new PlainQueryWriter(rawQuery, 'many');
 }

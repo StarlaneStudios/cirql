@@ -25,7 +25,7 @@ export function table(tb: string) {
 }
 
 /** Parse the input into a valid query */
-export function parseQuery(query: string|QueryWriter): string {
+export function parseQuery(query: string|QueryWriter<any>): string {
 	if (typeof query === 'string') {
 		return query;
 	} else {

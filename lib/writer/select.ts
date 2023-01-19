@@ -1,8 +1,9 @@
-import { ZodArray, ZodTypeAny } from "zod";
+import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity } from "./types";
 import { parseWhereClause } from "./parser";
-import { BuiltQuery, Order, Ordering, QueryWriter, Where } from "./types";
+import { Generic } from "./symbols";
 
-interface SelectQueryState {
+interface SelectQueryState<Q extends Quantity> {
+	quantity: Q;
 	projections: string | undefined;
 	targets: string | undefined;
 	where: string | undefined;
@@ -16,8 +17,6 @@ interface SelectQueryState {
 	parallel: boolean;
 }
 
-type Quantity = 'one' | 'many';
-
 /**
  * The query writer implementations for SELECT queries. Remember to
  * always make sure of parameters to avoid potential SQL injection.
@@ -29,12 +28,18 @@ type Quantity = 'one' | 'many';
  * passed to the query writer. Always use the `fromRecord` function
  * to ensure the record id has an intended table name.
  */
-export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
+export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
 	
-	readonly #state: SelectQueryState;
+	readonly #state: SelectQueryState<Q>;
 
-	constructor(state: SelectQueryState) {
+	constructor(state: SelectQueryState<Q>) {
 		this.#state = state;
+	}
+
+	readonly [Generic] = true;
+
+	get _quantity() {
+		return this.#state.quantity;
 	}
 
 	/**
@@ -44,7 +49,7 @@ export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
 	 * @param targets The targets for the query
 	 * @returns The query writer
 	 */
-	from(...targets: string[]|QueryWriter[]): SelectQueryWriter<Q> {
+	from(...targets: string[]|QueryWriter<any>[]) {
 		const columns = targets.map(target => {
 			if (typeof target === 'string') {
 				return target;
@@ -67,10 +72,11 @@ export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
 	 * @param id The record id, either the full id or just the unique id
 	 * @returns 
 	 */
-	fromRecord(table: string, id: string): SelectQueryWriter<'one'> {
+	fromRecord(table: string, id: string): SelectQueryWriter<'maybe'> {
 		return this.#push({
+			quantity: 'maybe',
 			targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`
-		});
+		}) as any;
 	}
 
 	/**
@@ -143,17 +149,27 @@ export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
 	 * @param limit The limit
 	 * @returns The query writer
 	 */
-	limit(limit: number): SelectQueryWriter<Q> {
-		return this.#push({ limit: limit });
+	limit(limit: number): SelectQueryWriter<'many'> {
+		return this.#push({
+			quantity: 'many',
+			limit: limit
+		}) as any;
 	}
 
 	/**
 	 * Limit the number of records returned by the query to one.
 	 * This is useful for queries that are expected to return
 	 * a single record.
+	 * 
+	 * Unlike `limit(1)`, this method will cause the query to not
+	 * return an array of records when executed, but instead a
+	 * single record.
 	 */
-	one(): SelectQueryWriter<'one'> {
-		return this.#push({ limit: 1 });
+	one(): SelectQueryWriter<'maybe'> {
+		return this.#push({
+			quantity: 'maybe',
+			limit: 1
+		}) as any;
 	}
 
 	/**
@@ -264,11 +280,7 @@ export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
 		return builder;
 	}
 
-	apply<T extends ZodTypeAny>(model: T): BuiltQuery<Q extends 'many' ? ZodArray<T> : T> {
-		return [this.toQuery(), this.#state.limit == 1 ? model : model.array() as any];
-	}
-
-	#push(extra: Partial<SelectQueryState>) {
+	#push<N extends Quantity = Q>(extra: Partial<SelectQueryState<N>>) {
 		return new SelectQueryWriter({
 			...this.#state,
 			...extra
@@ -284,8 +296,9 @@ export class SelectQueryWriter<Q extends Quantity> implements QueryWriter {
  * @param projections The projections to select
  * @returns The query writer
  */
-export function select(...projections: string[]): SelectQueryWriter<'many'> {
+export function select(...projections: string[]) {
 	return new SelectQueryWriter({
+		quantity: 'many',
 		projections: projections.join(', ') || '*',
 		targets: undefined,
 		where: undefined,

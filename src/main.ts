@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import { Cirql, eq, select, timeNow } from '../lib';
 import * as cirql from '../lib';
+import { z } from 'zod';
 
 (window as any).cirql = cirql;
 
@@ -27,6 +27,33 @@ export const Organisation = z.object({
 });
 
 async function execute() {
+
+	// const res = await database.execute({
+	// 	query: count('5')
+	// })
+
+	// const [a, b, c, d, e] = await database.batch(
+	// 	{
+	// 		query: create('a', 'b', 'c'),
+	// 		schema: z.object({ id: z.string() })
+	// 	},
+	// 	{
+	// 		query: count('5')
+	// 	},
+	// 	{
+	// 		query: delRecord('alpha', 'beta'),
+	// 		schema: z.object({ id: z.string() })
+	// 	},
+	// 	{
+	// 		query: select().from('user'),
+	// 		schema: z.object({ id: z.string() })
+	// 	},
+	// 	{
+	// 		query: select().fromRecord('user', 'john'),
+	// 		schema: z.any()
+	// 	}
+	// )
+
 	return database.prepare()
 		.create({
 			table: 'organisation',
