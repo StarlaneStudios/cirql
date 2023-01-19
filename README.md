@@ -75,7 +75,7 @@ import { query } from 'cirql';
 
 const profiles = await cirql.execute({ 
     query: query('SELECT * FROM profile WHERE age > $minAge'),
-	schema: z.any(),
+    schema: z.any(),
     params: {
         minAge: 42
     }
@@ -95,13 +95,13 @@ import { select } from 'cirql';
 export const Organisation = z.object({
     id: z.string(),
     name: z.string().min(1),
-	isEnabled: z.boolean(),
-	createdAt: z.string()
+    isEnabled: z.boolean(),
+    createdAt: z.string()
 });
 
 const organisations = await cirql.execute({ 
     query: select().from('organisation').where({ isEnabled: true }),
-	schema: Organisation
+    schema: Organisation
 });
 
 // organisations has full TypeScript typing based on your Zod schema
@@ -131,14 +131,14 @@ In the following example we are creating a new organisation, and setting the `cr
 ```ts
 const profile = await cirql.execute({ 
     query: create('organisation').setAll({
-		name: 'Example',
-		isEnabled: eq('$enable'),
-		createdAt: eq(timeNow()) // time::now()
-	}),
-	schema: Organisation,
-	params: {
-		enable: true
-	}
+        name: 'Example',
+        isEnabled: eq('$enable'),
+        createdAt: eq(timeNow()) // time::now()
+    }),
+    schema: Organisation,
+    params: {
+        enable: true
+    }
 });
 ```
 
@@ -151,31 +151,31 @@ The returned array will contain the results of each query in the same order as t
 
 ```ts
 const [a, b, c, d] = await database.batch(
-	{
-		query: create('organisation').setAll({
-			name: 'Example',
-			isEnabled: eq('$enable'),
-			createdAt: eq(timeNow())
-		}),
-		schema: Organisation,
-		params: {
-			enable: true
-		}
-	},
-	{
-		query: query('SELECT * FROM profile WHERE age > $minAge').single(),
-		schema: Profile,
-		params: {
-			minAge: 42
-		}
-	},
-	{
-		query: count('organisation')
-	},
-	{
-		query: select('id').from('organisation').where({ isEnabled: true }),
-		schema: Organisation.pick({ id: true })
-	}
+    {
+        query: create('organisation').setAll({
+            name: 'Example',
+            isEnabled: eq('$enable'),
+            createdAt: eq(timeNow())
+        }),
+        schema: Organisation,
+        params: {
+            enable: true
+        }
+    },
+    {
+        query: query('SELECT * FROM profile WHERE age > $minAge').single(),
+        schema: Profile,
+        params: {
+            minAge: 42
+        }
+    },
+    {
+        query: count('organisation')
+    },
+    {
+        query: select('id').from('organisation').where({ isEnabled: true }),
+        schema: Organisation.pick({ id: true })
+    }
 );
 ```
 
@@ -204,7 +204,7 @@ const cirql = new CirqlStateless({
 
 const organisations = await cirql.execute({ 
     query: select().from('organisation').where({ isEnabled: true }),
-	schema: Organisation
+    schema: Organisation
 });
 ```
 
