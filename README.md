@@ -23,10 +23,10 @@ Cirql (pronounced Circle) is a simple and lightweight ORM and query builder for 
 
 ## Features
 - 🔗 Connect to SurrealDB over stateful WebSockets or stateless requests
-- 📦 Immutable query chaining for batching & transactions
+- 📦 Support for query batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
-- 💎 Write flexible queries using strings or via chained functions
+- 💎 Write flexible queries using the Query Writer API
 
 ## Notice
 Cirql is still in early developmental stages. While you can use it for production applications, it may still lack specific features and edge cases. Feel free to submit feature requests or pull requests to add additional functionality to Cirql. We do ask you to please read our [Contributor Guide](CONTRIBUTING.md).
@@ -43,9 +43,8 @@ npm install cirql zod
 ### Navigation
 - [Connecting to SurrealDB](#connecting-to-surrealdb)
 - [String based queries](#string-based-queries)
-- [Result validation & TypeScript typings](#result-validation--typescript-typings)
-- [Simplified create & update queries](#simplified-create--update-queries)
-- [Writing programmatic queries](#writing-programmatic-queries)
+- [Using the Query Writer API](#using-the-query-writer-api)
+- [Raw query values & operators](#raw-query-values--operators)
 - [Batched queries & transactions](#batched-queries--transactions)
 - [Stateless requests](#stateless-requests)
 
@@ -72,8 +71,10 @@ const cirql = new Cirql({
 Once you have your cirql connection opened, you will be able to execute queries on the database. 
 
 ```ts
-const profiles = await cirql.selectMany({ 
-    query: 'SELECT * FROM profile WHERE age > $minAge',
+import { query } from 'cirql';
+
+const profiles = await cirql.execute({ 
+    query: query('SELECT * FROM profile WHERE age > $minAge'),
 	schema: z.any(),
     params: {
         minAge: 42
@@ -81,104 +82,102 @@ const profiles = await cirql.selectMany({
 });
 ```
 
-In order to prevent potential SQL injection attacks avoid inserting user-generated variables directly into your queries. Instead, make use of Surreal's parameter functionality as demonstrated above.
+In this example we provide a raw query string, and disable validation by passing `z.any()` as the schema.
 
-If you need more control over your query you can also use the `query()` function to send any query string with no limitations.
+In order to prevent potential SQL injection attacks avoid inserting user-generated variables directly into raq queries. Instead, make use of Surreal's parameter functionality as demonstrated above. Using the Query Writer API will also provide safe ways to insert user-generated variables into your queries.
 
-### Result validation & TypeScript typings
-By utilizing zod, Cirql is able to efficiently validate query responses against predefined schemas. While specifying schemas is useful for client-side record validation, it also has the added benefit of providing full type completion for TypeScript codebases. 
+### Using the Query Writer API
+Instead of writing queries as strings, it is recommended to use the Query Writer API. This will allow you to write queries in a more programmatic way, while still providing the same level of control as raw queries. In the following example we are also making use of Zod to validate the query results.
 
 ```ts
-const UserProfile = z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    createdAt: z.string(),
-    email: z.string(),
-    age: z.number()
+import { select } from 'cirql';
+
+export const Organisation = z.object({
+    id: z.string(),
+    name: z.string().min(1),
+	isEnabled: z.boolean(),
+	createdAt: z.string()
 });
 
-const profiles = await cirql.selectMany({ 
-    query: 'SELECT * FROM profile WHERE age > $minAge',
-    schema: UserProfile,
-    params: {
-        minAge: 42
-    }
+const organisations = await cirql.execute({ 
+    query: select().from('organisation').where({ isEnabled: true }),
+	schema: Organisation
 });
 
-// 'profiles' is of type UserProfile[]
+// organisations has full TypeScript typing based on your Zod schema
+
 ```
 
-### Simplified create & update queries
-Using the query functions for sending create and update queries will allow you to provide any JavaScript object which will be automatically serialized. You can use the `raw` function in conjunction with `eq` to insert raw query values such as SurrealDB functions or parameter names.
+Thanks to Cirql's powerful type system, the `.execute()` function will automatically infer the schema from the query combined with the `schema` field. This includes changing the result type depending if you requested one or many records.
+
+We currently provide the following query writers:
+- `select()`
+- `count()`
+- `del()`
+- `delRecord()`
+- `create()`
+- `createRecord()`
+- `update()`
+- `updateRecord()`
+- `relate()`
+- `relateRecords()`
+- `query()`
+
+### Raw query values & operators
+While the Query Writer API provides a safe way to write queries, it is still possible to insert raw values into your queries. This can be useful for inserting SurrealDB functions or parameter names into `WHERE` clauses and `SET` expressions. You can import any of Surreal's comparison operators, of which you can find a complete list [here](https://github.com/StarlaneStudios/cirql/blob/main/lib/operators.ts). By default values will use a simple value comparison (`=`).
+
+In the following example we are creating a new organisation, and setting the `createdAt` field to the current time using the Surreal `time::now()` function.
 
 ```ts
-await cirql.create({
-    table: 'profile',
-    schema: UserProfile,
-    data: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        createdAt: eq(raw('time::now()')),
-        age: 42
-    }
+const profile = await cirql.execute({ 
+    query: create('organisation').setAll({
+		name: 'Example',
+		isEnabled: eq('$enable'),
+		createdAt: eq(timeNow()) // time::now()
+	}),
+	schema: Organisation,
+	params: {
+		enable: true
+	}
 });
 ```
 
 When adding or subtracting items from arrays, you can use the `add` and `remove` functions instead of eq for inserting `+=` and `-=` operators.
 
-### Writing programmatic queries
-Having to write your queries as plain strings is fine for most use-cases, however Cirql also provides an API for writing programmatic queries. You can pass these directly to any operation expecting a `query` and will automatically convert your input to a string.
-
-You can import any of Surreal's comparison operators for use in your WHERE clause. You can find a complete list [here](https://github.com/StarlaneStudios/cirql/blob/main/lib/operators.ts). By default values will use a simple value comparison (`=`).
-
-```ts
-await cirql.selectOne({
-    schema: UserProfile,
-    params: {
-        name: "John"
-    },
-    query: select()
-        .from('profile')
-        .where({
-            firstName: eq(raw('$name')),
-            lastName: 'Doe',
-            age: gt(42)
-        })
-        .fetch('friends', 'activities')
-        .orderBy('createdAt', 'desc')
-});
-```
-
-For convinience, passing a programmatic query to `selectOne` will automatically set its limit to 1.
-
 ### Batched queries & transactions
-You can send multiple queries in a single request by chaining multiple operations together after using the `.prepare()` function. The execute function will return a spreadable array containing all query results.
+While you can use `.execute()` to send a single query to SurrealDB, you can also use `.batch()` and `.transaction()` to send multiple queries in a single request.
+
+The returned array will contain the results of each query in the same order as they were sent. If you are using TypeScript, the results will also be typed based on the schema you provided. You can destructure the results to get the individual values easily.
 
 ```ts
-const [profiles, total, john] = cirql.prepare()
-    .selectMany({ 
-        query: select().from('profile'),
-        schema: UserProfile
-    })
-    .count({
-        table: 'profile'
-    })
-    .create({
-        table: 'profile',
-        schema: UserProfile,
-        data: {
-            firstName: 'John',
-            localhost: 'Doe',
-            email: 'john@example.com',
-            createdAt: eq(raw('time::now()')),
-            age: 42
-        }
-    })
-    .execute();
+const [a, b, c, d] = await database.batch(
+	{
+		query: create('organisation').setAll({
+			name: 'Example',
+			isEnabled: eq('$enable'),
+			createdAt: eq(timeNow())
+		}),
+		schema: Organisation,
+		params: {
+			enable: true
+		}
+	},
+	{
+		query: query('SELECT * FROM profile WHERE age > $minAge').single(),
+		schema: Profile,
+		params: {
+			minAge: 42
+		}
+	},
+	{
+		query: count('organisation')
+	},
+	{
+		query: select('id').from('organisation').where({ isEnabled: true }),
+		schema: Organisation.pick({ id: true })
+	}
+);
 ```
-
-If you would like to run the batched queries as transaction instead, simply replace `.execute()` with `.transaction()`.
 
 ### Stateless requests
 When making requests from environments where execution times might be short lived, or where you don't need to maintain persistence between requests, you can run Cirql in stateless mode. This will cause Cirql to make individual HTTP requests for each query.
@@ -203,14 +202,13 @@ const cirql = new CirqlStateless({
 // You can now use the cirql instance as normal without
 // having to call .disconnect()
 
-const profiles = await cirql.selectMany({ 
-    query: 'SELECT * FROM profile WHERE age > $minAge',
-	schema: UserProfile,
-    params: {
-        minAge: 42
-    }
+const organisations = await cirql.execute({ 
+    query: select().from('organisation').where({ isEnabled: true }),
+	schema: Organisation
 });
 ```
+
+When using Cirql in a SSR environment it is safe to create a new stateless Cirql instance for each request. This will ensure that no state is shared between requests.
 
 ## Contributing
 We welcome any issues and PRs submitted to Cirql. Since we currently work on multiple other projects and our time is limited, we value any community help in supporting a rich future for Cirql.

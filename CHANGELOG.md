@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.2.0 - API Redesign
+- Completely rewritten the API to be more consistent and easier to use
+- Original API is still available but marked as deprecated
+	- Will be removed in a future version
+- Added special query writer `query()` for wrapping raw query strings
+	- This is the new and only way to send raw query strings
+- Added `cirql.execute()`, `cirql.batch()`, and `cirql.transaction()` which are used to execute all queries
+- Added more functions to existing query writers
+	- We still intend to implement writers for `LET` and `IF` soon. You can use `query()` for now.
+- New API provides better runtime checking of queries and supplied schemas
+- Rewritten README to reflect new API
+
 ## 0.1.11 - Required schemas
 - Schemas are required for all query functions again
 	- This fits better with the design goals of Cirql
