@@ -113,10 +113,6 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	});
 
 	socket.addEventListener('error', (e) => {
-		console.log(e.error);
-		console.log(e.message);
-		console.log(e.type);
-
 		options.onError?.(e.error);
 	});
 
