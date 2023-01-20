@@ -2,6 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { Generic } from "./symbols";
+import { isListLike } from "../helpers";
 
 type ContentMode = 'replace' | 'merge';
 
@@ -260,6 +261,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 export function update(...targets: string[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
+	}
+
+	if (isListLike(...targets)) {
+		throw new CirqlWriterError('Multiple targets must be specified seperately');
 	}
 
 	return new UpdateQueryWriter({

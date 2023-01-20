@@ -2,6 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
+import { isListLike } from "../helpers";
 
 interface DeleteQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -151,6 +152,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 export function del(...targets: string[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
+	}
+
+	if (isListLike(...targets)) {
+		throw new CirqlWriterError('Multiple targets must be specified seperately');
 	}
 
 	return new DeleteQueryWriter({

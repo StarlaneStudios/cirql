@@ -2,6 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { Generic } from "./symbols";
+import { isListLike } from "../helpers";
 
 interface CreateQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -202,13 +203,19 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @param targets The targets to create
  * @returns The query writer
  */
-export function create(...targets: string[]) {
+export function create(target: string): CreateQueryWriter<'one'>;
+export function create(...targets: string[]): CreateQueryWriter<'many'>;
+export function create(...targets: string[]): CreateQueryWriter<'one' | 'many'> {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
 
+	if (isListLike(...targets)) {
+		throw new CirqlWriterError('Multiple targets must be specified seperately');
+	}
+
 	return new CreateQueryWriter({
-		quantity: 'many',
+		quantity: targets.length === 1 ? 'one' : 'many',
 		targets: targets.join(', '),
 		setFields: {},
 		content: {},

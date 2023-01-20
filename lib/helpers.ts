@@ -42,3 +42,8 @@ export function isRaw(input: any): input is RawQuery {
 export function useValueOrRaw(value: any) {
 	return isRaw(value) ? value[Raw] : value === null ? 'NONE' : JSON.stringify(value);
 }
+
+/** Returns whether any of the strings attempts to present a list */
+export function isListLike(...value: string[]) {
+	return value.some(v => v.includes(','));
+}

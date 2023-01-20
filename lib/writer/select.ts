@@ -1,6 +1,8 @@
 import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity } from "./types";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
+import { isListLike } from "../helpers";
+import { CirqlWriterError } from "../errors";
 
 interface SelectQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -52,6 +54,10 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	from(...targets: string[]|QueryWriter<any>[]) {
 		const columns = targets.map(target => {
 			if (typeof target === 'string') {
+				if (isListLike(target)) {
+					throw new CirqlWriterError('Multiple targets must be specified seperately');
+				}
+				
 				return target;
 			} else {
 				return `(${target.toQuery()})`;
@@ -297,6 +303,10 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @returns The query writer
  */
 export function select(...projections: string[]) {
+	if (isListLike(...projections)) {
+		throw new CirqlWriterError('Multiple projections must be specified seperately');
+	}
+
 	return new SelectQueryWriter({
 		quantity: 'many',
 		projections: projections.join(', ') || '*',
