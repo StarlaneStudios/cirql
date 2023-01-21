@@ -15,7 +15,7 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build && tsup ./lib/index.ts --dts --dts-only",
+		"build": "rm -rf dist && tsc && vite build && tsup ./lib/index.ts --dts --dts-only",
 		"prepublishOnly": "pnpm run build"
 	},
 	"devDependencies": {
