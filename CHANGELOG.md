@@ -1,5 +1,10 @@
 # Change Log
 
+# 0.3.0 - Remove classic API
+- Removed the classic API
+	- This was deprecated in 0.2.0
+- Fixed missing TypeScript definitions
+
 ## 0.2.2 - LET Query Writer
 - Implemented query writer for `LET`
 - Added `cirql.ready()` for awaiting stateful connection opening
