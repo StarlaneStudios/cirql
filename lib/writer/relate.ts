@@ -201,6 +201,14 @@ export class RelateQueryWriter implements SchemafulQueryWriter<ZodUndefined, 'ze
 
 }
 
+export interface RecordRelation {
+	fromTable: string;
+	fromId: string;
+	edge: string;
+	toTable: string;
+	toId: string;
+}
+
 /**
  * Start a new RELATE query with the given targets.
  * 
@@ -228,6 +236,16 @@ export function relate(from: string, edge: string, to: string): RelateQueryWrite
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
  * 
+ * @relation The relation information
+ * @returns The query writer
+ */
+export function relateRecords(relation: RecordRelation): RelateQueryWriter;
+
+/**
+ * Start a new RELATE query with the given records. This function
+ * is especially useful in situations where the table name within a
+ * record pointer may be spoofed, and a specific table name is required.
+ * 
  * @param fromTable The first record table
  * @param fromId The first record id, either the full id or just the unique id
  * @param edge The edge name
@@ -235,9 +253,20 @@ export function relate(from: string, edge: string, to: string): RelateQueryWrite
  * @param toId The second record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function relateRecords(fromTable: string, fromId: string, edge: string, toTable: string, toId: string) {
-	const from = `type::thing(${JSON.stringify(fromTable)}, ${JSON.stringify(fromId)})`;
-	const to = `type::thing(${JSON.stringify(toTable)}, ${JSON.stringify(toId)})`;
+export function relateRecords(fromTable: string, fromId: string, edge: string, toTable: string, toId: string): RelateQueryWriter;
 
-	return relate(from, edge, to);
+export function relateRecords(relationOrFromTable: RecordRelation | string, fromId?: string, edge?: string, toTable?: string, toId?: string) {
+	const relation = typeof relationOrFromTable === 'object'
+		? relationOrFromTable : {
+			fromTable: relationOrFromTable,
+			fromId: fromId!,
+			edge: edge!,
+			toTable: toTable!,
+			toId: toId!
+		};
+
+	const from = `type::thing(${JSON.stringify(relation.fromTable)}, ${JSON.stringify(relation.fromId)})`;
+	const to = `type::thing(${JSON.stringify(relation.toTable)}, ${JSON.stringify(relation.toId)})`;
+
+	return relate(from, relation.edge, to);
 }
