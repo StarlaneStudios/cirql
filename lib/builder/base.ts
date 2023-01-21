@@ -1,9 +1,8 @@
-import { CirqlQueries, SimpleQueryOptions, SelectQueryOptions, CreateQueryOptions, UpdateQueryOptions, Params, IfQueryOptions, QueryRequest, CountQueryOptions, DeleteQueryOptions, LetQueryOptions, RelateQueryOptions, MultiTypeOf, QuantitativeTypeOf } from "./types";
 import { ZodTypeAny } from "zod";
 import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
-import { CirqlQuery } from "./query";
 import { CirqlError, CirqlParseError } from "../errors";
 import { Schemaful } from "../writer/symbols";
+import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };
 
@@ -24,7 +23,7 @@ export interface CirqlAdapter {
  * The abstract base implemention for Cirql. This class is agnostic to
  * the concept of connections.
  */
-export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries {
+export abstract class CirqlBaseImpl extends EventTarget {
 
 	#adapter: CirqlAdapter;
 
@@ -144,63 +143,6 @@ export abstract class CirqlBaseImpl extends EventTarget implements CirqlQueries 
 		}
 
 		return params;
-	}
-
-	// - Functions API
-
-	/** @deprecated Use the new Query API instead */
-	prepare(): CirqlQuery<readonly []> {
-		return new CirqlQuery(this.#adapter, [] as const);
-	}
-
-	/** @deprecated Use the new Query API instead */
-	query<R extends ZodTypeAny>(options: SimpleQueryOptions<R>) {
-		return this.prepare().query(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	selectMany<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectMany(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	selectOne<R extends ZodTypeAny>(options: SelectQueryOptions<R>) {
-		return this.prepare().selectOne(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	create<R extends ZodTypeAny>(options: CreateQueryOptions<R>) {
-		return this.prepare().create(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	update<R extends ZodTypeAny>(options: UpdateQueryOptions<R>) {
-		return this.prepare().update(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	delete(options: DeleteQueryOptions) {
-		return this.prepare().delete(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	count(options: CountQueryOptions) {
-		return this.prepare().count(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	relate(options: RelateQueryOptions) {
-		return this.prepare().relate(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	let(options: LetQueryOptions) {
-		return this.prepare().let(options).single();
-	}
-
-	/** @deprecated Use the new Query API instead */
-	if<T extends ZodTypeAny, E extends ZodTypeAny>(options: IfQueryOptions<T, E>) {
-		return this.prepare().if(options).single();
 	}
 
 }

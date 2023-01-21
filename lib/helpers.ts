@@ -1,5 +1,4 @@
 import { Raw, RawQuery } from "./raw";
-import { QueryWriter } from "./writer/types";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -22,15 +21,6 @@ export function thing(tb: string, id: string) {
 /** Generate a table query type */
 export function table(tb: string) {
 	return `type::table($${tb})`;
-}
-
-/** Parse the input into a valid query */
-export function parseQuery(query: string|QueryWriter<any>): string {
-	if (typeof query === 'string') {
-		return query;
-	} else {
-		return query.toQuery();
-	}
 }
 
 /** Returns whether the given input is a raw query */
