@@ -9,6 +9,9 @@
 <br>
 
 <p align="center">
+<a href="https://cirql.starlane.studio">
+	<img src="https://img.shields.io/badge/docs-available-de12b4">
+  </a>
   <a href="https://github.com/StarlaneStudios/cirql/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/StarlaneStudios/cirql"> 
   </a>
@@ -43,6 +46,33 @@ npm install cirql zod
 
 ## How to use
 You can [read our documentation](https://cirql.starlane.studio/) for information on how to use Cirql.
+
+## Example
+The following query fetches up to 5 organisations that are enabled and have the given user as a member. The result is parsed and validated using the provided Zod schema.
+
+```ts
+// Define your Zod schemas
+const Organisation = z.object({
+    id: z.string(),
+    name: z.string(),
+    isEnabled: z.boolean(),
+    createdAt: z.string()
+});
+
+// Execute a select query
+const organisations = await cirql.execute({ 
+    schema: Organisation,
+    query: select()
+		.from('organisation')
+		.limit(5)
+		.where({
+			isEnabled: true,
+			members: any(userId)
+		})
+});
+```
+
+Visit our [Basic Usage](https://cirql.starlane.studio/docs/guide/basic-usage) guide for more examples.
 
 ## Contributing
 We welcome any issues and PRs submitted to Cirql. Since we currently work on multiple other projects and our time is limited, we value any community help in supporting a rich future for Cirql.
