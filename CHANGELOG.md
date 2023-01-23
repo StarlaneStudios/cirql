@@ -1,10 +1,16 @@
 # Change Log
 
-## 0.3.3 - Validation toggle
+## 0.4.0 - Validation toggle
+- Relate query writers now require a schema
+	- The benefit is that created edge records are now returned
 - Validation can now be disabled per query by setting the `validate` option to false
 	- This is a potentially dangerous action as malformed records will not match your typings, potentially introducing bugs further down in your codebase
 	- You should only disable validation if you are manually validating records
+- Improved error handling for query failures in batch requests
+	- All errors are now printed out at once
+	- The error object now contains a `errors` property which is an array of all errors
 - Deprecated `single` option as this behavior is now performed automatically
+- Added `delRelation` query writer
 
 ## 0.3.2 - countRecord
 - Added `countRecord` query writer
