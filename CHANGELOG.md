@@ -1,5 +1,10 @@
 # Change Log
 
+# 0.3.2 - countRecord
+- Added `countRecord` query writer
+	- Primarily useful in conjunction with `.where()` to test whether a specific record matches a condition.
+- Added `single` option for queries which expect a single response such as `INFO FOR DB`
+
 # 0.3.0 - Remove classic API
 - Removed the classic API
 	- This was deprecated in 0.2.0
