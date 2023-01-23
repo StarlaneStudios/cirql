@@ -1,8 +1,8 @@
-import { RecordRelation, ReturnMode, SchemafulQueryWriter } from "./types";
+import { GenericQueryWriter, RecordRelation, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { z, ZodUndefined } from "zod";
-import { Schemaful } from "./symbols";
+import { z } from "zod";
+import { Generic } from "./symbols";
 import { thing } from "../helpers";
 
 interface RelateQueryState {
@@ -27,7 +27,7 @@ interface RelateQueryState {
  * passed to the query writer. Always use the `relateRecord` function
  * to ensure the record id has an intended table name.
  */
-export class RelateQueryWriter implements SchemafulQueryWriter<ZodUndefined, 'zero'> {
+export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	
 	readonly #state: RelateQueryState;
 
@@ -35,9 +35,9 @@ export class RelateQueryWriter implements SchemafulQueryWriter<ZodUndefined, 'ze
 		this.#state = state;
 	}
 
-	readonly [Schemaful] = true;
+	readonly [Generic] = true;
 	readonly _schema = z.undefined();
-	readonly _quantity = 'zero';
+	readonly _quantity = 'one';
 
 	/**
 	 * Set an individual field to a value

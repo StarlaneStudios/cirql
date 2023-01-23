@@ -80,7 +80,8 @@ async function execute() {
 			schema: z.any()
 		},
 		{
-			query: relateRecords(relation)
+			query: relateRecords(relation),
+			schema: z.any()
 		},
 		{
 			query: delRelation(relation),
