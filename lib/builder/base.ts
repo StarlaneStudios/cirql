@@ -1,6 +1,6 @@
 import { ZodTypeAny } from "zod";
 import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
-import { CirqlError, CirqlParseError } from "../errors";
+import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
 import { Schemaful } from "../writer/symbols";
 import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
 
@@ -65,6 +65,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 
 		const params = this.#buildParams(options);
 		const request = this.#buildQuery(options);
+		const errors: string[] = [];
 		const results: any[] = [];
 
 		this.#adapter.onLog(request, params);
@@ -76,13 +77,21 @@ export abstract class CirqlBaseImpl extends EventTarget {
 		}
 
 		for (let i = 0; i < response.length; i++) {
-			const { query, schema, validate } = options.queries[i];
-			const { status, result, detail } = response[i];
-			const quantity = query._quantity as Quantity;
+			const { status, detail } = response[i];
 
 			if (status !== 'OK') {
-				throw new CirqlError(`Query ${i + 1} returned a non-successful status code: ${status}: ${detail}`, 'invalid_response');
+				errors.push(`- Query ${i + 1}: ${detail}`);
 			}
+		}
+
+		if (errors.length > 0) {
+			throw new CirqlQueryError(errors);
+		}
+
+		for (let i = 0; i < response.length; i++) {
+			const { result } = response[i];
+			const { query, schema, validate } = options.queries[i];
+			const quantity = query._quantity as Quantity;
 
 			if (quantity == 'zero') {
 				results.push(undefined);

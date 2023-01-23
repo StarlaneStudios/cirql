@@ -76,7 +76,7 @@ async function execute() {
 			schema: z.any(),
 		},
 		{
-			query: createRecord('person', 'david'),
+			query: createRecord('person', 'john'),
 			schema: z.any()
 		},
 		{

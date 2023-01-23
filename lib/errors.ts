@@ -1,7 +1,7 @@
 import { ZodError } from "zod";
 import { QueryWriter } from "./writer/types";
 
-export type ErrorCodes = 'no_connection' | 'invalid_query' | 'invalid_request' | 'invalid_response' | 'parse_failure' | 'too_many_results';
+export type ErrorCodes = 'no_connection' | 'invalid_query' | 'invalid_request' | 'invalid_response' | 'query_failure' | 'parse_failure' | 'too_many_results';
 
 const formatZodError = (err: ZodError) => {
 	const reports = err.errors.map(issue => {
@@ -51,4 +51,17 @@ export class CirqlWriterError extends CirqlError {
 		this.query = query;
 	}
 
+}
+
+/**
+ * An error thrown when one or more queries fail to execute successfully
+ */
+export class CirqlQueryError extends CirqlError {
+	
+	readonly errors: string[];
+
+	constructor(errors: string[]) {
+		super(`One or more queries returned a non-successful status code: \n${errors.join('\n')}`, 'query_failure');
+		this.errors = errors;
+	}
 }
