@@ -1,4 +1,4 @@
-import { Cirql, create, eq, select, timeNow } from '../lib';
+import { Cirql, create, createRecord, delRecord, delRelation, eq, RecordRelation, relateRecords, select, timeNow } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 import { count } from '../lib/writer/count';
@@ -31,6 +31,14 @@ export const Organisation = z.object({
 
 async function execute() {
 
+	const relation: RecordRelation = {
+		fromTable: 'person',
+		fromId: 'john',
+		edge: 'knows',
+		toTable: 'person',
+		toId: 'david'
+	}
+
 	return await database.transaction(
 		{
 			query: query('INFO FOR DB').single(),
@@ -62,7 +70,30 @@ async function execute() {
 		{
 			query: select().from('$orgs'),
 			schema: z.any()
-		}
+		},
+		{
+			query: createRecord('person', 'john'),
+			schema: z.any(),
+		},
+		{
+			query: createRecord('person', 'david'),
+			schema: z.any()
+		},
+		{
+			query: relateRecords(relation)
+		},
+		{
+			query: delRelation(relation),
+			schema: z.any()
+		},
+		{
+			query: delRecord('person', 'john'),
+			schema: z.any(),
+		},
+		{
+			query: delRecord('person', 'david'),
+			schema: z.any()
+		},
 	);
 
 	// return database.prepare()

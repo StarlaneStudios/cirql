@@ -1,8 +1,10 @@
-import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
+import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
 import { isListLike, thing } from "../helpers";
+import { raw } from "../sql/raw";
+import { eq } from "../sql/operators";
 
 interface DeleteQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -12,6 +14,7 @@ interface DeleteQueryState<Q extends Quantity> {
 	returnFields: string[];
 	timeout: number | undefined;
 	parallel: boolean;
+	unrelate: boolean;
 }
 
 /**
@@ -47,6 +50,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	where(where: string|Where) {
+		if (this.#state.unrelate) {
+			throw new CirqlWriterError('Cannot use where clause with delRelation');
+		}
+
 		if (typeof where === 'object') {
 			where = parseWhereClause(where);	
 		}
@@ -165,7 +172,8 @@ export function del(...targets: string[]) {
 		returnMode: 'before',
 		returnFields: [],
 		timeout: undefined,
-		parallel: false
+		parallel: false,
+		unrelate: false
 	});
 }
 
@@ -186,6 +194,31 @@ export function delRecord(table: string, id: string) {
 		returnMode: 'before',
 		returnFields: [],
 		timeout: undefined,
-		parallel: false
+		parallel: false,
+		unrelate: false
+	});
+}
+
+/**
+ * Start a new DELETE query that deletes the given relation. Since this
+ * function will automatically configure a where clause, calling `.where()`
+ * manually will throw an exception.
+ * 
+ * @param relation The relation information
+ * @returns The query writer
+ */
+export function delRelation(relation: RecordRelation) {
+	return new DeleteQueryWriter({
+		quantity: 'maybe',
+		targets: relation.edge,
+		where: parseWhereClause({
+			in: eq(raw(thing(relation.fromTable, relation.fromId))),
+			out: eq(raw(thing(relation.toTable, relation.toId)))
+		}),
+		returnMode: 'before',
+		returnFields: [],
+		timeout: undefined,
+		parallel: false,
+		unrelate: true
 	});
 }

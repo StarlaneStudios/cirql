@@ -229,7 +229,7 @@ export function relate(from: string, edge: string, to: string): RelateQueryWrite
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
  * 
- * @relation The relation information
+ * @param relation The relation information
  * @returns The query writer
  */
 export function relateRecords(relation: RecordRelation): RelateQueryWriter;
@@ -239,6 +239,7 @@ export function relateRecords(relation: RecordRelation): RelateQueryWriter;
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
  * 
+ * @deprecated Use the `relateRecords(RecordRelation)` signature instead
  * @param fromTable The first record table
  * @param fromId The first record id, either the full id or just the unique id
  * @param edge The edge name
@@ -261,5 +262,5 @@ export function relateRecords(relationOrFromTable: RecordRelation | string, from
 	const from = thing(relation.fromTable, relation.fromId);
 	const to = thing(relation.toTable, relation.toId);
 
-	return relate(from, relation.edge, to);
+	return relate(`(${from})`, relation.edge, `(${to})`);
 }
