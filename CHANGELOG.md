@@ -1,11 +1,17 @@
 # Change Log
 
-# 0.3.2 - countRecord
+## 0.3.3 - Validation toggle
+- Validation can now be disabled per query by setting the `validate` option to false
+	- This is a potentially dangerous action as malformed records will not match your typings, potentially introducing bugs further down in your codebase
+	- You should only disable validation if you are manually validating records
+- Deprecated `single` option as this behavior is now performed automatically
+
+## 0.3.2 - countRecord
 - Added `countRecord` query writer
 	- Primarily useful in conjunction with `.where()` to test whether a specific record matches a condition.
 - Added `single` option for queries which expect a single response such as `INFO FOR DB`
 
-# 0.3.0 - Remove classic API
+## 0.3.0 - Remove classic API
 - Removed the classic API
 	- This was deprecated in 0.2.0
 - Fixed missing TypeScript definitions
