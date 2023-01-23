@@ -2,15 +2,18 @@ import { Quantity, SchemafulQueryWriter, GenericQueryWriter } from '../writer';
 import { TypeOf, ZodTypeAny } from 'zod';
 import { ConnectionDetails, CredentialDetails } from '../types';
 
+export type QueryRequestBase = {
+	params?: Params;
+	single?: boolean;
+}
+
 export type SchemafulQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
 	query: SchemafulQueryWriter<S, Q>;
-	params?: Params;
 	schema?: never;
 }
 
 export type GenericQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
 	query: GenericQueryWriter<Q>;
-	params?: Params;
 	schema: S;
 }
 
@@ -29,7 +32,7 @@ export type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
 }
 
 export type Params = Record<string, any>;
-export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = SchemafulQueryRequest<Q, S> | GenericQueryRequest<Q, S>;
+export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = QueryRequestBase & (SchemafulQueryRequest<Q, S> | GenericQueryRequest<Q, S>);
 
 export interface CirqlBaseOptions {
 	connection: ConnectionDetails;

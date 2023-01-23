@@ -33,6 +33,11 @@ async function execute() {
 
 	return await database.transaction(
 		{
+			query: query('INFO FOR DB').single(),
+			schema: z.any(),
+			single: true
+		},
+		{
 			query: create('organisation').setAll({
 				name: 'Test',
 				isEnabled: Math.random() > 0.5,
@@ -128,7 +133,7 @@ async function sendQuery() {
 		
 		get('output').innerHTML = `
 			<div><b>Query failure</div>
-			<pre style="color: red">${err}</pre>
+			<pre style="color: red">${JSON.stringify(err, null, 4)}</pre>
 		`;
 	}
 

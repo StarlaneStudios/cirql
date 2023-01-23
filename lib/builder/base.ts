@@ -76,7 +76,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 		}
 
 		for (let i = 0; i < response.length; i++) {
-			const { query, schema } = options.queries[i];
+			const { query, schema, single } = options.queries[i];
 			const { status, result, detail } = response[i];
 			const quantity = query._quantity as Quantity;
 
@@ -91,7 +91,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 
 			const theResult: any[] = query._transform?.(result) ?? result;
 			const theSchema: ZodTypeAny = isSchemaful(query) ? query._schema : schema;
-			const parsed = theSchema.array().safeParse(theResult);
+			const parsed = theSchema.array().safeParse(single ? [theResult] : theResult);
 
 			if (!parsed.success) {
 				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
