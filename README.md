@@ -19,14 +19,16 @@
   <img src="https://img.shields.io/github/contributors/StarlaneStudios/cirql">
 </p>
 
-Cirql (pronounced Circle) is a simple and lightweight ORM and query builder for [SurrealDB](https://surrealdb.com/) with built in model mapping and validation powered by [Zod](https://github.com/colinhacks/zod). Unlike most query builders, Cirql takes a very open approach, providing you with complete control over your queries.
+Cirql (pronounced Circle) is a simple lightweight ORM and query builder for [SurrealDB](https://surrealdb.com/), providing fully type-safe queries and [Zod](https://github.com/colinhacks/zod) powered parsing & validation. Unlike most query builders, Cirql's flexible nature leaves you with complete control over your queries, while still providing powerful APIs to query your database in a concise manner.
 
 ## Features
-- 🔗 Connect to SurrealDB over stateful WebSockets or stateless requests
+- 🔗 Connect to SurrealDB over stateful WebSockets or stateless HTTP requests
 - 📦 Support for query batching & transactions
 - ⚙️ Zod-powered schema validation of query results
 - 📝 Full TypeScript support with Zod schema inference
 - 💎 Write flexible queries using the Query Writer API
+- ✂️ Support for raw query strings and native Surreal functions
+- 🔥 Works both in browser and backend environments
 
 ## Notice
 Cirql is still in early developmental stages. While you can use it for production applications, it may still lack specific features and edge cases. Feel free to submit feature requests or pull requests to add additional functionality to Cirql. We do ask you to please read our [Contributor Guide](CONTRIBUTING.md).
