@@ -76,7 +76,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 		}
 
 		for (let i = 0; i < response.length; i++) {
-			const { query, schema } = options.queries[i];
+			const { query, schema, validate } = options.queries[i];
 			const { status, result, detail } = response[i];
 			const quantity = query._quantity as Quantity;
 
@@ -89,26 +89,36 @@ export abstract class CirqlBaseImpl extends EventTarget {
 				continue;
 			}
 
-			const theResult: any[] = query._transform?.(result) ?? result;
-			const theSchema: ZodTypeAny = isSchemaful(query) ? query._schema : schema;
-			const parsed = theSchema.array().safeParse(Array.isArray(theResult) ? theResult : [theResult]);
+			const transformed: any[] = query._transform?.(result) ?? result;
+			const resultList = Array.isArray(transformed) ? transformed : [transformed];
 
-			if (!parsed.success) {
-				throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
+			let values: any[];
+
+			if (validate === false) {
+				values = resultList;
+			} else {
+				const theSchema: ZodTypeAny = isSchemaful(query) ? query._schema : schema;
+				const parsed = theSchema.array().safeParse(resultList);
+
+				if (!parsed.success) {
+					throw new CirqlParseError(`Query ${i + 1} failed to parse`, parsed.error);
+				}
+				
+				values = parsed.data;
 			}
 
 			if (quantity == 'one' || quantity == 'maybe') {
-				if (quantity == 'one' && parsed.data.length === 0) {
-					throw new CirqlError(`Query ${i + 1} expected at least one result but got ${parsed.data.length}`, 'invalid_response');
+				if (quantity == 'one' && values.length === 0) {
+					throw new CirqlError(`Query ${i + 1} expected at least one result but got ${values.length}`, 'invalid_response');
 				}
 
-				if (parsed.data.length > 1) {
-					throw new CirqlError(`Query ${i + 1} expected at most one result but got ${parsed.data.length}`, 'invalid_response');
+				if (values.length > 1) {
+					throw new CirqlError(`Query ${i + 1} expected at most one result but got ${values.length}`, 'invalid_response');
 				}
 
-				results.push(parsed.data[0] || null);
+				results.push(values[0] || null);
 			} else {
-				results.push(parsed.data);
+				results.push(values);
 			}
 		}
 

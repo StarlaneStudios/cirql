@@ -4,6 +4,7 @@ import { ConnectionDetails, CredentialDetails } from '../types';
 
 export type QueryRequestBase = {
 	params?: Params;
+	validate?: boolean;
 	/** @deprecated this is now handled automatically */
 	single?: boolean;
 }
