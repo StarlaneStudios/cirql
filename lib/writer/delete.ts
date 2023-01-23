@@ -2,7 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
-import { isListLike } from "../helpers";
+import { isListLike, thing } from "../helpers";
 
 interface DeleteQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -181,7 +181,7 @@ export function del(...targets: string[]) {
 export function delRecord(table: string, id: string) {
 	return new DeleteQueryWriter({
 		quantity: 'maybe',
-		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		targets: thing(table, id),
 		where: undefined,
 		returnMode: 'before',
 		returnFields: [],

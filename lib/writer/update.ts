@@ -2,7 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { Generic } from "./symbols";
-import { isListLike } from "../helpers";
+import { isListLike, thing } from "../helpers";
 
 type ContentMode = 'replace' | 'merge';
 
@@ -293,7 +293,7 @@ export function update(...targets: string[]) {
 export function updateRecord(table: string, id: string) {
 	return new UpdateQueryWriter({
 		quantity: 'maybe',
-		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		targets: thing(table, id),
 		setFields: {},
 		content: {},
 		contentMode: undefined,

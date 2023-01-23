@@ -2,6 +2,7 @@ import { SchemafulQueryWriter, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { Schemaful } from "./symbols";
 import { z, ZodNumber } from "zod";
+import { thing } from "../helpers";
 
 interface CountQueryState {
 	target: string;
@@ -106,7 +107,7 @@ export function count(target: string): CountQueryWriter {
  */
 export function countRecord(table: string, id: string): CountQueryWriter {
 	return new CountQueryWriter({
-		target: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		target: thing(table, id),
 		where: undefined
 	});
 }

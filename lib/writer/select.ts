@@ -1,7 +1,7 @@
 import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity } from "./types";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
-import { isListLike } from "../helpers";
+import { isListLike, thing } from "../helpers";
 import { CirqlWriterError } from "../errors";
 
 interface SelectQueryState<Q extends Quantity> {
@@ -81,7 +81,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	fromRecord(table: string, id: string): SelectQueryWriter<'maybe'> {
 		return this.#push({
 			quantity: 'maybe',
-			targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`
+			targets: thing(table, id)
 		}) as any;
 	}
 

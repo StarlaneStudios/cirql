@@ -2,7 +2,7 @@ import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { Generic } from "./symbols";
-import { isListLike } from "../helpers";
+import { isListLike, thing } from "../helpers";
 
 interface CreateQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -238,7 +238,7 @@ export function create(...targets: string[]): CreateQueryWriter<'one' | 'many'> 
 export function createRecord(table: string, id: string) {
 	return new CreateQueryWriter({
 		quantity: 'one',
-		targets: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		targets: thing(table, id),
 		setFields: {},
 		content: {},
 		returnMode: undefined,

@@ -15,12 +15,12 @@ export function nextId(post?: string) {
 
 /** Generate a thing query type */
 export function thing(tb: string, id: string) {
-	return `type::thing($${tb}, $${id})`;
+	return `type::thing(${JSON.stringify(tb)}, ${JSON.stringify(id)})`;
 }
 
 /** Generate a table query type */
 export function table(tb: string) {
-	return `type::table($${tb})`;
+	return `type::table(${JSON.stringify(tb)})`;
 }
 
 /** Returns whether the given input is a raw query */

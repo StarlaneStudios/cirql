@@ -1,8 +1,9 @@
-import { ReturnMode, SchemafulQueryWriter } from "./types";
+import { RecordRelation, ReturnMode, SchemafulQueryWriter } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { z, ZodUndefined } from "zod";
 import { Schemaful } from "./symbols";
+import { thing } from "../helpers";
 
 interface RelateQueryState {
 	from: string;
@@ -201,14 +202,6 @@ export class RelateQueryWriter implements SchemafulQueryWriter<ZodUndefined, 'ze
 
 }
 
-export interface RecordRelation {
-	fromTable: string;
-	fromId: string;
-	edge: string;
-	toTable: string;
-	toId: string;
-}
-
 /**
  * Start a new RELATE query with the given targets.
  * 
@@ -265,8 +258,8 @@ export function relateRecords(relationOrFromTable: RecordRelation | string, from
 			toId: toId!
 		};
 
-	const from = `type::thing(${JSON.stringify(relation.fromTable)}, ${JSON.stringify(relation.fromId)})`;
-	const to = `type::thing(${JSON.stringify(relation.toTable)}, ${JSON.stringify(relation.toId)})`;
+	const from = thing(relation.fromTable, relation.fromId);
+	const to = thing(relation.toTable, relation.toId);
 
 	return relate(from, relation.edge, to);
 }

@@ -11,6 +11,14 @@ export type Where = {
 	AND?: Where[];
 } & Record<string, any>;
 
+export interface RecordRelation {
+	fromTable: string;
+	fromId: string;
+	edge: string;
+	toTable: string;
+	toId: string;
+}
+
 /**
  * The query writer interface is implemented by all query writers.
  */
