@@ -10,7 +10,7 @@
 
 <p align="center">
 <a href="https://cirql.starlane.studio">
-	<img src="https://img.shields.io/badge/docs-available-de12b4">
+    <img src="https://img.shields.io/badge/docs-available-de12b4">
   </a>
   <a href="https://github.com/StarlaneStudios/cirql/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/StarlaneStudios/cirql"> 
@@ -63,12 +63,12 @@ const Organisation = z.object({
 const organisations = await cirql.execute({ 
     schema: Organisation,
     query: select()
-		.from('organisation')
-		.limit(5)
-		.where({
-			isEnabled: true,
-			members: any(userId)
-		})
+        .from('organisation')
+        .limit(5)
+        .where({
+            isEnabled: true,
+            members: any(userId)
+        })
 });
 ```
 
