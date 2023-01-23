@@ -94,3 +94,19 @@ export function count(target: string): CountQueryWriter {
 		where: undefined
 	});
 }
+
+/**
+ * Start a new count query restricted to the given record. This
+ * is only useful in conjunction with `.where()` in order to
+ * test whether a specific record matches a given condition.
+ * 
+ * @param table The record table
+ * @param id The record id, either the full id or just the unique id
+ * @returns The query writer
+ */
+export function countRecord(table: string, id: string): CountQueryWriter {
+	return new CountQueryWriter({
+		target: `type::thing(${JSON.stringify(table)}, ${JSON.stringify(id)})`,
+		where: undefined
+	});
+}
