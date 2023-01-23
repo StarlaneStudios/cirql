@@ -34,8 +34,7 @@ async function execute() {
 	return await database.transaction(
 		{
 			query: query('INFO FOR DB').single(),
-			schema: z.any(),
-			single: true
+			schema: z.any()
 		},
 		{
 			query: create('organisation').setAll({
