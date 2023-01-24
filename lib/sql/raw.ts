@@ -10,3 +10,12 @@ export function raw(value: string): RawQuery {
 		[Raw]: value
 	};
 }
+
+/**
+ * Used to insert a raw parameter into a query
+ * 
+ * @param name The parameter name
+ */
+export function param(name: string): RawQuery {
+	return raw(`$${name}`);
+}

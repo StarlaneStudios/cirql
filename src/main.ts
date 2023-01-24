@@ -1,4 +1,4 @@
-import { Cirql, count, create, createRecord, delRecord, delRelation, eq, letValue, query, RecordRelation, relateRecords, select, timeNow, updateRelation } from '../lib';
+import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, relateRecords, select, timeNow, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -69,11 +69,11 @@ async function execute() {
 			schema: z.any()
 		},
 		{
-			query: createRecord('person', 'john'),
+			query: createRecord('person', 'john').set('name', 'John'),
 			schema: z.any(),
 		},
 		{
-			query: createRecord('person', 'david'),
+			query: createRecord('person', 'david').set('name', 'David'),
 			schema: z.any()
 		},
 		{
@@ -95,13 +95,20 @@ async function execute() {
 			schema: z.any()
 		},
 		{
+			query: letValue('example', ['Alfred', 'Bob', 'John'])
+		},
+		{
+			query: select().from('person').where({ name: inside(param('example')) }),
+			schema: z.any(),
+		},
+		{
 			query: delRecord('person', 'john'),
 			schema: z.any(),
 		},
 		{
 			query: delRecord('person', 'david'),
 			schema: z.any()
-		},
+		}
 	);
 
 	// return database.prepare()
