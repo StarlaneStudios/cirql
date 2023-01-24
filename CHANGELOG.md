@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.4.1 - Relation functions
+- Added `updateRelation` query writer
+- Added `countRelation` query writer
+- Added `fromRelation` to select query writer
+
 ## 0.4.0 - Validation toggle
 - Relate query writers now require a schema
 	- The benefit is that created edge records are now returned
