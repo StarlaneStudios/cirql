@@ -1,8 +1,10 @@
-import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity } from "./types";
+import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
 import { parseWhereClause } from "./parser";
 import { Generic } from "./symbols";
 import { isListLike, thing } from "../helpers";
 import { CirqlWriterError } from "../errors";
+import { raw } from "../sql/raw";
+import { eq } from "../sql/operators";
 
 interface SelectQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -17,6 +19,7 @@ interface SelectQueryState<Q extends Quantity> {
 	fetch: string[];
 	timeout: number | undefined;
 	parallel: boolean;
+	relation: boolean;
 }
 
 /**
@@ -86,6 +89,30 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	}
 
 	/**
+	 * Specify the target for the query as a relation. This function
+	 * is especially useful in situations where the table names within a
+	 * record pointer may be spoofed, and specific table names are required.
+	 * 
+	 * Since this function will automatically configure a where clause, calling
+	 * `.where()` manually will throw an exception.
+	 * 
+	 * @param relation The relation information
+	 * @param id The record id, either the full id or just the unique id
+	 * @returns 
+	 */
+	fromRelation(relation: RecordRelation): SelectQueryWriter<'maybe'> {
+		return this.#push({
+			quantity: 'maybe',
+			relation: true,
+			targets: relation.edge,
+			where: parseWhereClause({
+				in: eq(raw(thing(relation.fromTable, relation.fromId))),
+				out: eq(raw(thing(relation.toTable, relation.toId)))
+			}),
+		}) as any;
+	}
+
+	/**
 	 * Define the where clause for the query. All values will be escaped
 	 * automatically. Use of `raw` is supported, as well as any operators
 	 * wrapping the raw function.
@@ -94,8 +121,12 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	where(where: string|Where): SelectQueryWriter<Q> {
+		if (this.#state.relation) {
+			throw new CirqlWriterError('Cannot use where clause with fromRelation');
+		}
+
 		if (typeof where === 'object') {
-			where = parseWhereClause(where);	
+			where = parseWhereClause(where);
 		}
 
 		return this.#push({ where });
@@ -319,6 +350,7 @@ export function select(...projections: string[]) {
 		start: undefined,
 		fetch: [],
 		timeout: undefined,
-		parallel: false
+		parallel: false,
+		relation: false
 	});
 }

@@ -1,9 +1,6 @@
-import { Cirql, create, createRecord, delRecord, delRelation, eq, RecordRelation, relateRecords, select, timeNow } from '../lib';
+import { Cirql, count, create, createRecord, delRecord, delRelation, eq, letValue, query, RecordRelation, relateRecords, select, timeNow, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
-import { count } from '../lib/writer/count';
-import { query } from '../lib/writer/query';
-import { letValue } from '../lib/writer/let';
 
 (window as any).cirql = cirql;
 
@@ -81,6 +78,16 @@ async function execute() {
 		},
 		{
 			query: relateRecords(relation),
+			schema: z.any()
+		},
+		{
+			query: updateRelation(relation).setAll({
+				updated: true
+			}),
+			schema: z.any()
+		},
+		{
+			query: select().fromRelation(relation),
 			schema: z.any()
 		},
 		{

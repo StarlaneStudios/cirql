@@ -1,8 +1,10 @@
-import { GenericQueryWriter, Quantity, ReturnMode, Where } from "./types";
+import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { Generic } from "./symbols";
 import { isListLike, thing } from "../helpers";
+import { eq } from "../sql/operators";
+import { raw } from "../sql/raw";
 
 type ContentMode = 'replace' | 'merge';
 
@@ -17,6 +19,7 @@ interface UpdateQueryState<Q extends Quantity> {
 	returnFields: string[];
 	timeout: number | undefined;
 	parallel: boolean;
+	relation: boolean;
 }
 
 /**
@@ -134,6 +137,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	where(where: string|Where) {
+		if (this.#state.relation) {
+			throw new CirqlWriterError('Cannot use where clause with updateRelation');
+		}
+
 		if (typeof where === 'object') {
 			where = parseWhereClause(where);	
 		}
@@ -277,7 +284,8 @@ export function update(...targets: string[]) {
 		returnMode: undefined,
 		returnFields: [],
 		timeout: undefined,
-		parallel: false
+		parallel: false,
+		relation: false
 	});
 }
 
@@ -301,6 +309,37 @@ export function updateRecord(table: string, id: string) {
 		returnMode: undefined,
 		returnFields: [],
 		timeout: undefined,
-		parallel: false
+		parallel: false,
+		relation: false
+	});
+}
+
+/**
+ * Start a new UPDATE query for the given relation. This function
+ * is especially useful in situations where the table names within a
+ * record pointer may be spoofed, and specific table names are required.
+ * 
+ * Since this function will automatically configure a where clause, calling
+ * `.where()` manually will throw an exception.
+ * 
+ * @param relation The relation information
+ * @returns The query writer
+ */
+export function updateRelation(relation: RecordRelation) {
+	return new UpdateQueryWriter({
+		quantity: 'maybe',
+		targets: relation.edge,
+		where: parseWhereClause({
+			in: eq(raw(thing(relation.fromTable, relation.fromId))),
+			out: eq(raw(thing(relation.toTable, relation.toId)))
+		}),
+		setFields: {},
+		content: {},
+		contentMode: undefined,
+		returnMode: undefined,
+		returnFields: [],
+		timeout: undefined,
+		parallel: false,
+		relation: true
 	});
 }

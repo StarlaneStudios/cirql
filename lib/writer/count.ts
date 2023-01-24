@@ -1,12 +1,16 @@
-import { SchemafulQueryWriter, Where } from "./types";
+import { RecordRelation, SchemafulQueryWriter, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { Schemaful } from "./symbols";
 import { z, ZodNumber } from "zod";
 import { thing } from "../helpers";
+import { eq } from "../sql/operators";
+import { raw } from "../sql/raw";
+import { CirqlWriterError } from "../errors";
 
 interface CountQueryState {
 	target: string;
 	where: string | undefined;
+	relation: boolean;
 }
 
 /**
@@ -41,6 +45,10 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 	 * @returns The query writer
 	 */
 	where(where: string|Where) {
+		if (this.#state.relation) {
+			throw new CirqlWriterError('Cannot use where clause with countRelation');
+		}
+
 		if (typeof where === 'object') {
 			where = parseWhereClause(where);	
 		}
@@ -92,7 +100,8 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 export function count(target: string): CountQueryWriter {
 	return new CountQueryWriter({
 		target: target,
-		where: undefined
+		where: undefined,
+		relation: false
 	});
 }
 
@@ -108,6 +117,28 @@ export function count(target: string): CountQueryWriter {
 export function countRecord(table: string, id: string): CountQueryWriter {
 	return new CountQueryWriter({
 		target: thing(table, id),
-		where: undefined
+		where: undefined,
+		relation: false
+	});
+}
+
+/**
+ * Start a new count query restricted to the given relation. This
+ * is only useful to test whether a specific relation exists.
+ * 
+ * Since this function will automatically configure a where clause, calling
+ * `.where()` manually will throw an exception.
+ * 
+ * @param relation The relation information
+ * @returns The query writer
+ */
+export function countRelation(relation: RecordRelation): CountQueryWriter {
+	return new CountQueryWriter({
+		target: relation.edge,
+		where: parseWhereClause({
+			in: eq(raw(thing(relation.fromTable, relation.fromId))),
+			out: eq(raw(thing(relation.toTable, relation.toId)))
+		}),
+		relation: true
 	});
 }
