@@ -19,20 +19,12 @@ export function letValue(name: string, value: any | QueryWriter<any>): Schemaful
 		throw new Error(`Invalid LET name: ${name}`);
 	}
 	
-	let valueStr: string;
-
-	if (typeof value == 'object' && 'toQuery' in value) {
-		valueStr = `(${value.toQuery()})`;
-	} else {
-		valueStr = useValueOrRaw(value);
-	}
-
 	return {
 		[Schemaful]: true,
 		_quantity: 'zero',
 		_schema: z.undefined(),
 		toQuery() {
-			return `LET $${name} = ${valueStr}`;
+			return `LET $${name} = ${useValueOrRaw(value)}`;
 		}
 	}
 }
