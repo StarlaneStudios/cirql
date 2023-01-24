@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.4.2 - Param function
+- Added `param` function as shortcut for `raw('$' + name)`
+- Allow query writers to be passed to operators
+- Added `parseQueries` utility function
+
 ## 0.4.1 - Relation functions
 - Added `updateRelation` query writer
 - Added `countRelation` query writer
