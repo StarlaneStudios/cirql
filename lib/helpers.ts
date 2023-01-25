@@ -1,4 +1,5 @@
 import { Raw, RawQuery } from "./raw";
+import { SurrealValue } from "./types";
 import { QueryWriter } from "./writer";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -47,7 +48,11 @@ export function isListLike(...value: string[]) {
  * - If the input is null, the string 'NONE' is returned
  * - Otherwise, the input is JSON stringified
  */
-export function useValueOrRaw(value: any) {
+export function useSurrealValue(value: SurrealValue) {
+	if (value === undefined) {
+		throw new Error('Cannot use undefined value');
+	}
+
 	if (isRaw(value)) {
 		return value[Raw];
 	}

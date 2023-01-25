@@ -1,5 +1,6 @@
-import { useValueOrRaw } from "../helpers";
+import { useSurrealValue } from "../helpers";
 import { RawQuery } from "../raw";
+import { SurrealValue } from "../types";
 import { raw } from "./raw";
 
 /**
@@ -8,8 +9,8 @@ import { raw } from "./raw";
  * @param value The value to check
  * @returns The raw query
  */
-export function eq(value: any): RawQuery {
-	return raw(`= ${useValueOrRaw(value)}`);
+export function eq(value: SurrealValue): RawQuery {
+	return raw(`= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -18,8 +19,8 @@ export function eq(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function neq(value: any): RawQuery {
-	return raw(`!= ${useValueOrRaw(value)}`);
+export function neq(value: SurrealValue): RawQuery {
+	return raw(`!= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -28,8 +29,8 @@ export function neq(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function eeq(value: any): RawQuery {
-	return raw(`== ${useValueOrRaw(value)}`);
+export function eeq(value: SurrealValue): RawQuery {
+	return raw(`== ${useSurrealValue(value)}`);
 }
 
 /**
@@ -38,8 +39,8 @@ export function eeq(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function any(value: any): RawQuery {
-	return raw(`?= ${useValueOrRaw(value)}`);
+export function any(value: SurrealValue): RawQuery {
+	return raw(`?= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -48,8 +49,8 @@ export function any(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function all(value: any): RawQuery {
-	return raw(`*= ${useValueOrRaw(value)}`);
+export function all(value: SurrealValue): RawQuery {
+	return raw(`*= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -58,8 +59,8 @@ export function all(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function feq(value: any): RawQuery {
-	return raw(`~ ${useValueOrRaw(value)}`);
+export function feq(value: SurrealValue): RawQuery {
+	return raw(`~ ${useSurrealValue(value)}`);
 }
 
 /**
@@ -68,8 +69,8 @@ export function feq(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function nfeq(value: any): RawQuery {
-	return raw(`!~ ${useValueOrRaw(value)}`);
+export function nfeq(value: SurrealValue): RawQuery {
+	return raw(`!~ ${useSurrealValue(value)}`);
 }
 
 /**
@@ -78,8 +79,8 @@ export function nfeq(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function fany(value: any): RawQuery {
-	return raw(`?~ ${useValueOrRaw(value)}`);
+export function fany(value: SurrealValue): RawQuery {
+	return raw(`?~ ${useSurrealValue(value)}`);
 }
 
 /**
@@ -88,8 +89,8 @@ export function fany(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function fall(value: any): RawQuery {
-	return raw(`*~ ${useValueOrRaw(value)}`);
+export function fall(value: SurrealValue): RawQuery {
+	return raw(`*~ ${useSurrealValue(value)}`);
 }
 
 /**
@@ -98,8 +99,8 @@ export function fall(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function lt(value: any): RawQuery {
-	return raw(`< ${useValueOrRaw(value)}`);
+export function lt(value: SurrealValue): RawQuery {
+	return raw(`< ${useSurrealValue(value)}`);
 }
 
 /**
@@ -108,8 +109,8 @@ export function lt(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function lte(value: any): RawQuery {
-	return raw(`<= ${useValueOrRaw(value)}`);
+export function lte(value: SurrealValue): RawQuery {
+	return raw(`<= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -118,8 +119,8 @@ export function lte(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function gt(value: any): RawQuery {
-	return raw(`> ${useValueOrRaw(value)}`);
+export function gt(value: SurrealValue): RawQuery {
+	return raw(`> ${useSurrealValue(value)}`);
 }
 
 /**
@@ -128,8 +129,8 @@ export function gt(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function gte(value: any): RawQuery {
-	return raw(`>= ${useValueOrRaw(value)}`);
+export function gte(value: SurrealValue): RawQuery {
+	return raw(`>= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -138,8 +139,8 @@ export function gte(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function contains(value: any): RawQuery {
-	return raw(`CONTAINS ${useValueOrRaw(value)}`);
+export function contains(value: SurrealValue): RawQuery {
+	return raw(`CONTAINS ${useSurrealValue(value)}`);
 }
 
 /**
@@ -148,8 +149,8 @@ export function contains(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function containsNot(value: any): RawQuery {
-	return raw(`CONTAINSNOT ${useValueOrRaw(value)}`);
+export function containsNot(value: SurrealValue): RawQuery {
+	return raw(`CONTAINSNOT ${useSurrealValue(value)}`);
 }
 
 /**
@@ -158,8 +159,8 @@ export function containsNot(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function containsAll(value: any): RawQuery {
-	return raw(`CONTAINSALL ${useValueOrRaw(value)}`);
+export function containsAll(value: SurrealValue): RawQuery {
+	return raw(`CONTAINSALL ${useSurrealValue(value)}`);
 }
 
 /**
@@ -168,8 +169,8 @@ export function containsAll(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function containsAny(value: any): RawQuery {
-	return raw(`CONTAINSANY ${useValueOrRaw(value)}`);
+export function containsAny(value: SurrealValue): RawQuery {
+	return raw(`CONTAINSANY ${useSurrealValue(value)}`);
 }
 
 /**
@@ -178,8 +179,8 @@ export function containsAny(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function containsNone(value: any): RawQuery {
-	return raw(`CONTAINSNONE ${useValueOrRaw(value)}`);
+export function containsNone(value: SurrealValue): RawQuery {
+	return raw(`CONTAINSNONE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -188,8 +189,8 @@ export function containsNone(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function inside(value: any): RawQuery {
-	return raw(`INSIDE ${useValueOrRaw(value)}`);
+export function inside(value: SurrealValue): RawQuery {
+	return raw(`INSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -198,8 +199,8 @@ export function inside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function notInside(value: any): RawQuery {
-	return raw(`NOTINSIDE ${useValueOrRaw(value)}`);
+export function notInside(value: SurrealValue): RawQuery {
+	return raw(`NOTINSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -208,8 +209,8 @@ export function notInside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function allInside(value: any): RawQuery {
-	return raw(`ALLINSIDE ${useValueOrRaw(value)}`);
+export function allInside(value: SurrealValue): RawQuery {
+	return raw(`ALLINSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -218,8 +219,8 @@ export function allInside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function anyInside(value: any): RawQuery {
-	return raw(`ANYINSIDE ${useValueOrRaw(value)}`);
+export function anyInside(value: SurrealValue): RawQuery {
+	return raw(`ANYINSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -228,8 +229,8 @@ export function anyInside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function noneInside(value: any): RawQuery {
-	return raw(`NONEINSIDE ${useValueOrRaw(value)}`);
+export function noneInside(value: SurrealValue): RawQuery {
+	return raw(`NONEINSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -238,8 +239,8 @@ export function noneInside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function outside(value: any): RawQuery {
-	return raw(`OUTSIDE ${useValueOrRaw(value)}`);
+export function outside(value: SurrealValue): RawQuery {
+	return raw(`OUTSIDE ${useSurrealValue(value)}`);
 }
 
 /**
@@ -248,8 +249,8 @@ export function outside(value: any): RawQuery {
  * @param value The value to check
  * @returns The raw query
  */
-export function intersects(value: any): RawQuery {
-	return raw(`INTERSECTS ${useValueOrRaw(value)}`);
+export function intersects(value: SurrealValue): RawQuery {
+	return raw(`INTERSECTS ${useSurrealValue(value)}`);
 }
 
 /**
@@ -258,8 +259,8 @@ export function intersects(value: any): RawQuery {
  * @param value The value to add
  * @returns The raw query
  */
-export function add(value: any): RawQuery {
-	return raw(`+= ${useValueOrRaw(value)}`);
+export function add(value: SurrealValue): RawQuery {
+	return raw(`+= ${useSurrealValue(value)}`);
 }
 
 /**
@@ -268,6 +269,6 @@ export function add(value: any): RawQuery {
  * @param value The value to remove
  * @returns The raw query
  */
-export function remove(value: any): RawQuery {
-	return raw(`-= ${useValueOrRaw(value)}`);
+export function remove(value: SurrealValue): RawQuery {
+	return raw(`-= ${useSurrealValue(value)}`);
 }
