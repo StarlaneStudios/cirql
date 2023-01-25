@@ -1,4 +1,4 @@
-import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, relateRecords, select, timeNow, updateRelation } from '../lib';
+import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, relateRecords, select, time, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -46,7 +46,7 @@ async function execute() {
 			query: create('organisation').setAll({
 				name: 'Test',
 				isEnabled: Math.random() > 0.5,
-				createdAt: eq(timeNow())
+				createdAt: eq(time.now())
 			}),
 			schema: Organisation
 		},

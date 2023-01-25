@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.4.3 - Type helpers
+- Added raw helper function for all `type` functions
+	- Namespaced under `type`, e.g. `type.decimal()`
+- Deprecated `timeNow()` as it has been replaced with `time.now()`
+
 ## 0.4.2 - Param function
 - Added `param` function as shortcut for `raw('$' + name)`
 - Allow query writers to be passed to operators
