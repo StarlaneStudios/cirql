@@ -1,4 +1,4 @@
-import { RawQuery } from "../raw";
+import { RawQuery } from "../types";
 import { raw } from "./raw";
 
 /**

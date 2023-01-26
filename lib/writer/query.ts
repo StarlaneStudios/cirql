@@ -1,5 +1,5 @@
 import { GenericQueryWriter, Quantity } from "./types";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 
 /**
  * A special query writer implementation for executing raw queries.

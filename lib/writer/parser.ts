@@ -1,6 +1,6 @@
 import { CirqlError } from "../errors";
 import { isRaw } from "../helpers";
-import { Raw } from "../raw";
+import { Raw } from "../symbols";
 import { Where } from "./types";
 
 /**

@@ -1,5 +1,5 @@
-import { Raw, RawQuery } from "./raw";
-import { SurrealValue } from "./types";
+import { Raw } from "./symbols";
+import { RawQuery, SurrealValue } from "./types";
 import { QueryWriter } from "./writer";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

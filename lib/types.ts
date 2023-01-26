@@ -1,5 +1,7 @@
-import { RawQuery } from "./raw";
+import { Raw } from "./symbols";
 import { QueryWriter } from "./writer";
+
+export type RawQuery = { [Raw]: string };
 
 export interface RootAuth {
 	user: string;

@@ -2,7 +2,7 @@ import { GenericQueryWriter, RecordRelation, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { z } from "zod";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 import { thing } from "../helpers";
 
 interface RelateQueryState {

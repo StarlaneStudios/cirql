@@ -1,5 +1,5 @@
 import { ZodTypeAny } from "zod";
-import { Generic, Schemaful } from "./symbols";
+import { Generic, Schemaful } from "../symbols";
 
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;

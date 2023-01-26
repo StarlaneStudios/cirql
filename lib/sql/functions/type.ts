@@ -1,6 +1,5 @@
 import { useSurrealValue } from "../../helpers";
-import { RawQuery } from "../../raw";
-import { SurrealValue } from "../../types";
+import { RawQuery, SurrealValue } from "../../types";
 import { raw } from "../raw";
 
 /**

@@ -1,6 +1,6 @@
 import { SchemafulQueryWriter } from "./types";
 import { z, ZodUndefined } from "zod";
-import { Schemaful } from "./symbols";
+import { Schemaful } from "../symbols";
 import { useSurrealValue } from "../helpers";
 import { SurrealValue } from "../types";
 

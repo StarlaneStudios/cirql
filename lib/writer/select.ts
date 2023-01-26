@@ -1,10 +1,10 @@
 import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
 import { parseWhereClause } from "./parser";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 import { isListLike, thing } from "../helpers";
 import { CirqlWriterError } from "../errors";
-import { raw } from "../sql/raw";
 import { eq } from "../sql/operators";
+import { raw } from "../sql/raw";
 
 interface SelectQueryState<Q extends Quantity> {
 	quantity: Q;

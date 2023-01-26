@@ -1,7 +1,7 @@
 import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 import { isListLike, thing } from "../helpers";
 import { eq } from "../sql/operators";
 import { raw } from "../sql/raw";

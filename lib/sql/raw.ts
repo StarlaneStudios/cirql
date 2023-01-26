@@ -1,4 +1,5 @@
-import { Raw, RawQuery } from "../raw";
+import { Raw } from "../symbols";
+import { RawQuery } from "../types";
 
 /**
  * Used to insert raw values into a query

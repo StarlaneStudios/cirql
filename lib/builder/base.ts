@@ -1,7 +1,7 @@
 import { ZodTypeAny } from "zod";
 import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
 import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
-import { Schemaful } from "../writer/symbols";
+import { Schemaful } from "../symbols";
 import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };

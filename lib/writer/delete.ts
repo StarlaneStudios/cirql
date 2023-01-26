@@ -1,10 +1,10 @@
 import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 import { isListLike, thing } from "../helpers";
-import { raw } from "../sql/raw";
 import { eq } from "../sql/operators";
+import { raw } from "../sql/raw";
 
 interface DeleteQueryState<Q extends Quantity> {
 	quantity: Q;

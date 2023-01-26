@@ -1,11 +1,11 @@
 import { RecordRelation, SchemafulQueryWriter, Where } from "./types";
 import { parseWhereClause } from "./parser";
-import { Schemaful } from "./symbols";
+import { Schemaful } from "../symbols";
 import { z, ZodNumber } from "zod";
 import { thing } from "../helpers";
 import { eq } from "../sql/operators";
-import { raw } from "../sql/raw";
 import { CirqlWriterError } from "../errors";
+import { raw } from "../sql/raw";
 
 interface CountQueryState {
 	target: string;

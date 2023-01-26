@@ -1,7 +1,7 @@
 import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { Generic } from "./symbols";
+import { Generic } from "../symbols";
 import { isListLike, thing } from "../helpers";
 
 interface CreateQueryState<Q extends Quantity> {
