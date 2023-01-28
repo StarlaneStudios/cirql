@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.5.0 - Authentication
+- Overhaul authentication support
+	- Credentials are now optional when creating a new `Cirql` instance
+	- Added `cirql.signIn()` to authenticate and return the session token
+	- Added `cirql.signUp()` to register a new account and return the session token
+	- Added `cirql.signOut()` to sign out of the current account
+	- Full support for token authentication, allowing you to persist sessions
+	- This is not available yet for stateless connections
+- The `RawQuery` type is now exported
+
 ## 0.4.3 - Type helpers
 - Added raw helper function for all `type` functions
 	- Namespaced under `type`, e.g. `type.decimal()`
