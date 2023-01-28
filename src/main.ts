@@ -51,7 +51,7 @@ async function execute() {
 			schema: Organisation
 		},
 		{
-			query: query('SELECT * FROM test').single(),
+			query: query('SELECT * FROM test'),
 			schema: z.any()
 		},
 		{
@@ -131,7 +131,7 @@ async function execute() {
 	// 	.execute();
 }
 
-database.addEventListener('open', () => {
+database.addEventListener('open', async () => {
 	setConnected(true);
 });
 

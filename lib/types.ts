@@ -32,12 +32,8 @@ export interface TokenAuth {
 	token: string;
 }
 
-export type CredentialDetails =
-	| RootAuth
-	| NamespaceAuth
-	| DatabaseAuth
-	| ScopeAuth
-	| TokenAuth;
+export type AuthenticationDetails = TokenAuth | (RootAuth | NamespaceAuth | DatabaseAuth | ScopeAuth);
+export type RegistrationDetails = RootAuth | NamespaceAuth | DatabaseAuth | ScopeAuth;
 
 export interface ConnectionDetails {
 

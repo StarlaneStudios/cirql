@@ -1,6 +1,6 @@
 import { Quantity, SchemafulQueryWriter, GenericQueryWriter } from '../writer';
 import { TypeOf, ZodTypeAny } from 'zod';
-import { ConnectionDetails, CredentialDetails } from '../types';
+import { ConnectionDetails, AuthenticationDetails } from '../types';
 
 export type QueryRequestBase = {
 	params?: Params;
@@ -38,7 +38,7 @@ export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = QueryReques
 
 export interface CirqlBaseOptions {
 	connection: ConnectionDetails;
-	credentials: CredentialDetails;
+	credentials?: AuthenticationDetails;
 	logging?: boolean;
 	logPrinter?: (query: string, params: any) => void;
 }

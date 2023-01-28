@@ -4,6 +4,10 @@ import { SurrealHandle } from "../connection/types";
 import { openConnection } from "../connection";
 import { CirqlError } from "../errors";
 import { CirqlBaseImpl } from "./base";
+import { AuthenticationDetails, RegistrationDetails } from "../types";
+
+type RequiredOptions = Required<Omit<CirqlOptions, 'credentials'>> & Pick<CirqlOptions, 'credentials'>;
+type RequiredStatelessOptions = Required<Omit<CirqlStatelessOptions, 'credentials'>> & Pick<CirqlStatelessOptions, 'credentials'>;
 
 /**
  * A stateful connection to a Surreal database. This class provides full access
@@ -17,7 +21,7 @@ import { CirqlBaseImpl } from "./base";
  */
 export class Cirql extends CirqlBaseImpl {
 
-	readonly options: Required<CirqlOptions>;
+	readonly options: RequiredOptions;
 	
 	#surreal: SurrealHandle|null = null;
 	#isPending: boolean = false;
@@ -132,6 +136,18 @@ export class Cirql extends CirqlBaseImpl {
 		});
 	}
 
+	signIn(credentials: AuthenticationDetails): Promise<string | undefined> {
+		return this.handle!.signIn(credentials);
+	}
+
+	signUp(registration: RegistrationDetails): Promise<string | undefined> {
+		return this.handle!.signUp(registration);
+	}
+
+	signOut(): Promise<void> {
+		return this.handle!.signOut();
+	}
+
 }
  
 /**
@@ -140,7 +156,7 @@ export class Cirql extends CirqlBaseImpl {
  */
 export class CirqlStateless extends CirqlBaseImpl {
 
-	readonly options: Required<CirqlStatelessOptions>;
+	readonly options: RequiredStatelessOptions;
 
 	constructor(options: CirqlStatelessOptions) {
 		super({
@@ -158,6 +174,18 @@ export class CirqlStateless extends CirqlBaseImpl {
 			logPrinter: (query) => console.log(query),
 			...options
 		};
+	}
+
+	signIn(_credentials: AuthenticationDetails): Promise<string> {
+		throw new Error('Stateless queries do not support authentication yet');
+	}
+
+	signUp(_registration: RegistrationDetails): Promise<string> {
+		throw new Error('Stateless queries do not support authentication yet');
+	}
+
+	signOut(): Promise<void> {
+		throw new Error('Stateless queries do not support authentication yet');
 	}
 
 	async #executeQuery(query: string, params: Params) {

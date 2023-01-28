@@ -3,6 +3,7 @@ import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
 import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
 import { Schemaful } from "../symbols";
 import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
+import { AuthenticationDetails, RegistrationDetails } from "../types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };
 
@@ -32,12 +33,24 @@ export abstract class CirqlBaseImpl extends EventTarget {
 		this.#adapter = config;
 	}
 
+	/**
+	 * Execute a single query and return the result
+	 * 
+	 * @param request The query to execute
+	 * @returns The result of the query
+	 */
 	async execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<QuantitativeTypeOf<Q, S>> {
 		const [result] = await this.batch(request);
 
 		return result as any;
 	}
 
+	/**
+	 * Execute multiple queries and return the results in the same order
+	 * 
+	 * @param request The queries to execute
+	 * @returns The results of the queries, can be destructured
+	 */
 	async batch<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
 		return this.#sendQuery({
 			queries: request,
@@ -46,6 +59,13 @@ export abstract class CirqlBaseImpl extends EventTarget {
 		});
 	}
 
+	/**
+	 * Execute multiple queries and return the results in the same order. Unlike
+	 * `batch`, this method will execute the queries in a transaction.
+	 * 
+	 * @param request The queries to execute
+	 * @returns The results of the queries, can be destructured
+	 */
 	async transaction<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
 		return this.#sendQuery({
 			queries: request,
@@ -53,6 +73,27 @@ export abstract class CirqlBaseImpl extends EventTarget {
 			suffix: 'COMMIT TRANSACTION'
 		});
 	}
+
+	/**
+	 * Sign in with the provided credentials or session token
+	 * 
+	 * @param credentials The credentials to sign in with
+	 * @returns The session token, can be saved and used to sign in again later
+	 */
+	abstract signIn(credentials: AuthenticationDetails): Promise<string | undefined>;
+
+	/**
+	 * Sign up with the provided credentials
+	 * 
+	 * @param registration The credentials to sign up with
+	 * @returns The session token, can be saved and used to sign in again later
+	 */
+	abstract signUp(registration: RegistrationDetails): Promise<string | undefined>;
+
+	/**
+	 * Sign out of the current session
+	 */
+	abstract signOut(): Promise<void>;
 
 	async #sendQuery<T extends QueryRequest<any, any>[]>(options: SendOptions<T>): Promise<MultiTypeOf<T>> {
 		if (!this.#adapter.onRequest()) {
