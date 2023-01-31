@@ -1,7 +1,7 @@
 <br>
 
 <div align="center">
-    <img src="https://symbols.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/logo.png">
+    <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/logo.png">
 </div>
 
 <hr />
@@ -51,9 +51,11 @@ You can [read our documentation](https://cirql.starlane.studio/) for information
 The following query fetches up to 5 organisations that are enabled and have the given user as a member. The result is parsed and validated using the provided Zod schema.
 
 ```ts
+import { RecordSchema, select } from 'cirql';
+import { z } from 'zod';
+
 // Define your Zod schemas
-const Organisation = z.object({
-    id: z.string(),
+const Organisation = RecordSchema.extend({
     name: z.string(),
     isEnabled: z.boolean(),
     createdAt: z.string()
@@ -93,7 +95,7 @@ To run in live development mode, run `pnpm dev` in the project directory. This w
 
 ## Maintainers
 <a href="https://starlane.studio">
-  <img src="https://symbols.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/starlane.png" height="64">
+  <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/starlane.png" height="64">
 </a>
 
 Cirql is built and maintained by <a href="https://starlane.studio/">Starlane Studios</a> at no cost. If you would like to support our work feel free to [donate to us](https://paypal.me/ExodiusStudios) ⚡
