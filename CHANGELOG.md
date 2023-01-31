@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.5.1 - Group by compatibility
+- For compatibility with the upcoming beta 9 and latest nightly builds `select()` and `count()` now make use of `GROUP ALL` instead of `GROUP BY ALL`
+	- This may cause issues in codebases using beta 8
+- Added `RecordSchema` and `EdgeSchema` exports
+	- Can be used instead of `z.object()` to extend your schemas using `RecordSchema.extend({})`
+	- `RecordSchema` defines the `id` field present on all records
+	- `EdgeSchema` defines the `id`, `in`, and `out` fields present on all edge records
+
 ## 0.5.0 - Authentication
 - Overhaul authentication support
 	- Credentials are now optional when creating a new `Cirql` instance
