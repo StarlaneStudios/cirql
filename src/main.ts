@@ -1,4 +1,4 @@
-import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, relateRecords, select, time, updateRelation } from '../lib';
+import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRecords, select, time, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -19,8 +19,7 @@ const database = new Cirql({
 	retryCount: -1
 });
 
-export const Organisation = z.object({
-    id: z.string(),
+export const Organisation = RecordSchema.extend({
     name: z.string().min(1),
 	isEnabled: z.boolean(),
 	createdAt: z.string()
@@ -59,7 +58,7 @@ async function execute() {
 		},
 		{
 			query: select('id').from('organisation').where({ isEnabled: true }),
-			schema: Organisation.pick({ id: true })
+			schema: RecordSchema
 		},
 		{
 			query: letValue('orgs', select('name').from('organisation')),
@@ -98,7 +97,9 @@ async function execute() {
 			query: letValue('example', ['Alfred', 'Bob', 'John'])
 		},
 		{
-			query: select().from('person').where({ name: inside(param('example')) }),
+			query: select().from('person').where({
+				name: inside(param('example'))
+			}),
 			schema: z.any(),
 		},
 		{
@@ -110,25 +111,6 @@ async function execute() {
 			schema: z.any()
 		}
 	);
-
-	// return database.prepare()
-	// 	.create({
-	// 		table: 'organisation',
-	// 		schema: Organisation,
-	// 		data: {
-	// 			name: 'Test',
-	// 			isEnabled: Math.random() > 0.5,
-	// 			createdAt: eq(timeNow())
-	// 		}
-	// 	})
-	// 	.count({
-	// 		table: 'organisation',
-	// 	})
-	// 	.selectMany({
-	// 		query: select('id').from('organisation').where({ isEnabled: true }),
-	// 		schema: Organisation.pick({ id: true }),
-	// 	})
-	// 	.execute();
 }
 
 database.addEventListener('open', async () => {
