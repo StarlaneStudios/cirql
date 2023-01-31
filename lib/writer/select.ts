@@ -281,7 +281,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		}
 
 		if (group === 'all') {
-			builder += ' GROUP BY ALL';
+			builder += ' GROUP ALL';
 		} else if(group.length > 0) {
 			builder += ` GROUP BY ${group.join(', ')}`;
 		}

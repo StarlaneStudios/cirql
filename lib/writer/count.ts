@@ -72,7 +72,7 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 			builder += ` WHERE ${where}`;
 		}
 
-		builder += ' GROUP BY ALL';
+		builder += ' GROUP ALL';
 
 		return builder;
 	}
