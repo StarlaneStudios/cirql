@@ -46,6 +46,7 @@ export function isListLike(...value: string[]) {
  * - If the input is a raw query, the raw value is returned
  * - If the input is a query writer, the final query is returned
  * - If the input is null, the string 'NONE' is returned
+ * - If the input is date, the ISO formatted string is returned
  * - Otherwise, the input is JSON stringified
  */
 export function useSurrealValue(value: SurrealValue) {
@@ -59,6 +60,10 @@ export function useSurrealValue(value: SurrealValue) {
 
 	if (isWriter(value)) {
 		return `(${value.toQuery()})`;
+	}
+
+	if (value instanceof Date) {
+		return JSON.stringify(value.toISOString());
 	}
 
 	return value === null ? 'NONE' : JSON.stringify(value);
