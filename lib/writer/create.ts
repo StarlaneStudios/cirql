@@ -2,7 +2,8 @@ import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { Generic } from "../symbols";
-import { isListLike, thing } from "../helpers";
+import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { SurrealValue } from "../types";
 
 interface CreateQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -203,9 +204,9 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @param targets The targets to create
  * @returns The query writer
  */
-export function create(target: string): CreateQueryWriter<'one'>;
-export function create(...targets: string[]): CreateQueryWriter<'many'>;
-export function create(...targets: string[]): CreateQueryWriter<'one' | 'many'> {
+export function create(target: SurrealValue): CreateQueryWriter<'one'>;
+export function create(...targets: SurrealValue[]): CreateQueryWriter<'many'>;
+export function create(...targets: SurrealValue[]): CreateQueryWriter<'one' | 'many'> {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
@@ -216,7 +217,7 @@ export function create(...targets: string[]): CreateQueryWriter<'one' | 'many'> 
 
 	return new CreateQueryWriter({
 		quantity: targets.length === 1 ? 'one' : 'many',
-		targets: targets.join(', '),
+		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		setFields: {},
 		content: {},
 		returnMode: undefined,

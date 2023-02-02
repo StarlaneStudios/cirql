@@ -2,9 +2,10 @@ import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from 
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { Generic } from "../symbols";
-import { isListLike, thing } from "../helpers";
+import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { raw } from "../sql/raw";
+import { SurrealValue } from "../types";
 
 interface DeleteQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -156,7 +157,7 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @param targets The targets to delete
  * @returns The query writer
  */
-export function del(...targets: string[]) {
+export function del(...targets: SurrealValue[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
@@ -167,7 +168,7 @@ export function del(...targets: string[]) {
 
 	return new DeleteQueryWriter({
 		quantity: 'many',
-		targets: targets.join(', '),
+		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		where: undefined,
 		returnMode: 'before',
 		returnFields: [],

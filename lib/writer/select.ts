@@ -1,10 +1,11 @@
-import { QueryWriter, Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
+import { Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
 import { parseWhereClause } from "./parser";
 import { Generic } from "../symbols";
-import { isListLike, thing } from "../helpers";
+import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { CirqlWriterError } from "../errors";
 import { eq } from "../sql/operators";
 import { raw } from "../sql/raw";
+import { SurrealValue } from "../types";
 
 interface SelectQueryState<Q extends Quantity> {
 	quantity: Q;
@@ -54,17 +55,13 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param targets The targets for the query
 	 * @returns The query writer
 	 */
-	from(...targets: string[]|QueryWriter<any>[]) {
+	from(...targets: SurrealValue[]) {
 		const columns = targets.map(target => {
-			if (typeof target === 'string') {
-				if (isListLike(target)) {
-					throw new CirqlWriterError('Multiple targets must be specified seperately');
-				}
-				
-				return target;
-			} else {
-				return `(${target.toQuery()})`;
+			if (typeof target === 'string' && isListLike(target)) {
+				throw new CirqlWriterError('Multiple targets must be specified seperately');
 			}
+				
+			return useSurrealValueUnsafe(target);
 		});
 
 		return this.#push({

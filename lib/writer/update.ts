@@ -2,9 +2,10 @@ import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from 
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { Generic } from "../symbols";
-import { isListLike, thing } from "../helpers";
+import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { raw } from "../sql/raw";
+import { SurrealValue } from "../types";
 
 type ContentMode = 'replace' | 'merge';
 
@@ -265,7 +266,7 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @param targets The targets to update
  * @returns The query writer
  */
-export function update(...targets: string[]) {
+export function update(...targets: SurrealValue[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
@@ -276,7 +277,7 @@ export function update(...targets: string[]) {
 
 	return new UpdateQueryWriter({
 		quantity: 'many',
-		targets: targets.join(', '),
+		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		setFields: {},
 		content: {},
 		contentMode: undefined,

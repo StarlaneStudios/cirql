@@ -68,3 +68,34 @@ export function useSurrealValue(value: SurrealValue) {
 
 	return value === null ? 'NONE' : JSON.stringify(value);
 }
+
+/**
+ * Parses the given input object into a valid query value. Unlike
+ * useSurrealValue, this function does not JSON.stringify the value
+ * if it is not a raw query, query writer, or date.
+ * 
+ * - If the input is a raw query, the raw value is returned
+ * - If the input is a query writer, the final query is returned
+ * - If the input is null, the string 'NONE' is returned
+ * - If the input is date, the ISO formatted string is returned
+ * - Otherwise, the value is directly returned
+ */
+export function useSurrealValueUnsafe(value: SurrealValue, wrapRaw?: boolean) {
+	if (value === undefined) {
+		throw new Error('Cannot use undefined value');
+	}
+
+	if (isRaw(value)) {
+		return wrapRaw ? `(${value[Raw]})` : value[Raw];
+	}
+
+	if (isWriter(value)) {
+		return `(${value.toQuery()})`;
+	}
+
+	if (value instanceof Date) {
+		return value.toISOString();
+	}
+
+	return value === null ? 'NONE' : value;
+}

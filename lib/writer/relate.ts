@@ -3,7 +3,8 @@ import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { z } from "zod";
 import { Generic } from "../symbols";
-import { thing } from "../helpers";
+import { thing, useSurrealValueUnsafe } from "../helpers";
+import { SurrealValue } from "../types";
 
 interface RelateQueryState {
 	from: string;
@@ -210,11 +211,11 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
  * @param to The second record
  * @returns The query writer
  */
-export function relate(from: string, edge: string, to: string): RelateQueryWriter {
+export function relate(from: SurrealValue, edge: SurrealValue, to: SurrealValue): RelateQueryWriter {
 	return new RelateQueryWriter({
-		from: from,
-		edge: edge,
-		to: to,
+		from: useSurrealValueUnsafe(from, true),
+		edge: useSurrealValueUnsafe(edge, true),
+		to: useSurrealValueUnsafe(to, true),
 		setFields: {},
 		content: {},
 		returnMode: undefined,

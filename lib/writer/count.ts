@@ -2,10 +2,11 @@ import { RecordRelation, SchemafulQueryWriter, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { Schemaful } from "../symbols";
 import { z, ZodNumber } from "zod";
-import { thing } from "../helpers";
+import { thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { CirqlWriterError } from "../errors";
 import { raw } from "../sql/raw";
+import { SurrealValue } from "../types";
 
 interface CountQueryState {
 	target: string;
@@ -97,9 +98,9 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
  * @param target The target table
  * @returns The query writer
  */
-export function count(target: string): CountQueryWriter {
+export function count(target: SurrealValue): CountQueryWriter {
 	return new CountQueryWriter({
-		target: target,
+		target: useSurrealValueUnsafe(target),
 		where: undefined,
 		relation: false
 	});
