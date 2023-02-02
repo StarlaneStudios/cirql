@@ -37,6 +37,10 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 	readonly _schema = z.number();
 	readonly _quantity = 'one'
 
+	get _state() {
+		return Object.freeze({...this.#state});
+	}
+
 	/**
 	 * Define the where clause for the query. All values will be escaped
 	 * automatically. Use of `raw` is supported, as well as any operators

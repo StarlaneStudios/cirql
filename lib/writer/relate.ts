@@ -40,6 +40,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	readonly _schema = z.undefined();
 	readonly _quantity = 'one';
 
+	get _state() {
+		return Object.freeze({...this.#state});
+	}
+
 	/**
 	 * Set an individual field to a value
 	 * 

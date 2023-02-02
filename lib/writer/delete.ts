@@ -42,6 +42,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return this.#state.quantity;
 	}
 
+	get _state() {
+		return Object.freeze({...this.#state});
+	}
+
 	/**
 	 * Define the where clause for the query. All values will be escaped
 	 * automatically. Use of `raw` is supported, as well as any operators

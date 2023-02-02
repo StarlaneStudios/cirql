@@ -40,6 +40,10 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return this.#state.quantity;
 	}
 
+	get _state() {
+		return Object.freeze({...this.#state});
+	}
+
 	/**
 	 * Set an individual field to a value
 	 * 

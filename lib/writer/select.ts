@@ -48,6 +48,10 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return this.#state.quantity;
 	}
 
+	get _state() {
+		return Object.freeze({...this.#state});
+	}
+
 	/**
 	 * Specify the targets for the query. This can include table names,
 	 * record ids, and subqueries.
