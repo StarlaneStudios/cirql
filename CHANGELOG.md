@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5.3 - Improved relations
+- Improve RecordRelation type to allow SurrealValue and omitting `fromTable` and `toTable`
+
 ## 0.5.2 - Query writer improvements
 - Date objects are now automaticaly converted to ISO strings in more situations
 - Expose query writer state publicly as `writer._state`
