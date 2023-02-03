@@ -2,9 +2,8 @@ import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from 
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { Generic } from "../symbols";
-import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
-import { raw } from "../sql/raw";
 import { SurrealValue } from "../types";
 
 type ContentMode = 'replace' | 'merge';
@@ -335,8 +334,8 @@ export function updateRelation(relation: RecordRelation) {
 		quantity: 'maybe',
 		targets: relation.edge,
 		where: parseWhereClause({
-			in: eq(raw(thing(relation.fromTable, relation.fromId))),
-			out: eq(raw(thing(relation.toTable, relation.toId)))
+			in: eq(getRelationFrom(relation)),
+			out: eq(getRelationTo(relation))
 		}),
 		setFields: {},
 		content: {},

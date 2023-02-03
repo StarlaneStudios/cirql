@@ -2,10 +2,9 @@ import { RecordRelation, SchemafulQueryWriter, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { Schemaful } from "../symbols";
 import { z, ZodNumber } from "zod";
-import { thing, useSurrealValueUnsafe } from "../helpers";
+import { getRelationFrom, getRelationTo, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { CirqlWriterError } from "../errors";
-import { raw } from "../sql/raw";
 import { SurrealValue } from "../types";
 
 interface CountQueryState {
@@ -141,8 +140,8 @@ export function countRelation(relation: RecordRelation): CountQueryWriter {
 	return new CountQueryWriter({
 		target: relation.edge,
 		where: parseWhereClause({
-			in: eq(raw(thing(relation.fromTable, relation.fromId))),
-			out: eq(raw(thing(relation.toTable, relation.toId)))
+			in: eq(getRelationFrom(relation)),
+			out: eq(getRelationTo(relation))
 		}),
 		relation: true
 	});

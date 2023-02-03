@@ -1,10 +1,9 @@
 import { Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
 import { parseWhereClause } from "./parser";
 import { Generic } from "../symbols";
-import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { CirqlWriterError } from "../errors";
 import { eq } from "../sql/operators";
-import { raw } from "../sql/raw";
 import { SurrealValue } from "../types";
 
 interface SelectQueryState<Q extends Quantity> {
@@ -107,8 +106,8 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			relation: true,
 			targets: relation.edge,
 			where: parseWhereClause({
-				in: eq(raw(thing(relation.fromTable, relation.fromId))),
-				out: eq(raw(thing(relation.toTable, relation.toId)))
+				in: eq(getRelationFrom(relation)),
+				out: eq(getRelationTo(relation))
 			}),
 		}) as any;
 	}

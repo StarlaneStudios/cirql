@@ -1,5 +1,6 @@
 import { ZodTypeAny } from "zod";
 import { Generic, Schemaful } from "../symbols";
+import { SurrealValue } from "../types";
 
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;
@@ -11,12 +12,21 @@ export type Where = {
 	AND?: Where[];
 } & Record<string, any>;
 
+/**
+ * Represents a relation between two records. The relation is defined by the
+ * `fromId`, `toId`, and `edge` properties.
+ * 
+ * If `fromTable` or `toTable` is defined, Cirql will automatically insert
+ * a `type::thing()` function to constrain the ids to the specified tables,
+ * which is especially useful in situations where the table names within a
+ * record pointer may be spoofed, and specific table names are required.
+ */
 export interface RecordRelation {
-	fromTable: string;
-	fromId: string;
+	fromTable?: string;
+	fromId: SurrealValue;
 	edge: string;
-	toTable: string;
-	toId: string;
+	toTable?: string;
+	toId: SurrealValue;
 }
 
 /**

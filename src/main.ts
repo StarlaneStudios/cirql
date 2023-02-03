@@ -1,4 +1,4 @@
-import { Cirql, count, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRecords, select, time, updateRelation } from '../lib';
+import { Cirql, count, countRelation, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRecords, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -28,12 +28,16 @@ export const Organisation = RecordSchema.extend({
 async function execute() {
 
 	const relation: RecordRelation = {
-		fromTable: 'person',
-		fromId: 'john',
+		fromId: 'person:john',
 		edge: 'knows',
-		toTable: 'person',
-		toId: 'david'
+		toId: type.thing('person', 'david')
 	}
+
+	console.log('- ', countRelation(relation).toQuery());
+	console.log('- ', delRelation(relation).toQuery())
+	console.log('- ', select().fromRelation(relation).toQuery())
+	console.log('- ', updateRelation(relation).toQuery())
+	console.log('- ', relateRecords(relation).toQuery())
 
 	return await database.transaction(
 		{

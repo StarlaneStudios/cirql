@@ -2,9 +2,8 @@ import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from 
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { Generic } from "../symbols";
-import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
-import { raw } from "../sql/raw";
 import { SurrealValue } from "../types";
 
 interface DeleteQueryState<Q extends Quantity> {
@@ -217,8 +216,8 @@ export function delRelation(relation: RecordRelation) {
 		quantity: 'maybe',
 		targets: relation.edge,
 		where: parseWhereClause({
-			in: eq(raw(thing(relation.fromTable, relation.fromId))),
-			out: eq(raw(thing(relation.toTable, relation.toId)))
+			in: eq(getRelationFrom(relation)),
+			out: eq(getRelationTo(relation))
 		}),
 		returnMode: 'before',
 		returnFields: [],

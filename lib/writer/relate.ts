@@ -2,8 +2,8 @@ import { GenericQueryWriter, RecordRelation, ReturnMode } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { z } from "zod";
-import { Generic } from "../symbols";
-import { thing, useSurrealValueUnsafe } from "../helpers";
+import { Generic, Raw } from "../symbols";
+import { getRelationFrom, getRelationTo, useSurrealValueUnsafe } from "../helpers";
 import { SurrealValue } from "../types";
 
 interface RelateQueryState {
@@ -237,35 +237,9 @@ export function relate(from: SurrealValue, edge: SurrealValue, to: SurrealValue)
  * @param relation The relation information
  * @returns The query writer
  */
-export function relateRecords(relation: RecordRelation): RelateQueryWriter;
+export function relateRecords(relation: RecordRelation) {
+	const from = getRelationFrom(relation);
+	const to = getRelationTo(relation);
 
-/**
- * Start a new RELATE query with the given records. This function
- * is especially useful in situations where the table name within a
- * record pointer may be spoofed, and a specific table name is required.
- * 
- * @deprecated Use the `relateRecords(RecordRelation)` signature instead
- * @param fromTable The first record table
- * @param fromId The first record id, either the full id or just the unique id
- * @param edge The edge name
- * @param toTable The second record table
- * @param toId The second record id, either the full id or just the unique id
- * @returns The query writer
- */
-export function relateRecords(fromTable: string, fromId: string, edge: string, toTable: string, toId: string): RelateQueryWriter;
-
-export function relateRecords(relationOrFromTable: RecordRelation | string, fromId?: string, edge?: string, toTable?: string, toId?: string) {
-	const relation = typeof relationOrFromTable === 'object'
-		? relationOrFromTable : {
-			fromTable: relationOrFromTable,
-			fromId: fromId!,
-			edge: edge!,
-			toTable: toTable!,
-			toId: toId!
-		};
-
-	const from = thing(relation.fromTable, relation.fromId);
-	const to = thing(relation.toTable, relation.toId);
-
-	return relate(`(${from})`, relation.edge, `(${to})`);
+	return relate(`(${from[Raw]})`, relation.edge, `(${to[Raw]})`);
 }

@@ -1,6 +1,8 @@
+import { type } from "./sql/functions/type";
+import { raw } from "./sql/raw";
 import { Raw } from "./symbols";
 import { RawQuery, SurrealValue } from "./types";
-import { QueryWriter } from "./writer";
+import { QueryWriter, RecordRelation } from "./writer";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -23,6 +25,20 @@ export function thing(tb: string, id: string) {
 /** Generate a table query type */
 export function table(tb: string) {
 	return `type::table(${JSON.stringify(tb)})`;
+}
+
+/** Resolve the from part of a relation */
+export function getRelationFrom(relation: RecordRelation) {
+	return relation.fromTable
+		? type.thing(relation.fromTable, relation.fromId)
+		: raw(useSurrealValue(relation.fromId));
+}
+
+/** Resolve the to part of a relation */
+export function getRelationTo(relation: RecordRelation) {
+	return relation.toTable
+		? type.thing(relation.toTable, relation.toId)
+		: raw(useSurrealValue(relation.toId));
 }
 
 /** Returns whether the given input is a raw query */
