@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.5.2 - Query writer improvements
+- Date objects are now automaticaly converted to ISO strings in more situations
+- Expose query writer state publicly as `writer._state`
+- Allow raw values to be passed to more functions
+	- This includes targets for `create()`, `update()`, `delete()`, etc.
+	- Mostly a convenience feature, should make the API more consistent
+
 ## 0.5.1 - Group by compatibility
 - For compatibility with the upcoming beta 9 and latest nightly builds `select()` and `count()` now make use of `GROUP ALL` instead of `GROUP BY ALL`
 	- This may cause issues in codebases using beta 8
