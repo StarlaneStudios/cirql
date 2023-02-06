@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5.4 - New select function
+- Add new `and` function to the select query writer to dynamically append projections
+
 ## 0.5.3 - Improved relations
 - Improve RecordRelation type to allow SurrealValue and omitting `fromTable` and `toTable`
 
