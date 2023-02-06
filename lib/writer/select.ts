@@ -8,7 +8,7 @@ import { SurrealValue } from "../types";
 
 interface SelectQueryState<Q extends Quantity> {
 	quantity: Q;
-	projections: string | undefined;
+	projections: string[];
 	targets: string | undefined;
 	where: string | undefined;
 	split: string[];
@@ -49,6 +49,20 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Append another projection to the query. Usually it is recommended
+	 * to pass projects to `select`, however in certain situations it
+	 * may be useful to add additional projections to the query.
+	 * 
+	 * @param projection The projection to add
+	 * @returns The query writer
+	 */
+	and(projection: string) {
+		return this.#push({
+			projections: [...this.#state.projections, projection]
+		});
 	}
 
 	/**
@@ -269,8 +283,10 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			throw new Error('No targets specified');
 		}
 
+		const what = projections.length > 0 ? projections.join(', ') : '*';
 		const orders = Object.entries(order);
-		let builder = `SELECT ${projections} FROM ${targets}`;
+
+		let builder = `SELECT ${what} FROM ${targets}`;
 
 		if (where) {
 			builder += ` WHERE ${where}`;
@@ -340,7 +356,7 @@ export function select(...projections: string[]) {
 
 	return new SelectQueryWriter({
 		quantity: 'many',
-		projections: projections.join(', ') || '*',
+		projections: projections,
 		targets: undefined,
 		where: undefined,
 		split: [],
