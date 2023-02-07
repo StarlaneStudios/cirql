@@ -87,18 +87,33 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	}
 
 	/**
+	 * Specify the target for the query as a record pointer.
+	 * 
+	 * This function automatically sets the limit to 1
+	 * 
+	 * @param record The record id
+	 * @returns The query writer
+	 */
+	fromRecord(record: string): SelectQueryWriter<'maybe'>
+
+	/**
 	 * Specify the target for the query as a record pointer. This function
 	 * is especially useful in situations where the table name within a
 	 * record pointer may be spoofed, and a specific table name is required.
 	 * 
+	 * This function automatically sets the limit to 1
+	 * 
 	 * @param table The table name
 	 * @param id The record id, either the full id or just the unique id
-	 * @returns 
+	 * @returns The query writer
 	 */
-	fromRecord(table: string, id: string): SelectQueryWriter<'maybe'> {
+	fromRecord(table: string, id: string): SelectQueryWriter<'maybe'>
+
+	fromRecord(recordOrTable: string, id?: string) {
 		return this.#push({
 			quantity: 'maybe',
-			targets: thing(table, id)
+			targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
+			limit: 1
 		}) as any;
 	}
 

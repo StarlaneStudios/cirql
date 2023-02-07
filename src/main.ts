@@ -1,4 +1,4 @@
-import { Cirql, count, countRelation, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRecords, select, time, type, updateRelation } from '../lib';
+import { Cirql, count, countRelation, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -37,7 +37,7 @@ async function execute() {
 	console.log('- ', delRelation(relation).toQuery())
 	console.log('- ', select().fromRelation(relation).toQuery())
 	console.log('- ', updateRelation(relation).toQuery())
-	console.log('- ', relateRecords(relation).toQuery())
+	console.log('- ', relateRelation(relation).toQuery())
 
 	return await database.transaction(
 		{
@@ -80,7 +80,7 @@ async function execute() {
 			schema: z.any()
 		},
 		{
-			query: relateRecords(relation),
+			query: relateRelation(relation),
 			schema: z.any()
 		},
 		{
@@ -107,11 +107,11 @@ async function execute() {
 			schema: z.any(),
 		},
 		{
-			query: delRecord('person', 'john'),
+			query: delRecord('person:john'),
 			schema: z.any(),
 		},
 		{
-			query: delRecord('person', 'david'),
+			query: delRecord('person:david'),
 			schema: z.any()
 		}
 	);

@@ -157,6 +157,8 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * Start a new DELETE query with the given targets. Since delete
  * is a reserved word in JavaScript, this function is named `del`.
  * 
+ * If you only want to delete one record, use the `delRecord` function.
+ * 
  * @param targets The targets to delete
  * @returns The query writer
  */
@@ -182,6 +184,14 @@ export function del(...targets: SurrealValue[]) {
 }
 
 /**
+ * Start a new DELETE query for the given record.
+ * 
+ * @param record The record id
+ * @returns The query writer
+ */
+export function delRecord(record: string): DeleteQueryWriter<'maybe'>;
+
+/**
  * Start a new DELETE query for the given record. This function
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
@@ -190,10 +200,12 @@ export function del(...targets: SurrealValue[]) {
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function delRecord(table: string, id: string) {
+export function delRecord(table: string, id: string): DeleteQueryWriter<'maybe'>;
+
+export function delRecord(recordOrTable: string, id?: string) {
 	return new DeleteQueryWriter({
 		quantity: 'maybe',
-		targets: thing(table, id),
+		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 		where: undefined,
 		returnMode: 'before',
 		returnFields: [],

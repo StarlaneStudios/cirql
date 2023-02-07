@@ -298,14 +298,26 @@ export function update(...targets: SurrealValue[]) {
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
  * 
+ * @param record The record id
+ * @returns The query writer
+ */
+export function updateRecord(record: string): UpdateQueryWriter<'maybe'>;
+
+/**
+ * Start a new UPDATE query for the given record. This function
+ * is especially useful in situations where the table name within a
+ * record pointer may be spoofed, and a specific table name is required.
+ * 
  * @param table The record table
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function updateRecord(table: string, id: string) {
+export function updateRecord(table: string, id: string): UpdateQueryWriter<'maybe'>;
+
+export function updateRecord(recordOrTable: string, id?: string) {
 	return new UpdateQueryWriter({
 		quantity: 'maybe',
-		targets: thing(table, id),
+		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 		setFields: {},
 		content: {},
 		contentMode: undefined,

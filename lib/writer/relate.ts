@@ -215,10 +215,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
  * @param to The second record
  * @returns The query writer
  */
-export function relate(from: SurrealValue, edge: SurrealValue, to: SurrealValue): RelateQueryWriter {
+export function relate(from: SurrealValue, edge: string, to: SurrealValue): RelateQueryWriter {
 	return new RelateQueryWriter({
 		from: useSurrealValueUnsafe(from, true),
-		edge: useSurrealValueUnsafe(edge, true),
+		edge: edge,
 		to: useSurrealValueUnsafe(to, true),
 		setFields: {},
 		content: {},
@@ -237,9 +237,22 @@ export function relate(from: SurrealValue, edge: SurrealValue, to: SurrealValue)
  * @param relation The relation information
  * @returns The query writer
  */
-export function relateRecords(relation: RecordRelation) {
+export function relateRelation(relation: RecordRelation) {
 	const from = getRelationFrom(relation);
 	const to = getRelationTo(relation);
 
 	return relate(`(${from[Raw]})`, relation.edge, `(${to[Raw]})`);
+}
+
+/**
+ * Start a new RELATE query with the given records. This function
+ * is especially useful in situations where the table name within a
+ * record pointer may be spoofed, and a specific table name is required.
+ * 
+ * @deprecated Renamed to `relateRelation` for consistency
+ * @param relation The relation information
+ * @returns The query writer
+ */
+export function relateRecords(relation: RecordRelation) {
+	return relateRelation(relation);
 }

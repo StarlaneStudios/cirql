@@ -96,7 +96,9 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 
 /**
  * Start a new count query which will return the amount of
- * rows in a given table.
+ * rows in a given table. You can either pass a table name or
+ * pass a record id in conjunction with `.where()` to test
+ * whether a specific record exists.
  * 
  * @param target The target table
  * @returns The query writer
@@ -114,13 +116,25 @@ export function count(target: SurrealValue): CountQueryWriter {
  * is only useful in conjunction with `.where()` in order to
  * test whether a specific record matches a given condition.
  * 
+ * @param record The record id
+ * @returns The query writer
+ */
+export function countRecord(record: string): CountQueryWriter
+
+/**
+ * Start a new count query restricted to the given record. This
+ * is only useful in conjunction with `.where()` in order to
+ * test whether a specific record matches a given condition.
+ * 
  * @param table The record table
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function countRecord(table: string, id: string): CountQueryWriter {
+export function countRecord(table: string, id: string): CountQueryWriter
+
+export function countRecord(recordOrTable: string, id?: string): CountQueryWriter {
 	return new CountQueryWriter({
-		target: thing(table, id),
+		target: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 		where: undefined,
 		relation: false
 	});
