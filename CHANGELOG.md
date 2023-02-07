@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.5.5 - Query writer cleanups
+- Renamed and deprecated certain functions in favor of new approaches
+- `select().fromRecord()`, `delRecord()`, `countRecord()`, and `updateRecord()` now support passing just a record id
+	- The id will be JSON stringified to escape any potential invalid content
+
 ## 0.5.4 - New select function
 - Add new `and` function to the select query writer to dynamically append projections
 
