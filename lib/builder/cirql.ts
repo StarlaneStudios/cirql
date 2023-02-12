@@ -189,13 +189,10 @@ export class CirqlStateless extends CirqlBaseImpl {
 	}
 
 	async #executeQuery(query: string, params: Params) {
-		if (Object.keys(params).length > 0) {
-			throw new CirqlError('Stateless queries do not support parameters yet. ', 'invalid_request');
-		}
-
 		const { endpoint, namespace, database } = this.options.connection;
 		const { user, pass, DB, NS, SC, token } = this.options.credentials as any;
 
+		const search = new URLSearchParams();
 		const url = new URL('sql', endpoint);
 
 		if (!user && !pass && !token) {
@@ -227,7 +224,11 @@ export class CirqlStateless extends CirqlBaseImpl {
 			headers['SC'] = SC;
 		}
 
-		const result = await fetch(url, {
+		Object.entries(params).forEach(([key, value]) => {
+			search.set(key, value);
+		});
+
+		const result = await fetch(`${url}?${search}`, {
 			method: 'POST',
 			headers: headers,
 			body: query
