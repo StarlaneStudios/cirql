@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.5.6 - Select inner queries
+- Added `select().addQuery(alias, writer)` to add inner queries to selections
+- Support params in stateless queries
+
 ## 0.5.5 - Query writer cleanups
 - Renamed and deprecated certain functions in favor of new approaches
 - `select().fromRecord()`, `delRecord()`, `countRecord()`, and `updateRecord()` now support passing just a record id
