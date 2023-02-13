@@ -66,6 +66,18 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	}
 
 	/**
+	 * Append a subquery projection to the query. The query will be
+	 * aliased with the given alias.
+	 * 
+	 * @param alias The alias for the subquery
+	 * @param query The subquery
+	 * @returns The query writer
+	 */
+	andQuery(alias: string, query: SelectQueryWriter<any>) {
+		return this.and(`(${query.toQuery()}) AS ${alias}`);
+	}
+
+	/**
 	 * Specify the targets for the query. This can include table names,
 	 * record ids, and subqueries.
 	 * 

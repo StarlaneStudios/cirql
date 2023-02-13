@@ -113,6 +113,16 @@ async function execute() {
 		{
 			query: delRecord('person:david'),
 			schema: z.any()
+		},
+		{
+			query: select()
+				.andQuery('nextShift', select()
+					.from('$parent->hasShift->shift')
+					.orderBy('startAt')
+					.one()
+				)
+				.fromRecord('profile:kordian'),
+			schema: z.any()
 		}
 	);
 }
