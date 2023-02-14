@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.5.7 - Bugfix
+- Fixed issue where certain values could not be used as `SurrealValue`
+
 ## 0.5.6 - Select inner queries
 - Added `select().addQuery(alias, writer)` to add inner queries to selections
 - Support params in stateless queries
