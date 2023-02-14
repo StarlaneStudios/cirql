@@ -52,8 +52,8 @@ export function isWriter(input: any): input is QueryWriter<any> {
 }
 
 /** Returns whether any of the strings attempts to present a list */
-export function isListLike(...value: string[]) {
-	return value.some(v => v.includes(','));
+export function isListLike(...value: SurrealValue[]) {
+	return value.some(v => typeof v == 'string' && v.includes(','));
 }
 
 /**
