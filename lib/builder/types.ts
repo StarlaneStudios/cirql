@@ -1,21 +1,19 @@
-import { Quantity, SchemafulQueryWriter, GenericQueryWriter } from '../writer';
+import { Quantity, QueryWriter } from '../writer';
 import { TypeOf, ZodTypeAny } from 'zod';
 import { ConnectionDetails, AuthenticationDetails } from '../types';
 
 export type QueryRequestBase = {
 	params?: Params;
 	validate?: boolean;
-	/** @deprecated this is now handled automatically */
-	single?: boolean;
 }
 
-export type SchemafulQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
-	query: SchemafulQueryWriter<S, Q>;
-	schema?: never;
+export type InferredQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
+	query: QueryWriter<ZodTypeAny, Q>;
+	schema?: S;
 }
 
-export type GenericQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
-	query: GenericQueryWriter<Q>;
+export type SchemaQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
+	query: QueryWriter<null, Q>;
 	schema: S;
 }
 
@@ -28,13 +26,13 @@ export type QuantitativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q ext
 	: undefined;
 
 export type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
-	[K in keyof T]: T[K] extends SchemafulQueryRequest<any, any>
+	[K in keyof T]: T[K] extends InferredQueryRequest<any, any>
 	? QuantitativeTypeOf<T[K]['query']['_quantity'], T[K]['query']['_schema']>
 	: QuantitativeTypeOf<T[K]['query']['_quantity'], T[K]['schema']>
 }
 
 export type Params = Record<string, any>;
-export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = QueryRequestBase & (SchemafulQueryRequest<Q, S> | GenericQueryRequest<Q, S>);
+export type QueryRequest<Q extends Quantity, S extends ZodTypeAny> = QueryRequestBase & (SchemaQueryRequest<Q, S> | InferredQueryRequest<Q, S>);
 
 export interface CirqlBaseOptions {
 	connection: ConnectionDetails;

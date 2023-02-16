@@ -1,12 +1,13 @@
-import { Order, Ordering, Where, GenericQueryWriter, Quantity, RecordRelation } from "./types";
+import { Order, Ordering, Where, Quantity, RecordRelation, Schema, QueryWriter } from "./types";
 import { parseWhereClause } from "./parser";
-import { Generic } from "../symbols";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { CirqlWriterError } from "../errors";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
+import { ZodTypeAny } from "zod";
 
-interface SelectQueryState<Q extends Quantity> {
+interface SelectQueryState<S extends Schema, Q extends Quantity> {
+	schema: S;
 	quantity: Q;
 	projections: string[];
 	targets: string | undefined;
@@ -33,15 +34,17 @@ interface SelectQueryState<Q extends Quantity> {
  * passed to the query writer. Always use the `fromRecord` function
  * to ensure the record id has an intended table name.
  */
-export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
+export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements QueryWriter<S, Q> {
 	
-	readonly #state: SelectQueryState<Q>;
+	readonly #state: SelectQueryState<S, Q>;
 
-	constructor(state: SelectQueryState<Q>) {
+	constructor(state: SelectQueryState<S, Q>) {
 		this.#state = state;
 	}
 
-	readonly [Generic] = true;
+	get _schema() {
+		return this.#state.schema;
+	}
 
 	get _quantity() {
 		return this.#state.quantity;
@@ -49,6 +52,20 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	with<NS extends ZodTypeAny>(schema: NS) {
+		return new SelectQueryWriter({
+			...this.#state,
+			schema: schema
+		});
 	}
 
 	/**
@@ -60,7 +77,8 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	and(projection: string) {
-		return this.#push({
+		return new SelectQueryWriter({
+			...this.#state,
 			projections: [...this.#state.projections, projection]
 		});
 	}
@@ -73,7 +91,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param query The subquery
 	 * @returns The query writer
 	 */
-	andQuery(alias: string, query: SelectQueryWriter<any>) {
+	andQuery(alias: string, query: SelectQueryWriter<any, any>) {
 		return this.and(`(${query.toQuery()}) AS ${alias}`);
 	}
 
@@ -93,7 +111,8 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			return useSurrealValueUnsafe(target);
 		});
 
-		return this.#push({
+		return new SelectQueryWriter({
+			...this.#state,
 			targets: columns.join(', ')
 		});
 	}
@@ -106,7 +125,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param record The record id
 	 * @returns The query writer
 	 */
-	fromRecord(record: string): SelectQueryWriter<'maybe'>
+	fromRecord(record: string): SelectQueryWriter<S, 'maybe'>
 
 	/**
 	 * Specify the target for the query as a record pointer. This function
@@ -119,14 +138,15 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param id The record id, either the full id or just the unique id
 	 * @returns The query writer
 	 */
-	fromRecord(table: string, id: string): SelectQueryWriter<'maybe'>
+	fromRecord(table: string, id: string): SelectQueryWriter<S, 'maybe'>
 
 	fromRecord(recordOrTable: string, id?: string) {
-		return this.#push({
+		return new SelectQueryWriter({
+			...this.#state,
 			quantity: 'maybe',
 			targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 			limit: 1
-		}) as any;
+		});
 	}
 
 	/**
@@ -141,8 +161,9 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param id The record id, either the full id or just the unique id
 	 * @returns 
 	 */
-	fromRelation(relation: RecordRelation): SelectQueryWriter<'maybe'> {
-		return this.#push({
+	fromRelation(relation: RecordRelation) {
+		return new SelectQueryWriter({
+			...this.#state,
 			quantity: 'maybe',
 			relation: true,
 			targets: relation.edge,
@@ -150,7 +171,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 				in: eq(getRelationFrom(relation)),
 				out: eq(getRelationTo(relation))
 			}),
-		}) as any;
+		})
 	}
 
 	/**
@@ -161,7 +182,7 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where): SelectQueryWriter<Q> {
+	where(where: string|Where) {
 		if (this.#state.relation) {
 			throw new CirqlWriterError('Cannot use where clause with fromRelation');
 		}
@@ -170,7 +191,10 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			where = parseWhereClause(where);
 		}
 
-		return this.#push({ where });
+		return new SelectQueryWriter({
+			...this.#state,
+			where
+		});
 	}
 
 	/**
@@ -179,8 +203,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param fields The split fields
 	 * @returns The query writer
 	 */
-	split(...split: string[]): SelectQueryWriter<Q> {
-		return this.#push({ split });
+	split(...split: string[]) {
+		return new SelectQueryWriter({
+			...this.#state,
+			split
+		});
 	}
 
 	/**
@@ -190,8 +217,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param fields The fields to group by
 	 * @returns The query writer
 	 */
-	groupBy(...group: string[]): SelectQueryWriter<Q> {
-		return this.#push({ group });
+	groupBy(...group: string[]) {
+		return new SelectQueryWriter({
+			...this.#state,
+			group
+		});
 	}
 
 	/**
@@ -199,8 +229,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * 
 	 * @returns The query writer
 	 */
-	groupAll(): SelectQueryWriter<Q> {
-		return this.#push({ group: 'all' });
+	groupAll() {
+		return new SelectQueryWriter({
+			...this.#state,
+			group: 'all'
+		});
 	}
 
 	/**
@@ -209,14 +242,15 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param order The fields to order by
 	 * @returns The query writer
 	 */
-	orderBy(table: string, order?: Order): SelectQueryWriter<Q>;
-	orderBy(order: Ordering): SelectQueryWriter<Q>;
-	orderBy(tableOrOrder: string|Ordering, order?: Order): SelectQueryWriter<Q> {
+	orderBy(table: string, order?: Order): SelectQueryWriter<S, Q>;
+	orderBy(order: Ordering): SelectQueryWriter<S, Q>;
+	orderBy(tableOrOrder: string|Ordering, order?: Order) {
 		const ordering: Ordering = typeof tableOrOrder === 'string'
 			? { [tableOrOrder]: order || 'asc' }
 			: tableOrOrder;
 
-		return this.#push({
+		return new SelectQueryWriter({
+			...this.#state,
 			order: ordering
 		});
 	}
@@ -227,11 +261,12 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param limit The limit
 	 * @returns The query writer
 	 */
-	limit(limit: number): SelectQueryWriter<'many'> {
-		return this.#push({
+	limit(limit: number) {
+		return new SelectQueryWriter({
+			...this.#state,
 			quantity: 'many',
 			limit: limit
-		}) as any;
+		});
 	}
 
 	/**
@@ -243,11 +278,12 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * return an array of records when executed, but instead a
 	 * single record.
 	 */
-	one(): SelectQueryWriter<'maybe'> {
-		return this.#push({
+	one() {
+		return new SelectQueryWriter({
+			...this.#state,
 			quantity: 'maybe',
 			limit: 1
-		}) as any;
+		});
 	}
 
 	/**
@@ -256,8 +292,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param start The start index
 	 * @returns The query writer
 	 */
-	start(start: number): SelectQueryWriter<Q> {
-		return this.#push({ start });
+	start(start: number) {
+		return new SelectQueryWriter({
+			...this.#state,
+			start
+		});
 	}
 
 	/**
@@ -266,8 +305,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param fields The fields to fetch
 	 * @returns The query writer
 	 */
-	fetch(...fetch: string[]): SelectQueryWriter<Q> {
-		return this.#push({ fetch });
+	fetch(...fetch: string[]) {
+		return new SelectQueryWriter({
+			...this.#state,
+			fetch
+		});
 	}
 
 	/**
@@ -276,8 +318,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param seconds The timeout in seconds
 	 * @returns The query writer
 	 */
-	timeout(timeout: number): SelectQueryWriter<Q> {
-		return this.#push({ timeout });
+	timeout(timeout: number) {
+		return new SelectQueryWriter({
+			...this.#state,
+			timeout
+		});
 	}
 
 	/**
@@ -285,8 +330,11 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * 
 	 * @returns The query writer
 	 */
-	parallel(): SelectQueryWriter<Q> {
-		return this.#push({ parallel: true });
+	parallel() {
+		return new SelectQueryWriter({
+			...this.#state,
+			parallel: true
+		});
 	}
 
 	toQuery(): string {
@@ -360,13 +408,6 @@ export class SelectQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return builder;
 	}
 
-	#push<N extends Quantity = Q>(extra: Partial<SelectQueryState<N>>) {
-		return new SelectQueryWriter({
-			...this.#state,
-			...extra
-		});
-	}
-
 }
 
 /**
@@ -382,6 +423,7 @@ export function select(...projections: string[]) {
 	}
 
 	return new SelectQueryWriter({
+		schema: null,
 		quantity: 'many',
 		projections: projections,
 		targets: undefined,

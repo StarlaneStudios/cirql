@@ -1,11 +1,13 @@
-import { ZodTypeAny } from "zod";
-import { Generic, Schemaful } from "../symbols";
+import { input, ZodTypeAny } from "zod";
 import { SurrealValue } from "../types";
 
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;
 export type ReturnMode = 'none' | 'before' | 'after' | 'diff';
 export type Quantity = 'zero' | 'one' | 'maybe' | 'many';
+
+export type Schema = ZodTypeAny | null;
+export type SchemaInput<S> = S extends ZodTypeAny ? Omit<Partial<input<S>>, 'id'> : object;
 
 export type Where = {
 	OR?: Where[];
@@ -32,7 +34,7 @@ export interface RecordRelation {
 /**
  * The query writer interface is implemented by all query writers.
  */
-export interface QueryWriter<Q extends Quantity> {
+export interface QueryWriter<S extends Schema, Q extends Quantity> {
 
 	/**
 	 * The expected quantity of the query. This is used to determine whether
@@ -44,6 +46,12 @@ export interface QueryWriter<Q extends Quantity> {
 	 * - `many` - The query writer should return an array of results
 	 */
 	readonly _quantity: Q;
+
+	/**
+	 * The schema used to validate the query input and output. If this isn't
+	 * defined within the query, it but be specified for .execute().
+	 */
+	readonly _schema: S;
 
 	/**
 	 * Convert the query instance to its string representation. The function
@@ -61,19 +69,4 @@ export interface QueryWriter<Q extends Quantity> {
 	 */
 	_transform?(response: any[]): any[];
 
-}
-
-/**
- * A query writer that has no associated schema
- */
-export interface GenericQueryWriter<Q extends Quantity> extends QueryWriter<Q> {
-	readonly [Generic]: true;
-}
-
-/**
- * A query writer that uses a fixed schema for validation
- */
-export interface SchemafulQueryWriter<S extends ZodTypeAny, Q extends Quantity> extends QueryWriter<Q> {
-	readonly [Schemaful]: true;
-	readonly _schema: S;
 }

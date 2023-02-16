@@ -1,6 +1,5 @@
-import { RecordRelation, SchemafulQueryWriter, Where } from "./types";
+import { QueryWriter, RecordRelation, Where } from "./types";
 import { parseWhereClause } from "./parser";
-import { Schemaful } from "../symbols";
 import { z, ZodNumber } from "zod";
 import { getRelationFrom, getRelationTo, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
@@ -24,7 +23,7 @@ interface CountQueryState {
  * passed to the query writer. Always use the `fromRecord` function
  * to ensure the record id has an intended table name.
  */
-export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> {
+export class CountQueryWriter implements QueryWriter<ZodNumber, 'one'> {
 	
 	readonly #state: CountQueryState;
 
@@ -32,7 +31,6 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 		this.#state = state;
 	}
 	
-	readonly [Schemaful] = true;
 	readonly _schema = z.number();
 	readonly _quantity = 'one'
 
@@ -57,7 +55,10 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 			where = parseWhereClause(where);	
 		}
 
-		return this.#push({ where });
+		return new CountQueryWriter({
+			...this.#state,
+			where
+		});
 	}
 
 	toQuery(): string {
@@ -83,13 +84,6 @@ export class CountQueryWriter implements SchemafulQueryWriter<ZodNumber, 'one'> 
 
 	_transform(response: any[]): any[] {
 		return response.map(row => row['count']);
-	}
-
-	#push(extra: Partial<CountQueryState>) {
-		return new CountQueryWriter({
-			...this.#state,
-			...extra
-		});
 	}
 
 }

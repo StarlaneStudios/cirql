@@ -1,14 +1,15 @@
-import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
+import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaInput, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
-import { Generic } from "../symbols";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
+import { ZodTypeAny } from "zod";
 
 type ContentMode = 'replace' | 'merge';
 
-interface UpdateQueryState<Q extends Quantity> {
+interface UpdateQueryState<S extends Schema, Q extends Quantity> {
+	schema: S;
 	quantity: Q;
 	targets: string;
 	setFields: object;
@@ -33,15 +34,17 @@ interface UpdateQueryState<Q extends Quantity> {
  * passed to the query writer. Always use the `updateRecord` function
  * to ensure the record id has an intended table name.
  */
-export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
+export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements QueryWriter<S, Q> {
 	
-	readonly #state: UpdateQueryState<Q>;
+	readonly #state: UpdateQueryState<S, Q>;
 
-	constructor(state: UpdateQueryState<Q>) {
+	constructor(state: UpdateQueryState<S, Q>) {
 		this.#state = state;
 	}
 
-	readonly [Generic] = true;
+	get _schema() {
+		return this.#state.schema;
+	}
 
 	get _quantity() {
 		return this.#state.quantity;
@@ -49,6 +52,20 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	with<NS extends ZodTypeAny>(schema: NS) {
+		return new UpdateQueryWriter({
+			...this.#state,
+			schema: schema
+		});
 	}
 
 	/**
@@ -63,7 +80,8 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
 
-		return this.#push({ 
+		return new UpdateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				[key]: value
@@ -79,12 +97,13 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param fields The object to use for setting fields
 	 * @returns The query writer
 	 */
-	setAll(fields: object) {
+	setAll(fields: SchemaInput<S>) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set fields when content is set');
 		}
 
-		return this.#push({
+		return new UpdateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				...fields
@@ -101,12 +120,13 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param content The content for the record
 	 * @returns The query writer
 	 */
-	content(content: object) {
+	content(content: SchemaInput<S>) {
 		if (this.#hasSetFields()) {
 			throw new CirqlWriterError('Cannot set content when fields are set');
 		}
 
-		return this.#push({
+		return new UpdateQueryWriter({
+			...this.#state,
 			content: content,
 			contentMode: 'replace'
 		});
@@ -121,12 +141,13 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param content The content for the record
 	 * @returns The query writer
 	 */
-	merge(content: object) {
+	merge(content: SchemaInput<S>) {
 		if (this.#hasSetFields()) {
 			throw new CirqlWriterError('Cannot set content when fields are set');
 		}
 
-		return this.#push({
+		return new UpdateQueryWriter({
+			...this.#state,
 			content: content,
 			contentMode: 'merge'
 		});
@@ -149,7 +170,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			where = parseWhereClause(where);	
 		}
 
-		return this.#push({ where });
+		return new UpdateQueryWriter({
+			...this.#state,
+			where
+		});
 	}
 
 	/**
@@ -159,7 +183,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	return(mode: ReturnMode) {
-		return this.#push({ returnMode: mode });
+		return new UpdateQueryWriter({
+			...this.#state,
+			returnMode: mode
+		});
 	}
 	
 	/**
@@ -169,7 +196,8 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	returnFields(...fields: string[]) {
-		return this.#push({
+		return new UpdateQueryWriter({
+			...this.#state,
 			returnMode: 'fields',
 			returnFields: fields
 		});
@@ -182,7 +210,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	timeout(timeout: number) {
-		return this.#push({ timeout });
+		return new UpdateQueryWriter({
+			...this.#state,
+			timeout
+		});
 	}
 
 	/**
@@ -191,7 +222,10 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	parallel() {
-		return this.#push({ parallel: true });
+		return new UpdateQueryWriter({
+			...this.#state,
+			parallel: true
+		});
 	}
 
 	toQuery(): string {
@@ -246,13 +280,6 @@ export class UpdateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return builder;
 	}
 
-	#push<N extends Quantity = Q>(extra: Partial<UpdateQueryState<N>>) {
-		return new UpdateQueryWriter({
-			...this.#state,
-			...extra
-		});
-	}
-
 	#hasSetFields() {
 		return Object.keys(this.#state.setFields).length > 0;
 	}
@@ -279,6 +306,7 @@ export function update(...targets: SurrealValue[]) {
 	}
 
 	return new UpdateQueryWriter({
+		schema: null,
 		quantity: 'many',
 		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		setFields: {},
@@ -301,7 +329,7 @@ export function update(...targets: SurrealValue[]) {
  * @param record The record id
  * @returns The query writer
  */
-export function updateRecord(record: string): UpdateQueryWriter<'maybe'>;
+export function updateRecord(record: string): UpdateQueryWriter<null, 'maybe'>;
 
 /**
  * Start a new UPDATE query for the given record. This function
@@ -312,10 +340,11 @@ export function updateRecord(record: string): UpdateQueryWriter<'maybe'>;
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function updateRecord(table: string, id: string): UpdateQueryWriter<'maybe'>;
+export function updateRecord(table: string, id: string): UpdateQueryWriter<null, 'maybe'>;
 
 export function updateRecord(recordOrTable: string, id?: string) {
 	return new UpdateQueryWriter({
+		schema: null,
 		quantity: 'maybe',
 		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 		setFields: {},
@@ -343,6 +372,7 @@ export function updateRecord(recordOrTable: string, id?: string) {
  */
 export function updateRelation(relation: RecordRelation) {
 	return new UpdateQueryWriter({
+		schema: null,
 		quantity: 'maybe',
 		targets: relation.edge,
 		where: parseWhereClause({

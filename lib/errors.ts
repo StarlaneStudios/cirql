@@ -44,9 +44,9 @@ export class CirqlParseError extends CirqlError {
  */
 export class CirqlWriterError extends CirqlError {
 
-	readonly query?: QueryWriter<any>;
+	readonly query?: QueryWriter<any, any>;
 
-	constructor(message: string, query?: QueryWriter<any>) {
+	constructor(message: string, query?: QueryWriter<any, any>) {
 		super(message, 'invalid_query');
 		this.query = query;
 	}

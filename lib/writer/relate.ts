@@ -1,12 +1,13 @@
-import { GenericQueryWriter, RecordRelation, ReturnMode } from "./types";
+import { QueryWriter, RecordRelation, ReturnMode, Schema } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { z } from "zod";
-import { Generic, Raw } from "../symbols";
+import { ZodTypeAny } from "zod";
+import { Raw } from "../symbols";
 import { getRelationFrom, getRelationTo, useSurrealValueUnsafe } from "../helpers";
 import { SurrealValue } from "../types";
 
-interface RelateQueryState {
+interface RelateQueryState<S extends Schema> {
+	schema: S;
 	from: string;
 	edge: string;
 	to: string;
@@ -28,20 +29,36 @@ interface RelateQueryState {
  * passed to the query writer. Always use the `relateRecord` function
  * to ensure the record id has an intended table name.
  */
-export class RelateQueryWriter implements GenericQueryWriter<'one'> {
+export class RelateQueryWriter<S extends Schema> implements QueryWriter<S, 'one'> {
 	
-	readonly #state: RelateQueryState;
+	readonly #state: RelateQueryState<S>;
 
-	constructor(state: RelateQueryState) {
+	constructor(state: RelateQueryState<S>) {
 		this.#state = state;
 	}
 
-	readonly [Generic] = true;
-	readonly _schema = z.undefined();
 	readonly _quantity = 'one';
+
+	get _schema() {
+		return this.#state.schema;
+	}
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	with<NS extends ZodTypeAny>(schema: NS) {
+		return new RelateQueryWriter({
+			...this.#state,
+			schema: schema
+		});
 	}
 
 	/**
@@ -56,7 +73,8 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
 
-		return this.#push({ 
+		return new RelateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				[key]: value
@@ -77,7 +95,8 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 			throw new CirqlWriterError('Cannot set fields when content is set');
 		}
 
-		return this.#push({
+		return new RelateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				...fields
@@ -99,7 +118,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 			throw new CirqlWriterError('Cannot set content when fields are set');
 		}
 
-		return this.#push({ content });
+		return new RelateQueryWriter({
+			...this.#state,
+			content
+		});
 	}
 
 	/**
@@ -109,7 +131,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	 * @returns The query writer
 	 */
 	return(mode: ReturnMode) {
-		return this.#push({ returnMode: mode });
+		return new RelateQueryWriter({
+			...this.#state,
+			returnMode: mode
+		});
 	}
 	
 	/**
@@ -119,7 +144,8 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	 * @returns The query writer
 	 */
 	returnFields(...fields: string[]) {
-		return this.#push({
+		return new RelateQueryWriter({
+			...this.#state,
 			returnMode: 'fields',
 			returnFields: fields
 		});
@@ -132,7 +158,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	 * @returns The query writer
 	 */
 	timeout(timeout: number) {
-		return this.#push({ timeout });
+		return new RelateQueryWriter({
+			...this.#state,
+			timeout
+		});
 	}
 
 	/**
@@ -141,7 +170,10 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 	 * @returns The query writer
 	 */
 	parallel() {
-		return this.#push({ parallel: true });
+		return new RelateQueryWriter({
+			...this.#state,
+			parallel: true
+		});
 	}
 
 	toQuery(): string {
@@ -190,13 +222,6 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
 		return builder;
 	}
 
-	#push(extra: Partial<RelateQueryState>) {
-		return new RelateQueryWriter({
-			...this.#state,
-			...extra
-		});
-	}
-
 	#hasSetFields() {
 		return Object.keys(this.#state.setFields).length > 0;
 	}
@@ -215,8 +240,9 @@ export class RelateQueryWriter implements GenericQueryWriter<'one'> {
  * @param to The second record
  * @returns The query writer
  */
-export function relate(from: SurrealValue, edge: string, to: SurrealValue): RelateQueryWriter {
+export function relate(from: SurrealValue, edge: string, to: SurrealValue) {
 	return new RelateQueryWriter({
+		schema: null,
 		from: useSurrealValueUnsafe(from, true),
 		edge: edge,
 		to: useSurrealValueUnsafe(to, true),

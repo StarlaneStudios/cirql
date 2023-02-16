@@ -1,15 +1,10 @@
 import { ZodTypeAny } from "zod";
-import { GenericQueryWriter, Quantity, SchemafulQueryWriter } from "../writer";
+import { Quantity } from "../writer";
 import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
-import { Schemaful } from "../symbols";
 import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
 import { AuthenticationDetails, RegistrationDetails } from "../types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };
-
-function isSchemaful(query: SchemafulQueryWriter<any, any> | GenericQueryWriter<any>): query is SchemafulQueryWriter<any, any> {
-	return Schemaful in query;
-}
 
 /**
  * The adapter used to connect to Cirql implementations
@@ -147,7 +142,12 @@ export abstract class CirqlBaseImpl extends EventTarget {
 			if (validate === false) {
 				values = resultList;
 			} else {
-				const theSchema: ZodTypeAny = isSchemaful(query) ? query._schema : schema;
+				const theSchema: ZodTypeAny = query._schema || schema;
+
+				if (!theSchema) {
+					throw new CirqlError('No schema provided for query', 'invalid_request');
+				}
+				
 				const parsed = theSchema.array().safeParse(resultList);
 
 				if (!parsed.success) {

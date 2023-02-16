@@ -58,4 +58,4 @@ export interface ConnectionDetails {
  * A value which can be used within a query. Either a
  * raw query string, a query writer, or any other value.
  */
-export type SurrealValue = RawQuery | QueryWriter<any> | any;
+export type SurrealValue = RawQuery | QueryWriter<any, any> | any;

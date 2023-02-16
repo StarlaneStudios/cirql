@@ -1,12 +1,13 @@
-import { GenericQueryWriter, Quantity, RecordRelation, ReturnMode, Where } from "./types";
+import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
-import { Generic } from "../symbols";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
+import { ZodTypeAny } from "zod";
 
-interface DeleteQueryState<Q extends Quantity> {
+interface DeleteQueryState<S extends Schema, Q extends Quantity> {
+	schema: S;
 	quantity: Q;
 	targets: string;
 	where: string | undefined;
@@ -27,15 +28,17 @@ interface DeleteQueryState<Q extends Quantity> {
  * passed to the query writer. Always use the `deleteRecord` function
  * to ensure the record id has an intended table name.
  */
-export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
+export class DeleteQueryWriter<S extends Schema, Q extends Quantity> implements QueryWriter<S, Q> {
 	
-	readonly #state: DeleteQueryState<Q>;
+	readonly #state: DeleteQueryState<S, Q>;
 
-	constructor(state: DeleteQueryState<Q>) {
+	constructor(state: DeleteQueryState<S, Q>) {
 		this.#state = state;
 	}
 
-	readonly [Generic] = true;
+	get _schema() {
+		return this.#state.schema;
+	}
 
 	get _quantity() {
 		return this.#state.quantity;
@@ -43,6 +46,20 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	with<NS extends ZodTypeAny>(schema: NS) {
+		return new DeleteQueryWriter({
+			...this.#state,
+			schema: schema
+		});
 	}
 
 	/**
@@ -62,7 +79,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			where = parseWhereClause(where);	
 		}
 
-		return this.#push({ where });
+		return new DeleteQueryWriter({
+			...this.#state,
+			where
+		});
 	}
 
 	/**
@@ -72,7 +92,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	return(mode: ReturnMode) {
-		return this.#push({ returnMode: mode });
+		return new DeleteQueryWriter({
+			...this.#state,
+			returnMode: mode
+		});
 	}
 	
 	/**
@@ -82,7 +105,8 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	returnFields(...fields: string[]) {
-		return this.#push({
+		return new DeleteQueryWriter({
+			...this.#state,
 			returnMode: 'fields',
 			returnFields: fields
 		});
@@ -95,7 +119,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	timeout(timeout: number) {
-		return this.#push({ timeout });
+		return new DeleteQueryWriter({
+			...this.#state,
+			timeout
+		});
 	}
 
 	/**
@@ -104,7 +131,10 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	parallel() {
-		return this.#push({ parallel: true });
+		return new DeleteQueryWriter({
+			...this.#state,
+			parallel: true
+		});
 	}
 
 	toQuery(): string {
@@ -144,13 +174,6 @@ export class DeleteQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return builder;
 	}
 
-	#push<N extends Quantity = Q>(extra: Partial<DeleteQueryState<N>>) {
-		return new DeleteQueryWriter({
-			...this.#state,
-			...extra
-		});
-	}
-
 }
 
 /**
@@ -172,6 +195,7 @@ export function del(...targets: SurrealValue[]) {
 	}
 
 	return new DeleteQueryWriter({
+		schema: null,
 		quantity: 'many',
 		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		where: undefined,
@@ -189,7 +213,7 @@ export function del(...targets: SurrealValue[]) {
  * @param record The record id
  * @returns The query writer
  */
-export function delRecord(record: string): DeleteQueryWriter<'maybe'>;
+export function delRecord(record: string): DeleteQueryWriter<null, 'maybe'>;
 
 /**
  * Start a new DELETE query for the given record. This function
@@ -200,10 +224,11 @@ export function delRecord(record: string): DeleteQueryWriter<'maybe'>;
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function delRecord(table: string, id: string): DeleteQueryWriter<'maybe'>;
+export function delRecord(table: string, id: string): DeleteQueryWriter<null, 'maybe'>;
 
 export function delRecord(recordOrTable: string, id?: string) {
 	return new DeleteQueryWriter({
+		schema: null,
 		quantity: 'maybe',
 		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
 		where: undefined,
@@ -225,6 +250,7 @@ export function delRecord(recordOrTable: string, id?: string) {
  */
 export function delRelation(relation: RecordRelation) {
 	return new DeleteQueryWriter({
+		schema: null,
 		quantity: 'maybe',
 		targets: relation.edge,
 		where: parseWhereClause({

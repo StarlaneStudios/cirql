@@ -1,11 +1,12 @@
-import { GenericQueryWriter, Quantity, ReturnMode } from "./types";
+import { Quantity, QueryWriter, ReturnMode, Schema, SchemaInput } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { Generic } from "../symbols";
 import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { SurrealValue } from "../types";
+import { ZodTypeAny } from "zod";
 
-interface CreateQueryState<Q extends Quantity> {
+interface CreateQueryState<S extends Schema, Q extends Quantity> {
+	schema: S;
 	quantity: Q;
 	targets: string;
 	setFields: object;
@@ -26,22 +27,38 @@ interface CreateQueryState<Q extends Quantity> {
  * passed to the query writer. Always use the `createRecord` function
  * to ensure the record id has an intended table name.
  */
-export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter<Q> {
+export class CreateQueryWriter<S extends Schema, Q extends Quantity> implements QueryWriter<S, Q> {
 	
-	readonly #state: CreateQueryState<Q>;
+	readonly #state: CreateQueryState<S, Q>;
 
-	constructor(state: CreateQueryState<Q>) {
+	constructor(state: CreateQueryState<S, Q>) {
 		this.#state = state;
 	}
-
-	readonly [Generic] = true;
 	
+	get _schema() {
+		return this.#state.schema;
+	}
+
 	get _quantity() {
 		return this.#state.quantity;
 	}
 
 	get _state() {
 		return Object.freeze({...this.#state});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	with<NS extends ZodTypeAny>(schema: NS) {
+		return new CreateQueryWriter({
+			...this.#state,
+			schema: schema
+		});
 	}
 
 	/**
@@ -56,7 +73,8 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
 
-		return this.#push({ 
+		return new CreateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				[key]: value
@@ -72,12 +90,13 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param fields The object to use for setting fields
 	 * @returns The query writer
 	 */
-	setAll(fields: object) {
+	setAll(fields: SchemaInput<S>) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set fields when content is set');
 		}
 
-		return this.#push({
+		return new CreateQueryWriter({
+			...this.#state,
 			setFields: {
 				...this.#state.setFields,
 				...fields
@@ -94,12 +113,15 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @param content The content for the record
 	 * @returns The query writer
 	 */
-	content(content: object) {
+	content(content: SchemaInput<S>) {
 		if (this.#hasSetFields()) {
 			throw new CirqlWriterError('Cannot set content when fields are set');
 		}
 
-		return this.#push({ content });
+		return new CreateQueryWriter({
+			...this.#state,
+			content
+		});
 	}
 
 	/**
@@ -109,7 +131,10 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	return(mode: ReturnMode) {
-		return this.#push({ returnMode: mode });
+		return new CreateQueryWriter({
+			...this.#state,
+			returnMode: mode
+		});
 	}
 	
 	/**
@@ -119,7 +144,8 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	returnFields(...fields: string[]) {
-		return this.#push({
+		return new CreateQueryWriter({
+			...this.#state,
 			returnMode: 'fields',
 			returnFields: fields
 		});
@@ -132,7 +158,10 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	timeout(timeout: number) {
-		return this.#push({ timeout });
+		return new CreateQueryWriter({
+			...this.#state,
+			timeout
+		});
 	}
 
 	/**
@@ -141,7 +170,10 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 	 * @returns The query writer
 	 */
 	parallel() {
-		return this.#push({ parallel: true });
+		return new CreateQueryWriter({
+			...this.#state,
+			parallel: true
+		});
 	}
 
 	toQuery(): string {
@@ -188,10 +220,6 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
 		return builder;
 	}
 
-	#push<N extends Quantity = Q>(extra: Partial<CreateQueryState<N>>) {
-		return new CreateQueryWriter({ ...this.#state, ...extra });
-	}
-
 	#hasSetFields() {
 		return Object.keys(this.#state.setFields).length > 0;
 	}
@@ -208,9 +236,9 @@ export class CreateQueryWriter<Q extends Quantity> implements GenericQueryWriter
  * @param targets The targets to create
  * @returns The query writer
  */
-export function create(target: SurrealValue): CreateQueryWriter<'one'>;
-export function create(...targets: SurrealValue[]): CreateQueryWriter<'many'>;
-export function create(...targets: SurrealValue[]): CreateQueryWriter<'one' | 'many'> {
+export function create(target: SurrealValue): CreateQueryWriter<null, 'one'>;
+export function create(...targets: SurrealValue[]): CreateQueryWriter<null, 'many'>;
+export function create(...targets: SurrealValue[]) {
 	if (targets.length === 0) {
 		throw new CirqlWriterError('At least one target must be specified');
 	}
@@ -220,6 +248,7 @@ export function create(...targets: SurrealValue[]): CreateQueryWriter<'one' | 'm
 	}
 
 	return new CreateQueryWriter({
+		schema: null,
 		quantity: targets.length === 1 ? 'one' : 'many',
 		targets: targets.map(value => useSurrealValueUnsafe(value)).join(', '),
 		setFields: {},
@@ -242,6 +271,7 @@ export function create(...targets: SurrealValue[]): CreateQueryWriter<'one' | 'm
  */
 export function createRecord(table: string, id: string) {
 	return new CreateQueryWriter({
+		schema: null,
 		quantity: 'one',
 		targets: thing(table, id),
 		setFields: {},
