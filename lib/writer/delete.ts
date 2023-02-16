@@ -1,4 +1,4 @@
-import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, Where } from "./types";
+import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaFields, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
@@ -70,7 +70,7 @@ export class DeleteQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where) {
+	where(where: string|Where<S>) {
 		if (this.#state.unrelate) {
 			throw new CirqlWriterError('Cannot use where clause with delRelation');
 		}
@@ -104,7 +104,7 @@ export class DeleteQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param value The return behavior
 	 * @returns The query writer
 	 */
-	returnFields(...fields: string[]) {
+	returnFields(...fields: SchemaFields<S>[]) {
 		return new DeleteQueryWriter({
 			...this.#state,
 			returnMode: 'fields',

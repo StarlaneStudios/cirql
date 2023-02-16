@@ -1,4 +1,4 @@
-import { Quantity, QueryWriter, ReturnMode, Schema, SchemaInput } from "./types";
+import { Quantity, QueryWriter, ReturnMode, Schema, SchemaFields, SchemaInput } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
@@ -68,7 +68,7 @@ export class CreateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param value The value
 	 * @returns 
 	 */
-	set(key: string, value: any) {
+	set(key: SchemaFields<S>, value: any) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
@@ -143,7 +143,7 @@ export class CreateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param value The return behavior
 	 * @returns The query writer
 	 */
-	returnFields(...fields: string[]) {
+	returnFields(...fields: SchemaFields<S>[]) {
 		return new CreateQueryWriter({
 			...this.#state,
 			returnMode: 'fields',

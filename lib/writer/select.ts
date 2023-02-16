@@ -1,6 +1,6 @@
-import { Order, Ordering, Where, Quantity, RecordRelation, Schema, QueryWriter } from "./types";
-import { parseWhereClause } from "./parser";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { Order, Ordering, Where, Quantity, RecordRelation, Schema, QueryWriter, SchemaFields } from "./types";
+import { parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
@@ -182,7 +182,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where) {
+	where(where: string|Where<S>) {
 		if (this.#state.relation) {
 			throw new CirqlWriterError('Cannot use where clause with fromRelation');
 		}
@@ -203,10 +203,10 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param fields The split fields
 	 * @returns The query writer
 	 */
-	split(...split: string[]) {
+	split(...split: SchemaFields<S>[]) {
 		return new SelectQueryWriter({
 			...this.#state,
-			split
+			split: split as string[]
 		});
 	}
 
@@ -217,10 +217,10 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param fields The fields to group by
 	 * @returns The query writer
 	 */
-	groupBy(...group: string[]) {
+	groupBy(...group: SchemaFields<S>[]) {
 		return new SelectQueryWriter({
 			...this.#state,
-			group
+			group: group as string[]
 		});
 	}
 
@@ -242,12 +242,12 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param order The fields to order by
 	 * @returns The query writer
 	 */
-	orderBy(table: string, order?: Order): SelectQueryWriter<S, Q>;
+	orderBy(field: SchemaFields<S>, order?: Order): SelectQueryWriter<S, Q>;
 	orderBy(order: Ordering): SelectQueryWriter<S, Q>;
-	orderBy(tableOrOrder: string|Ordering, order?: Order) {
-		const ordering: Ordering = typeof tableOrOrder === 'string'
-			? { [tableOrOrder]: order || 'asc' }
-			: tableOrOrder;
+	orderBy(fieldOrOrder: SchemaFields<S>|Ordering, order?: Order) {
+		const ordering: Ordering = typeof fieldOrOrder === 'string'
+			? { [fieldOrOrder]: order || 'asc' }
+			: fieldOrOrder;
 
 		return new SelectQueryWriter({
 			...this.#state,
@@ -305,10 +305,10 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param fields The fields to fetch
 	 * @returns The query writer
 	 */
-	fetch(...fetch: string[]) {
+	fetch(...fetch: SchemaFields<S>[]) {
 		return new SelectQueryWriter({
 			...this.#state,
-			fetch
+			fetch: fetch as string[]
 		});
 	}
 

@@ -19,7 +19,7 @@ const database = new Cirql({
 	retryCount: -1
 });
 
-export const Organisation = RecordSchema.extend({
+export const OrganisationSchema = RecordSchema.extend({
     name: z.string().min(1),
 	isEnabled: z.boolean(),
 	createdAt: z.string()
@@ -51,7 +51,7 @@ async function execute() {
 				isEnabled: Math.random() > 0.5,
 				createdAt: eq(time.now())
 			}),
-			schema: Organisation
+			schema: OrganisationSchema
 		},
 		{
 			query: query('SELECT * FROM test'),

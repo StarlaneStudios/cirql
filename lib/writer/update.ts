@@ -1,4 +1,4 @@
-import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaInput, Where } from "./types";
+import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaFields, SchemaInput, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
@@ -75,7 +75,7 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param value The value
 	 * @returns 
 	 */
-	set(key: string, value: any) {
+	set(key: SchemaFields<S>, value: any) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
@@ -161,7 +161,7 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where) {
+	where(where: string|Where<S>) {
 		if (this.#state.relation) {
 			throw new CirqlWriterError('Cannot use where clause with updateRelation');
 		}
@@ -195,7 +195,7 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	 * @param value The return behavior
 	 * @returns The query writer
 	 */
-	returnFields(...fields: string[]) {
+	returnFields(...fields: SchemaFields<S>[]) {
 		return new UpdateQueryWriter({
 			...this.#state,
 			returnMode: 'fields',
@@ -377,7 +377,7 @@ export function updateRelation(relation: RecordRelation) {
 		targets: relation.edge,
 		where: parseWhereClause({
 			in: eq(getRelationFrom(relation)),
-			out: eq(getRelationTo(relation))
+			out: eq(getRelationTo(relation)),
 		}),
 		setFields: {},
 		content: {},

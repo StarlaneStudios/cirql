@@ -1,7 +1,7 @@
 import { CirqlError } from "../errors";
 import { isRaw } from "../helpers";
 import { Raw } from "../symbols";
-import { Where } from "./types";
+import { Schema, Where } from "./types";
 
 /**
  * Builds the SET operators for a query based on the input object
@@ -42,7 +42,7 @@ export function parseSetFields(input: object): string {
  * @param clause The where clause
  * @returns The string representation of the where clause
  */
-export function parseWhereClause(clause: Where) {
+export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 	const keys = Object.keys(clause);
 	const clauses: string[] = [];
 
@@ -61,7 +61,7 @@ export function parseWhereClause(clause: Where) {
 
 			clauses.push(`(${subClauses.join(` ${key} `)})`);
 		} else {
-			const value = clause[key];
+			const value = (clause as any)[key];
 
 			if (isRaw(value)) {
 				clauses.push(`${key} ${value[Raw]}`);

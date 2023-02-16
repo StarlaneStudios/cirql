@@ -46,7 +46,7 @@ export class CountQueryWriter implements QueryWriter<ZodNumber, 'one'> {
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where) {
+	where(where: string|Where<null>) {
 		if (this.#state.relation) {
 			throw new CirqlWriterError('Cannot use where clause with countRelation');
 		}

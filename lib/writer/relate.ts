@@ -1,4 +1,4 @@
-import { QueryWriter, RecordRelation, ReturnMode, Schema } from "./types";
+import { QueryWriter, RecordRelation, ReturnMode, Schema, SchemaFields, SchemaInput } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
 import { ZodTypeAny } from "zod";
@@ -68,7 +68,7 @@ export class RelateQueryWriter<S extends Schema> implements QueryWriter<S, 'one'
 	 * @param value The value
 	 * @returns 
 	 */
-	set(key: string, value: any) {
+	set(key: SchemaFields<S>, value: any) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set field when content is set');
 		}
@@ -90,7 +90,7 @@ export class RelateQueryWriter<S extends Schema> implements QueryWriter<S, 'one'
 	 * @param fields The object to use for setting fields
 	 * @returns The query writer
 	 */
-	setAll(fields: object) {
+	setAll(fields: SchemaInput<S>) {
 		if (this.#hasContent()) {
 			throw new CirqlWriterError('Cannot set fields when content is set');
 		}
@@ -113,7 +113,7 @@ export class RelateQueryWriter<S extends Schema> implements QueryWriter<S, 'one'
 	 * @param content The content for the record
 	 * @returns The query writer
 	 */
-	content(content: object) {
+	content(content: SchemaInput<S>) {
 		if (this.#hasSetFields()) {
 			throw new CirqlWriterError('Cannot set content when fields are set');
 		}
@@ -143,7 +143,7 @@ export class RelateQueryWriter<S extends Schema> implements QueryWriter<S, 'one'
 	 * @param value The return behavior
 	 * @returns The query writer
 	 */
-	returnFields(...fields: string[]) {
+	returnFields(...fields: SchemaFields<S>[]) {
 		return new RelateQueryWriter({
 			...this.#state,
 			returnMode: 'fields',

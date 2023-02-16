@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.6.0 - Improved schema usage
+- Schemas can now be defined directly on the query
+	- This is done using `QueryWriter.with()`
+	- Specifying the schema like this provides type completion for additional fields
+	- The classic way of specifying the schema is still valid and required if the query contains no schema
+- Removed deprecated `timeNow()` function, you should instead use `time.now()`
+- Removed deprecated `relateRecords()` function, you should instead use `relateRelation()`
+
 ## 0.5.7 - Bugfix
 - Fixed issue where certain values could not be used as `SurrealValue`
 

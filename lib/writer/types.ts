@@ -1,5 +1,8 @@
 import { input, ZodTypeAny } from "zod";
-import { SurrealValue } from "../types";
+import { RawQuery, SurrealValue } from "../types";
+
+export type OpenUnion<T> = T | (string & {});
+export type FieldOrRaw<T> = { [K in keyof T]: T[K] | RawQuery };
 
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;
@@ -7,12 +10,13 @@ export type ReturnMode = 'none' | 'before' | 'after' | 'diff';
 export type Quantity = 'zero' | 'one' | 'maybe' | 'many';
 
 export type Schema = ZodTypeAny | null;
-export type SchemaInput<S> = S extends ZodTypeAny ? Omit<Partial<input<S>>, 'id'> : object;
+export type SchemaInput<S> = S extends ZodTypeAny ? FieldOrRaw<Omit<Partial<input<S>>, 'id'>> : object;
+export type SchemaFields<S> = S extends ZodTypeAny ? OpenUnion<Extract<keyof input<S>, string>> : string;
 
-export type Where = {
-	OR?: Where[];
-	AND?: Where[];
-} & Record<string, any>;
+export type Where<S extends Schema> = {
+	OR?: Where<S>[];
+	AND?: Where<S>[];
+} & Partial<Record<SchemaFields<S>, any>>;
 
 /**
  * Represents a relation between two records. The relation is defined by the
