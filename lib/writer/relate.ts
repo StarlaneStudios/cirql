@@ -269,16 +269,3 @@ export function relateRelation(relation: RecordRelation) {
 
 	return relate(`(${from[Raw]})`, relation.edge, `(${to[Raw]})`);
 }
-
-/**
- * Start a new RELATE query with the given records. This function
- * is especially useful in situations where the table name within a
- * record pointer may be spoofed, and a specific table name is required.
- * 
- * @deprecated Renamed to `relateRelation` for consistency
- * @param relation The relation information
- * @returns The query writer
- */
-export function relateRecords(relation: RecordRelation) {
-	return relateRelation(relation);
-}
