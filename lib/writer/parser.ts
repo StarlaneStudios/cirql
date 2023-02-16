@@ -60,6 +60,10 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 			}
 
 			clauses.push(`(${subClauses.join(` ${key} `)})`);
+		} else if(key == 'QUERY') {
+			const [condition, matches] = clause[key]!;
+
+			clauses.push(`(${condition.toQuery()}) ${matches[Raw]}`);
 		} else {
 			const value = (clause as any)[key];
 

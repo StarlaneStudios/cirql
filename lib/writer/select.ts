@@ -237,7 +237,8 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	}
 
 	/**
-	 * Define the order of the query
+	 * Define the order of the query results. If no order is specified, the
+	 * default order is ascending.
 	 * 
 	 * @param order The fields to order by
 	 * @returns The query writer

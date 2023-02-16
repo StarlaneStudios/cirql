@@ -3,8 +3,13 @@
 ## 0.6.0 - Improved schema usage
 - Schemas can now be defined directly on the query
 	- This is done using `QueryWriter.with()`
-	- Specifying the schema like this provides type completion for additional fields
+	- Specifying the schema like this provides type completion for additional function including `.set()`, `.where()`, and more
 	- The classic way of specifying the schema is still valid and required if the query contains no schema
+- Allow specifying sub queries in `.where()`
+	- Achieved by specifying a `QUERY` property with a two value array
+	- The first value is the query writer
+	- The second value is a raw query value
+	- Can be used in conjunction with AND and OR
 - Removed deprecated `timeNow()` function, you should instead use `time.now()`
 - Removed deprecated `relateRecords()` function, you should instead use `relateRelation()`
 

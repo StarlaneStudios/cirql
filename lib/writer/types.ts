@@ -10,12 +10,13 @@ export type ReturnMode = 'none' | 'before' | 'after' | 'diff';
 export type Quantity = 'zero' | 'one' | 'maybe' | 'many';
 
 export type Schema = ZodTypeAny | null;
-export type SchemaInput<S> = S extends ZodTypeAny ? FieldOrRaw<Omit<Partial<input<S>>, 'id'>> : object;
+export type SchemaInput<S> = S extends ZodTypeAny ? FieldOrRaw<Omit<Partial<input<S>>, 'id'>> & { [k: string]: any } : object;
 export type SchemaFields<S> = S extends ZodTypeAny ? OpenUnion<Extract<keyof input<S>, string>> : string;
 
 export type Where<S extends Schema> = {
 	OR?: Where<S>[];
 	AND?: Where<S>[];
+	QUERY?: [QueryWriter<any, any>, RawQuery];
 } & Partial<Record<SchemaFields<S>, any>>;
 
 /**

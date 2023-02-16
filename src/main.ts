@@ -1,4 +1,4 @@
-import { Cirql, count, countRelation, create, createRecord, delRecord, delRelation, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
+import { Cirql, contains, count, countRelation, create, createRecord, delRecord, delRelation, EdgeSchema, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -41,8 +41,7 @@ async function execute() {
 
 	return await database.transaction(
 		{
-			query: query('INFO FOR DB').single(),
-			schema: z.string(),
+			query: query('INFO FOR DB').single().with(z.string()),
 			validate: false
 		},
 		{
@@ -54,65 +53,74 @@ async function execute() {
 			schema: OrganisationSchema
 		},
 		{
-			query: query('SELECT * FROM test'),
-			schema: z.any()
+			query: query('SELECT * FROM test')
+				.with(RecordSchema)
 		},
 		{
 			query: count('organisation')
 		},
 		{
-			query: select('id').from('organisation').where({ isEnabled: true }),
-			schema: RecordSchema
+			query: select('id')
+				.from('organisation')
+				.with(RecordSchema)
+				.where({ isEnabled: true })
 		},
 		{
 			query: letValue('orgs', select('name').from('organisation')),
 		},
 		{
-			query: select().from('$orgs'),
-			schema: z.any()
+			query: select()
+				.from('$orgs')
+				.with(z.string()),
 		},
 		{
-			query: createRecord('person', 'john').set('name', 'John'),
-			schema: z.any(),
+			query: createRecord('person', 'john')
+				.with(RecordSchema)
+				.set('name', 'John')
 		},
 		{
-			query: createRecord('person', 'david').set('name', 'David'),
-			schema: z.any()
+			query: createRecord('person', 'david')
+				.with(RecordSchema)
+				.set('name', 'David'),
 		},
 		{
-			query: relateRelation(relation),
-			schema: z.any()
+			query: relateRelation(relation)
+				.with(EdgeSchema)
 		},
 		{
-			query: updateRelation(relation).setAll({
-				updated: true
-			}),
-			schema: z.any()
+			query: updateRelation(relation)
+				.with(EdgeSchema)
+				.setAll({
+					updated: true
+				})
 		},
 		{
-			query: select().fromRelation(relation),
-			schema: z.any()
+			query: select()
+				.fromRelation(relation)
+				.with(EdgeSchema)
 		},
 		{
-			query: delRelation(relation),
-			schema: z.any()
+			query: delRelation(relation)
+				.with(EdgeSchema)
 		},
 		{
 			query: letValue('example', ['Alfred', 'Bob', 'John'])
 		},
 		{
-			query: select().from('person').where({
-				name: inside(param('example'))
-			}),
-			schema: z.any(),
+			query: select()
+				.from('person')
+				.with(RecordSchema)
+				.where({
+					name: inside(param('example'))
+				})
 		},
 		{
-			query: delRecord('person:john'),
-			schema: z.any(),
+			query: delRecord('person:john')
+				.with(RecordSchema)
 		},
 		{
-			query: delRecord('person:david'),
-			schema: z.any()
+			query: delRecord('person:david')
+				.with(RecordSchema)
 		},
 		{
 			query: select()
@@ -121,8 +129,30 @@ async function execute() {
 					.orderBy('startAt')
 					.one()
 				)
-				.fromRecord('profile:kordian'),
-			schema: z.any()
+				.fromRecord('profile:kordian')
+				.with(RecordSchema)
+		},
+		{
+			query: select()
+				.from('organisation')
+				.with(OrganisationSchema)
+				.orderBy('createdAt')
+				.where({
+					OR: [
+						{
+							QUERY: [
+								select().from('$parent->hasMember->person'),
+								contains('person:john')
+							]
+						},
+						{
+							QUERY: [
+								select().from('$parent->hasSubOrganisation->organisation'),
+								contains('organisation:starlane')
+							]
+						}
+					]
+				})
 		}
 	);
 }
