@@ -62,10 +62,10 @@ const Organisation = RecordSchema.extend({
 });
 
 // Execute a select query
-const organisations = await cirql.execute({ 
-    schema: Organisation,
+const organisations = await cirql.execute({
     query: select()
         .from('organisation')
+        .with(Organisation) // Specify the schema
         .limit(5)
         .where({
             isEnabled: true,
