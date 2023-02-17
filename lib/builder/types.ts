@@ -8,8 +8,8 @@ export type QueryRequestBase = {
 }
 
 export type InferredQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
-	query: QueryWriter<ZodTypeAny, Q>;
-	schema?: S;
+	query: QueryWriter<S, Q>;
+	schema?: never;
 }
 
 export type SchemaQueryRequest<Q extends Quantity, S extends ZodTypeAny> = {
