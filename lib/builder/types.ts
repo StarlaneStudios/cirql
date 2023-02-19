@@ -25,6 +25,11 @@ export type QuantitativeTypeOf<Q extends Quantity, S extends ZodTypeAny> = Q ext
 	? TypeOf<S>[]
 	: undefined;
 
+export type SoloTypeOf<T extends QueryRequest<any, any>> =
+	T extends InferredQueryRequest<any, any>
+	? QuantitativeTypeOf<T['query']['_quantity'], T['query']['_schema']>
+	: QuantitativeTypeOf<T['query']['_quantity'], T['schema']>
+
 export type MultiTypeOf<T extends QueryRequest<any, any>[]> = {
 	[K in keyof T]: T[K] extends InferredQueryRequest<any, any>
 	? QuantitativeTypeOf<T[K]['query']['_quantity'], T[K]['query']['_schema']>

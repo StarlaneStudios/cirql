@@ -1,4 +1,4 @@
-import { Cirql, contains, count, countRelation, create, createRecord, delRecord, delRelation, EdgeSchema, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
+import { Cirql, contains, count, create, createRecord, delRecord, delRelation, EdgeSchema, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -32,12 +32,6 @@ async function execute() {
 		edge: 'knows',
 		toId: type.thing('person', 'david')
 	}
-
-	console.log('- ', countRelation(relation).toQuery());
-	console.log('- ', delRelation(relation).toQuery())
-	console.log('- ', select().fromRelation(relation).toQuery())
-	console.log('- ', updateRelation(relation).toQuery())
-	console.log('- ', relateRelation(relation).toQuery())
 
 	return await database.transaction(
 		{

@@ -1,7 +1,7 @@
 import { ZodTypeAny } from "zod";
 import { Quantity } from "../writer";
 import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
-import { MultiTypeOf, Params, QuantitativeTypeOf, QueryRequest } from "./types";
+import { MultiTypeOf, Params, QueryRequest, SoloTypeOf } from "./types";
 import { AuthenticationDetails, RegistrationDetails } from "../types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };
@@ -34,10 +34,8 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	 * @param request The query to execute
 	 * @returns The result of the query
 	 */
-	async execute<Q extends Quantity, S extends ZodTypeAny>(request: QueryRequest<Q, S>): Promise<QuantitativeTypeOf<Q, S>> {
-		const [result] = await this.batch(request);
-
-		return result as any;
+	async execute<T extends QueryRequest<any, any>>(request: T): Promise<SoloTypeOf<T>> {
+		return (await this.batch(request))[0];
 	}
 
 	/**
