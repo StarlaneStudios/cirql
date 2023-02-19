@@ -1,4 +1,4 @@
-import { QueryWriter, RecordRelation, Where } from "./types";
+import { QueryWriter, RecordRelation, Schema, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { z, ZodNumber } from "zod";
 import { getRelationFrom, getRelationTo, thing, useSurrealValueUnsafe } from "../helpers";
@@ -46,7 +46,7 @@ export class CountQueryWriter implements QueryWriter<ZodNumber, 'one'> {
 	 * @param where The where clause
 	 * @returns The query writer
 	 */
-	where(where: string|Where<null>) {
+	where<T extends Schema = null>(where: string|Where<T>) {
 		if (this.#state.relation) {
 			throw new CirqlWriterError('Cannot use where clause with countRelation');
 		}
