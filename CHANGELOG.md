@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.6.2 - Execute typings fix
+- Fix return type of execute() something incorrectly being any
+- Allow manually specifying type for count .where()
+
 ## 0.6.0 - Improved schema usage
 - Schemas can now be defined directly on the query
 	- This is done using `QueryWriter.with()`
