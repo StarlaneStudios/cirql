@@ -34,7 +34,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	 * @param request The query to execute
 	 * @returns The result of the query
 	 */
-	async execute<T extends QueryRequest<any, any>>(request: T): Promise<SoloTypeOf<T>> {
+	async execute<T extends QueryRequest<any, ZodTypeAny>>(request: T): Promise<SoloTypeOf<T>> {
 		return (await this.batch(request))[0];
 	}
 
@@ -44,7 +44,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	 * @param request The queries to execute
 	 * @returns The results of the queries, can be destructured
 	 */
-	async batch<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
+	async batch<T extends QueryRequest<any, ZodTypeAny>[]>(...request: T): Promise<MultiTypeOf<T>> {
 		return this.#sendQuery({
 			queries: request,
 			prefix: '',
@@ -59,7 +59,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	 * @param request The queries to execute
 	 * @returns The results of the queries, can be destructured
 	 */
-	async transaction<T extends QueryRequest<any, any>[]>(...request: T): Promise<MultiTypeOf<T>> {
+	async transaction<T extends QueryRequest<any, ZodTypeAny>[]>(...request: T): Promise<MultiTypeOf<T>> {
 		return this.#sendQuery({
 			queries: request,
 			prefix: 'BEGIN TRANSACTION',
