@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.6.3 - Schema fix
+- Fixed schemaless queries being allowed
+	- Queries should always have a shema
+	- You can explicitly opt-out by using `.with(z.any())`
+
 ## 0.6.2 - Execute typings fix
 - Fix return type of execute() something incorrectly being any
 - Allow manually specifying type for count .where()
