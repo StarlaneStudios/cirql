@@ -39,7 +39,7 @@ export const EdgeSchema = z.object({
  * @returns A list of query requests
  */
 export function parseQueries(queries: string): QueryRequest<'many', ZodTypeAny>[] {
-	return queries.split(';').filter(q => !!q).map(q => ({
+	return queries.trim().split(';').filter(q => !!q).map(q => ({
 		query: query(q),
 		schema: z.any()
 	}));
