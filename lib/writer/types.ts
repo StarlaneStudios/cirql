@@ -1,4 +1,4 @@
-import { input, ZodTypeAny } from "zod";
+import { input, TypeOf, ZodTypeAny } from "zod";
 import { RawQuery, SurrealValue } from "../types";
 
 export type OpenUnion<T> = T | (string & {});
@@ -57,6 +57,12 @@ export interface QueryWriter<S extends Schema, Q extends Quantity> {
 	 * defined within the query, it but be specified for .execute().
 	 */
 	readonly _schema: S;
+
+	/**
+	 * If the quantity is `one`, but the query returns no results, this value
+	 * will be returned instead.
+	 */
+	readonly _fallback?: TypeOf<S extends null ? ZodTypeAny : S>;
 
 	/**
 	 * Convert the query instance to its string representation. The function

@@ -155,19 +155,25 @@ export abstract class CirqlBaseImpl extends EventTarget {
 				values = parsed.data;
 			}
 
-			if (quantity == 'one' || quantity == 'maybe') {
-				if (quantity == 'one' && values.length === 0) {
+			if (quantity == 'one' && values.length === 0) {
+				if (query._fallback === undefined) {
 					throw new CirqlError(`Query ${i + 1} expected at least one result but got ${values.length}`, 'invalid_response');
 				}
 
+				results.push(query._fallback);
+				continue;
+			}
+
+			if (quantity == 'one' || quantity == 'maybe') {
 				if (values.length > 1) {
 					throw new CirqlError(`Query ${i + 1} expected at most one result but got ${values.length}`, 'invalid_response');
 				}
 
 				results.push(values[0] || null);
-			} else {
-				results.push(values);
+				continue;
 			}
+
+			results.push(values);
 		}
 
 		return results as any;

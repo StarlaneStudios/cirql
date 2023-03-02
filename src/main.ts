@@ -65,7 +65,7 @@ async function execute() {
 		{
 			query: select()
 				.from('$orgs')
-				.with(z.string()),
+				.with(z.any()),
 		},
 		{
 			query: createRecord('person', 'john')
@@ -147,6 +147,9 @@ async function execute() {
 						}
 					]
 				})
+		},
+		{
+			query: count('organisationz')
 		}
 	);
 }

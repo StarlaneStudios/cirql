@@ -31,6 +31,7 @@ export class CountQueryWriter implements QueryWriter<ZodNumber, 'one'> {
 		this.#state = state;
 	}
 	
+	readonly _fallback = 0;
 	readonly _schema = z.number();
 	readonly _quantity = 'one'
 
