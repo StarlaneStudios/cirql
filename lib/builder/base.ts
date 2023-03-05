@@ -143,7 +143,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 				const theSchema: ZodTypeAny = query._schema || schema;
 
 				if (!theSchema) {
-					throw new CirqlError('No schema provided for query', 'invalid_request');
+					throw new CirqlError(`No schema provided for query ${i + 1}`, 'invalid_request');
 				}
 				
 				const parsed = theSchema.array().safeParse(resultList);
