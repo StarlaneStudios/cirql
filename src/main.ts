@@ -35,16 +35,17 @@ async function execute() {
 
 	return await database.transaction(
 		{
-			query: query('INFO FOR DB').single().with(z.string()),
+			query: query('INFO FOR DB').with(z.string()).single(),
 			validate: false
 		},
 		{
-			query: create('organisation').setAll({
-				name: 'Test',
-				isEnabled: Math.random() > 0.5,
-				createdAt: eq(time.now())
-			}),
-			schema: OrganisationSchema
+			query: create('organisation')
+				.with(OrganisationSchema)
+				.setAll({
+					name: 'Test',
+					isEnabled: Math.random() > 0.5,
+					createdAt: eq(time.now())
+				})
 		},
 		{
 			query: query('SELECT * FROM test')
@@ -65,7 +66,7 @@ async function execute() {
 		{
 			query: select()
 				.from('$orgs')
-				.with(z.any()),
+				.withAny(),
 		},
 		{
 			query: createRecord('person', 'john')
@@ -149,7 +150,7 @@ async function execute() {
 				})
 		},
 		{
-			query: count('organisationz')
+			query: count('unknownTable')
 		}
 	);
 }

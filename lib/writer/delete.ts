@@ -4,7 +4,7 @@ import { parseWhereClause } from "./parser";
 import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
-import { ZodTypeAny } from "zod";
+import { z, ZodRawShape, ZodTypeAny } from "zod";
 
 interface DeleteQueryState<S extends Schema, Q extends Quantity> {
 	schema: S;
@@ -60,6 +60,29 @@ export class DeleteQueryWriter<S extends Schema, Q extends Quantity> implements 
 			...this.#state,
 			schema: schema
 		});
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result. This is short
+	 * for `with(z.object(schema))`.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	withSchema<T extends ZodRawShape>(schema: T) {
+		return this.with(z.object(schema));
+	}
+
+	/**
+	 * Define a schema which accepts any value,
+	 * useful in situations where a specific schema
+	 * isn't needed. This is short for `with(z.any())`.
+	 * 
+	 * @returns The query writer
+	 */
+	withAny() {
+		return this.with(z.any());
 	}
 
 	/**

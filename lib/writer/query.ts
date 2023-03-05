@@ -1,4 +1,4 @@
-import { ZodTypeAny } from "zod";
+import { z, ZodRawShape, ZodTypeAny } from "zod";
 import { Quantity, QueryWriter, Schema } from "./types";
 
 /**
@@ -36,6 +36,29 @@ class PlainQueryWriter<S extends Schema, Q extends Quantity> implements QueryWri
 	 */
 	with<NS extends ZodTypeAny>(schema: NS) {
 		return new PlainQueryWriter(schema, this.#query, this.#quantity);
+	}
+
+	/**
+	 * Define the schema that should be used to
+	 * validate the query result. This is short
+	 * for `with(z.object(schema))`.
+	 * 
+	 * @param schema The schema to use
+	 * @returns The query writer
+	 */
+	withSchema<T extends ZodRawShape>(schema: T) {
+		return this.with(z.object(schema));
+	}
+
+	/**
+	 * Define a schema which accepts any value,
+	 * useful in situations where a specific schema
+	 * isn't needed. This is short for `with(z.any())`.
+	 * 
+	 * @returns The query writer
+	 */
+	withAny() {
+		return this.with(z.any());
 	}
 
 	/**
