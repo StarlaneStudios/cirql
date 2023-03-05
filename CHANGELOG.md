@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.6.5 - More schema functions
+- Add convenience schema functions to query writers
+	- `withSchema(object)` as shortcut for `.with(z.object(object))`
+	- `withAny()` as shortcut for `.with(z.any())`
+
 ## 0.6.3 - Schema fix
 - Fixed schemaless queries being allowed
 	- Queries should always have a shema
