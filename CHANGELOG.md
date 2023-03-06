@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.6.6 - Fate fixes
+- Fixed dates not being included in CREATE and UPDATE queries
+
 ## 0.6.5 - More schema functions
 - Add convenience schema functions to query writers
 	- `withSchema(object)` as shortcut for `.with(z.object(object))`
