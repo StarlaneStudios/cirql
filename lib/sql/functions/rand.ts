@@ -1,3 +1,5 @@
+import { useSurrealValue } from "../../helpers";
+import { SurrealValue } from "../../types";
 import { raw } from "../raw";
 
 /**
@@ -14,24 +16,8 @@ function bool() {
  * 
  * @returns The raw query
  */
-function enumfrom(value: Array<any>) {
-    let arrayString = ""
-    value.forEach((element, key, arr) => {
-        if (Object.is(arr.length - 1, key)) {
-            if (typeof element === "string") {
-                arrayString = arrayString + "'" + element + "'"
-            } else {
-                arrayString = arrayString + element
-            }
-        } else {
-            if (typeof element === "string") {
-                arrayString = arrayString + "'" + element + "'" + ","
-            } else {
-                arrayString = arrayString + element + ', '
-            }
-        }
-    })
-    return raw(`rand::enum(${arrayString})`);
+function enumOf(value: SurrealValue[]) {
+	return raw(`rand::enum(${value.map(useSurrealValue).join(', ')})`);
 }
 
 /**
@@ -49,7 +35,6 @@ function float(min: number = 0, max: number = 1) {
  * @returns The raw query
  */
 function guid(length?: number) {
-
     return raw(`rand::guid(${length ?? ""})`);
 }
 
@@ -97,11 +82,16 @@ function uuid() {
     return raw('rand::uuid()');
 }
 
-
-
 /**
- * Raw query functions for the category `time`
+ * Raw query functions for the category `rand`
  */
 export const rand = {
-    bool, enumfrom, float, guid, int, string, time, uuid
+    bool,
+	enumOf,
+	float,
+	guid,
+	int,
+	string,
+	time,
+	uuid
 };
