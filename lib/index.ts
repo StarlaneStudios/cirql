@@ -8,3 +8,4 @@ export * from './sql/raw';
 export * from './sql/operators';
 export * from './sql/functions/type';
 export * from './sql/functions/time';
+export * from './sql/functions/rand';
