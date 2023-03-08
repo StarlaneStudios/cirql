@@ -6,7 +6,7 @@ import { raw } from "../raw";
  * @returns The raw query
  */
 function bool() {
-	return raw('rand::bool()');
+    return raw('rand::bool()');
 }
 
 /**
@@ -16,14 +16,22 @@ function bool() {
  */
 function enumfrom(value: Array<any>) {
     let arrayString = ""
-    value.forEach(element => {
-    if (typeof element === "string") {
-        arrayString = arrayString + "'" + element + "'" + ","
-    } else {
-        arrayString = arrayString + element + ', '
-    }
-})
-	return raw(`rand::enum(${arrayString})`);
+    value.forEach((element, key, arr) => {
+        if (Object.is(arr.length - 1, key)) {
+            if (typeof element === "string") {
+                arrayString = arrayString + "'" + element + "'"
+            } else {
+                arrayString = arrayString + element
+            }
+        } else {
+            if (typeof element === "string") {
+                arrayString = arrayString + "'" + element + "'" + ","
+            } else {
+                arrayString = arrayString + element + ', '
+            }
+        }
+    })
+    return raw(`rand::enum(${arrayString})`);
 }
 
 /**
@@ -32,7 +40,7 @@ function enumfrom(value: Array<any>) {
  * @returns The raw query
  */
 function float(min: number = 0, max: number = 1) {
-	return raw(`rand::float(${min}, ${max})`);
+    return raw(`rand::float(${min}, ${max})`);
 }
 
 /**
@@ -41,8 +49,8 @@ function float(min: number = 0, max: number = 1) {
  * @returns The raw query
  */
 function guid(length?: number) {
-    
-	return raw(`rand::guid(${length ?? ""})`);
+
+    return raw(`rand::guid(${length ?? ""})`);
 }
 
 /**
@@ -64,7 +72,7 @@ function int(min?: number, max?: number) {
  * @returns The raw query
  */
 function string(length?: number) {
-	return raw(`rand::string(${length ?? ""})`);
+    return raw(`rand::string(${length ?? ""})`);
 }
 
 /**
@@ -86,7 +94,7 @@ function time(minUnix?: number, maxUnix?: number) {
  * @returns The raw query
  */
 function uuid() {
-	return raw('rand::uuid()');
+    return raw('rand::uuid()');
 }
 
 
@@ -95,5 +103,5 @@ function uuid() {
  * Raw query functions for the category `time`
  */
 export const rand = {
-	bool, enumfrom, float, guid, int, string, time, uuid
+    bool, enumfrom, float, guid, int, string, time, uuid
 };
