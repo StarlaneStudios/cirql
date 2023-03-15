@@ -50,7 +50,7 @@ function guid(length?: number) {
 function int(min?: number, max?: number) {
     if (min || min === 0 && max || max === 0) {
         if (min == max) {
-            throw new Error("Minimum and Maximum are the same!");
+            throw new Error("Minimum and Maximum must not be the same!");
         } else {
             return raw(`rand::int(${min}, ${max})`);
         }
@@ -78,7 +78,18 @@ function string(length?: number) {
  * @returns The raw query
  */
 function time(minUnix?: number, maxUnix?: number) {
-    if (minUnix && maxUnix) {
+    if (maxUnix === 0) {
+        throw new Error("maxUnix must be greater than 0")
+    }
+
+    if (minUnix < 0 || maxUnix < 0) {
+        throw new Error("minUnix and maxUnix must not be less than 0")
+    }
+    
+    if (minUnix >= 0 && maxUnix >= 1) {
+        if (minUnix == maxUnix) {
+            throw new Error("minUnix and maxUnix must not be the same!")
+        }
         return raw(`rand::time(${minUnix}, ${maxUnix})`);
     } else {
         return raw('rand::time()');
