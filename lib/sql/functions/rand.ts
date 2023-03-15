@@ -35,7 +35,11 @@ function float(min: number = 0, max: number = 1) {
  * @returns The raw query
  */
 function guid(length?: number) {
-    return raw(`rand::guid(${length ?? ""})`);
+    if (length == undefined || length <= 0 ) {
+        return raw(`rand::guid()`);
+    } else {
+        return raw(`rand::guid(${length})`);
+    }
 }
 
 /**
