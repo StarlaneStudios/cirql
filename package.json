@@ -14,6 +14,8 @@
 		"require": "./dist/cirql.umd.cjs"
 	},
 	"scripts": {
+		"test": "vitest",
+		"coverage": "vitest run --coverage",
 		"dev": "vite",
 		"build": "rm -rf dist && tsc && vite build && tsup ./lib/index.ts --dts --dts-only",
 		"prepublishOnly": "pnpm run build"
@@ -25,7 +27,8 @@
 		"vite": "^4.0.0"
 	},
 	"dependencies": {
-		"isomorphic-ws": "^5.0.0"
+		"isomorphic-ws": "^5.0.0",
+		"vitest": "^0.29.2"
 	},
 	"peerDependencies": {
 		"zod": "^3.20.2"
