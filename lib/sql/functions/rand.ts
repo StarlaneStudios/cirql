@@ -50,7 +50,7 @@ function guid(length?: number) {
 function int(min?: number, max?: number) {
     if (min || min === 0 && max || max === 0) {
         if (min == max) {
-            throw new Error("Minimum and Maximum are the same.");
+            throw new Error("Minimum and Maximum are the same!");
         } else {
             return raw(`rand::int(${min}, ${max})`);
         }
@@ -65,7 +65,11 @@ function int(min?: number, max?: number) {
  * @returns The raw query
  */
 function string(length?: number) {
-    return raw(`rand::string(${length ?? ""})`);
+    if (length >= 0 || !length) {
+        return raw(`rand::string(${length ?? ""})`);
+    } else {
+        throw new Error("String must not be less than 0!")
+    }
 }
 
 /**
