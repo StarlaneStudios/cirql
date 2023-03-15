@@ -48,9 +48,13 @@ function guid(length?: number) {
  * @returns The raw query
  */
 function int(min?: number, max?: number) {
-    if (min && max) {
-        return raw(`rand::int(${min}, ${max})`);
-    } else {
+    if (min || min === 0 && max || max === 0) {
+        if (min == max) {
+            throw new Error("Minimum and Maximum are the same.");
+        } else {
+            return raw(`rand::int(${min}, ${max})`);
+        }
+    }  else {
         return raw(`rand::int()`);
     }
 }
