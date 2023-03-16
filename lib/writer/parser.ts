@@ -56,7 +56,15 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 			}
 
 			for (const sub of subValue) {
-				subClauses.push(`(${parseWhereClause(sub)})`);
+				const subResult = parseWhereClause(sub);
+
+				if (subResult) {
+					subClauses.push(`(${subResult})`);
+				}
+			}
+
+			if (subClauses.length == 0) {
+				continue;
 			}
 
 			clauses.push(`(${subClauses.join(` ${key} `)})`);
