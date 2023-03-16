@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.6.7 - Setting null
+## 0.6.8 - Setting null
 - Fixed passing null to setAll throwing an error
 
 ## 0.6.6 - Date fixes
