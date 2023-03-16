@@ -17,7 +17,7 @@ export function parseSetFields(input: object): string {
 				return;
 			}
 
-			if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+			if (isRaw(value)) {
 				const raw = value[Raw];
 
 				if (raw) {
