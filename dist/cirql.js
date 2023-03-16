@@ -1,21 +1,21 @@
 var Je = Object.defineProperty;
 var ze = (e, t, n) => t in e ? Je(e, t, { enumerable: !0, configurable: !0, writable: !0, value: n }) : e[t] = n;
-var j = (e, t, n) => (ze(e, typeof t != "symbol" ? t + "" : t, n), n), Se = (e, t, n) => {
+var j = (e, t, n) => (ze(e, typeof t != "symbol" ? t + "" : t, n), n), Re = (e, t, n) => {
   if (!t.has(e))
     throw TypeError("Cannot " + n);
 };
-var r = (e, t, n) => (Se(e, t, "read from private field"), n ? n.call(e) : t.get(e)), p = (e, t, n) => {
+var r = (e, t, n) => (Re(e, t, "read from private field"), n ? n.call(e) : t.get(e)), p = (e, t, n) => {
   if (t.has(e))
     throw TypeError("Cannot add the same private member more than once");
   t instanceof WeakSet ? t.add(e) : t.set(e, n);
-}, N = (e, t, n, i) => (Se(e, t, "write to private field"), i ? i.call(e, n) : t.set(e, n), n), Ie = (e, t, n, i) => ({
+}, N = (e, t, n, i) => (Re(e, t, "write to private field"), i ? i.call(e, n) : t.set(e, n), n), Ie = (e, t, n, i) => ({
   set _(s) {
     N(e, t, s, n);
   },
   get _() {
     return r(e, t, i);
   }
-}), E = (e, t, n) => (Se(e, t, "access private method"), n);
+}), E = (e, t, n) => (Re(e, t, "access private method"), n);
 import Be from "isomorphic-ws";
 import { z as q } from "zod";
 class Ge extends Event {
@@ -66,7 +66,7 @@ ${n.join(`
     this.errors = n;
   }
 }
-class Re extends M {
+class Se extends M {
   constructor(t) {
     super(t, "auth_failure");
   }
@@ -77,7 +77,7 @@ function o(e) {
     [U]: e
   };
 }
-function Rt(e) {
+function St(e) {
   return o(`$${e}`);
 }
 function Ke(e) {
@@ -149,7 +149,7 @@ function qe(e) {
   return typeof e == "object" && e !== null && !!e[U];
 }
 function ke(e) {
-  return typeof e == "object" && "toQuery" in e;
+  return typeof e == "object" && e !== null && "toQuery" in e;
 }
 function de(...e) {
   return e.some((t) => typeof t == "string" && t.includes(","));
@@ -166,60 +166,60 @@ function V(e, t) {
 }
 function ct(e) {
   const t = new URL("rpc", e.connection.endpoint.replace("http", "ws")), n = setInterval(() => a("ping"), 3e4), i = new Be(t), s = /* @__PURE__ */ new Map();
-  let l = !1;
-  const a = (h, c = []) => {
+  let c = !1;
+  const a = (f, l = []) => {
     const C = at();
     return new Promise((v, O) => {
       s.set(C, [v, O]), i.send(JSON.stringify({
         id: C,
-        method: h,
-        params: c
+        method: f,
+        params: l
       })), setTimeout(() => {
         s.delete(C) && O(new Error("Request timed out"));
       }, 5e3);
     });
-  }, f = (h, c) => {
+  }, h = (f, l) => {
     var C;
-    clearInterval(n), (C = e.onDisconnect) == null || C.call(e, h, c);
+    clearInterval(n), (C = e.onDisconnect) == null || C.call(e, f, l);
   }, y = () => {
-    l = !0, i.close(), f(-1, "connection terminated");
-  }, w = async (h, c) => a("query", c ? [h, c] : [h]), d = async (h) => {
+    c = !0, i.close(), h(-1, "connection terminated");
+  }, w = async (f, l) => a("query", l ? [f, l] : [f]), d = async (f) => {
     try {
-      return "token" in h ? (await a("authenticate", [h.token]), h.token) : await a("signin", [h]);
-    } catch (c) {
-      throw new Re("Authentication failed: " + (c.message || "unknown error"));
+      return "token" in f ? (await a("authenticate", [f.token]), f.token) : await a("signin", [f]);
+    } catch (l) {
+      throw new Se("Authentication failed: " + (l.message || "unknown error"));
     }
-  }, m = async (h) => {
+  }, m = async (f) => {
     try {
-      return await a("signup", [h]);
-    } catch (c) {
-      throw new Re("Registration failed: " + (c.message || "unknown error"));
+      return await a("signup", [f]);
+    } catch (l) {
+      throw new Se("Registration failed: " + (l.message || "unknown error"));
     }
   }, k = async () => {
     try {
       await a("invalidate");
-    } catch (h) {
-      throw new Re("Sign out failed: " + (h.message || "unknown error"));
+    } catch (f) {
+      throw new Se("Sign out failed: " + (f.message || "unknown error"));
     }
   };
   return i.addEventListener("open", async () => {
     var C;
-    const { namespace: h, database: c } = e.connection;
-    e.credentials && d(e.credentials), h && c && a("use", [h, c]), (C = e.onConnect) == null || C.call(e);
-  }), i.addEventListener("close", (h) => {
-    l || f(h.code, h.reason);
-  }), i.addEventListener("message", (h) => {
-    const { id: c, result: C, method: v, error: O } = JSON.parse(h.data);
+    const { namespace: f, database: l } = e.connection;
+    e.credentials && d(e.credentials), f && l && a("use", [f, l]), (C = e.onConnect) == null || C.call(e);
+  }), i.addEventListener("close", (f) => {
+    c || h(f.code, f.reason);
+  }), i.addEventListener("message", (f) => {
+    const { id: l, result: C, method: v, error: O } = JSON.parse(f.data);
     if (v !== "notify")
-      if (!s.has(c))
-        console.warn("No callback for message", h.data);
+      if (!s.has(l))
+        console.warn("No callback for message", f.data);
       else {
-        const [P, G] = s.get(c);
-        s.delete(c), O ? G(O) : P(C);
+        const [P, G] = s.get(l);
+        s.delete(l), O ? G(O) : P(C);
       }
-  }), i.addEventListener("error", (h) => {
-    var c;
-    (c = e.onError) == null || c.call(e, h.error);
+  }), i.addEventListener("error", (f) => {
+    var l;
+    (l = e.onError) == null || l.call(e, f.error);
   }), {
     close: y,
     query: w,
@@ -281,26 +281,26 @@ H = new WeakMap(), ue = new WeakSet(), Ce = async function(n) {
     throw new M("There is no active connection to the database", "no_connection");
   if (n.queries.length === 0)
     return [];
-  const i = E(this, Ee, Qe).call(this, n), s = E(this, $e, Pe).call(this, n), l = [], a = [];
+  const i = E(this, Ee, Qe).call(this, n), s = E(this, $e, Pe).call(this, n), c = [], a = [];
   r(this, H).onLog(s, i);
-  const f = await r(this, H).onQuery(s, i);
-  if (!Array.isArray(f) || f.length !== n.queries.length)
+  const h = await r(this, H).onQuery(s, i);
+  if (!Array.isArray(h) || h.length !== n.queries.length)
     throw new M("The response from the database was invalid", "invalid_response");
-  for (let w = 0; w < f.length; w++) {
-    const { status: d, detail: m } = f[w];
-    d !== "OK" && l.push(`- Query ${w + 1}: ${m}`);
+  for (let w = 0; w < h.length; w++) {
+    const { status: d, detail: m } = h[w];
+    d !== "OK" && c.push(`- Query ${w + 1}: ${m}`);
   }
-  if (l.length > 0)
-    throw new Ze(l);
-  for (let w = 0; w < f.length; w++) {
-    const { result: d } = f[w], { query: m, schema: k, validate: h } = n.queries[w], c = m._quantity;
-    if (c == "zero") {
+  if (c.length > 0)
+    throw new Ze(c);
+  for (let w = 0; w < h.length; w++) {
+    const { result: d } = h[w], { query: m, schema: k, validate: f } = n.queries[w], l = m._quantity;
+    if (l == "zero") {
       a.push(void 0);
       continue;
     }
     const C = ((y = m._transform) == null ? void 0 : y.call(m, d)) ?? d, v = Array.isArray(C) ? C : [C];
     let O;
-    if (h === !1)
+    if (f === !1)
       O = v;
     else {
       const P = m._schema || k;
@@ -311,13 +311,13 @@ H = new WeakMap(), ue = new WeakSet(), Ce = async function(n) {
         throw new Ve(`Query ${w + 1} failed to parse`, G.error);
       O = G.data;
     }
-    if (c == "one" && O.length === 0) {
+    if (l == "one" && O.length === 0) {
       if (m._fallback === void 0)
         throw new M(`Query ${w + 1} expected at least one result but got ${O.length}`, "invalid_response");
       a.push(m._fallback);
       continue;
     }
-    if (c == "one" || c == "maybe") {
+    if (l == "one" || l == "maybe") {
       if (O.length > 1)
         throw new M(`Query ${w + 1} expected at most one result but got ${O.length}`, "invalid_response");
       a.push(O[0] || null);
@@ -333,10 +333,10 @@ H = new WeakMap(), ue = new WeakSet(), Ce = async function(n) {
 }, Ee = new WeakSet(), Qe = function(n) {
   const i = {};
   for (const s of n.queries)
-    for (const [l, a] of Object.entries(s.params || {})) {
-      if (l in i)
-        throw new M(`The parameter "${l}" was defined multiple times`, "invalid_query");
-      i[l] = a;
+    for (const [c, a] of Object.entries(s.params || {})) {
+      if (c in i)
+        throw new M(`The parameter "${c}" was defined multiple times`, "invalid_query");
+      i[c] = a;
     }
   return i;
 };
@@ -389,8 +389,8 @@ class Ct extends xe {
       },
       onDisconnect: (n, i) => {
         N(this, J, !1), N(this, D, !1), this.dispatchEvent(new Ge(n, i));
-        const { retryCount: s, retryDelay: l } = this.options;
-        (s < 0 || s > 0 && r(this, K) < s) && (Ie(this, K)._++, N(this, W, setTimeout(() => this.connect(), l)));
+        const { retryCount: s, retryDelay: c } = this.options;
+        (s < 0 || s > 0 && r(this, K) < s) && (Ie(this, K)._++, N(this, W, setTimeout(() => this.connect(), c)));
       },
       onError: (n) => {
         this.dispatchEvent(new He(n));
@@ -454,17 +454,17 @@ class Tt extends xe {
   }
 }
 be = new WeakSet(), De = async function(n, i) {
-  const { endpoint: s, namespace: l, database: a } = this.options.connection, { user: f, pass: y, DB: w, NS: d, SC: m, token: k } = this.options.credentials, h = new URLSearchParams(), c = new URL("sql", s);
-  if (!f && !y && !k)
+  const { endpoint: s, namespace: c, database: a } = this.options.connection, { user: h, pass: y, DB: w, NS: d, SC: m, token: k } = this.options.credentials, f = new URLSearchParams(), l = new URL("sql", s);
+  if (!h && !y && !k)
     throw new M("Missing username & password or token", "invalid_request");
   const v = {
     "User-Agent": "Cirql",
-    Authorization: k ? `Bearer ${k}` : `Basic ${btoa(`${f}:${y}`)}`,
+    Authorization: k ? `Bearer ${k}` : `Basic ${btoa(`${h}:${y}`)}`,
     Accept: "application/json"
   };
-  return (d || l) && (v.NS = d || l), (w || a) && (v.DB = w || a), m && (v.SC = m), Object.entries(i).forEach(([P, G]) => {
-    h.set(P, G);
-  }), await fetch(`${c}?${h}`, {
+  return (d || c) && (v.NS = d || c), (w || a) && (v.DB = w || a), m && (v.SC = m), Object.entries(i).forEach(([P, G]) => {
+    f.set(P, G);
+  }), await fetch(`${l}?${f}`, {
     method: "POST",
     headers: v,
     body: n
@@ -473,13 +473,13 @@ be = new WeakSet(), De = async function(n, i) {
 function Fe(e) {
   const t = [];
   function n(i, s) {
-    Object.entries(i).forEach(([l, a]) => {
+    Object.entries(i).forEach(([c, a]) => {
       if (a !== void 0)
         if (qe(a)) {
-          const f = a[U];
-          f ? t.push(`${s}${l} ${f}`) : n(a, `${s}${l}.`);
+          const h = a[U];
+          h ? t.push(`${s}${c} ${h}`) : n(a, `${s}${c}.`);
         } else
-          t.push(`${s}${l} = ${a === null ? "NONE" : JSON.stringify(a)}`);
+          t.push(`${s}${c} = ${a === null ? "NONE" : JSON.stringify(a)}`);
     });
   }
   return n(e, ""), t.join(", ");
@@ -488,37 +488,41 @@ function x(e) {
   const t = Object.keys(e), n = [];
   for (const i of t)
     if (i === "OR" || i === "AND") {
-      const s = e[i], l = [];
+      const s = e[i], c = [];
       if (s === void 0)
         throw new M("Received expected undefined property in where clause", "invalid_request");
-      for (const a of s)
-        l.push(`(${x(a)})`);
-      n.push(`(${l.join(` ${i} `)})`);
+      for (const a of s) {
+        const h = x(a);
+        h && c.push(`(${h})`);
+      }
+      if (c.length == 0)
+        continue;
+      n.push(`(${c.join(` ${i} `)})`);
     } else if (i == "QUERY") {
-      const [s, l] = e[i];
-      n.push(`(${s.toQuery()}) ${l[U]}`);
+      const [s, c] = e[i];
+      n.push(`(${s.toQuery()}) ${c[U]}`);
     } else {
       const s = e[i];
       qe(s) ? n.push(`${i} ${s[U]}`) : n.push(`${i} = ${JSON.stringify(s)}`);
     }
   return n.join(" AND ");
 }
-var S, ae, Te, X, we;
+var R, ae, Te, X, we;
 const I = class {
   constructor(t) {
     p(this, ae);
     p(this, X);
-    p(this, S, void 0);
-    N(this, S, t);
+    p(this, R, void 0);
+    N(this, R, t);
   }
   get _schema() {
-    return r(this, S).schema;
+    return r(this, R).schema;
   }
   get _quantity() {
-    return r(this, S).quantity;
+    return r(this, R).quantity;
   }
   get _state() {
-    return Object.freeze({ ...r(this, S) });
+    return Object.freeze({ ...r(this, R) });
   }
   /**
    * Define the schema that should be used to
@@ -529,7 +533,7 @@ const I = class {
    */
   with(t) {
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       schema: t
     });
   }
@@ -565,9 +569,9 @@ const I = class {
     if (E(this, X, we).call(this))
       throw new b("Cannot set field when content is set");
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       setFields: {
-        ...r(this, S).setFields,
+        ...r(this, R).setFields,
         [t]: n
       }
     });
@@ -584,9 +588,9 @@ const I = class {
     if (E(this, X, we).call(this))
       throw new b("Cannot set fields when content is set");
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       setFields: {
-        ...r(this, S).setFields,
+        ...r(this, R).setFields,
         ...t
       }
     });
@@ -604,7 +608,7 @@ const I = class {
     if (E(this, ae, Te).call(this))
       throw new b("Cannot set content when fields are set");
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       content: t
     });
   }
@@ -616,7 +620,7 @@ const I = class {
    */
   return(t) {
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       returnMode: t
     });
   }
@@ -628,7 +632,7 @@ const I = class {
    */
   returnFields(...t) {
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       returnMode: "fields",
       returnFields: t
     });
@@ -641,7 +645,7 @@ const I = class {
    */
   timeout(t) {
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       timeout: t
     });
   }
@@ -652,7 +656,7 @@ const I = class {
    */
   parallel() {
     return new I({
-      ...r(this, S),
+      ...r(this, R),
       parallel: !0
     });
   }
@@ -662,10 +666,10 @@ const I = class {
       content: n,
       setFields: i,
       returnMode: s,
-      returnFields: l,
+      returnFields: c,
       timeout: a,
-      parallel: f
-    } = r(this, S);
+      parallel: h
+    } = r(this, R);
     if (!t)
       throw new Error("No targets specified");
     let y = `CREATE ${t}`;
@@ -674,14 +678,14 @@ const I = class {
       w && (y += ` SET ${w}`);
     } else
       E(this, X, we).call(this) && (y += ` CONTENT ${JSON.stringify(n)}`);
-    return s === "fields" ? y += ` RETURN ${l.join(", ")}` : s && (y += ` RETURN ${s.toUpperCase()}`), a && (y += ` TIMEOUT ${a}s`), f && (y += " PARALLEL"), y;
+    return s === "fields" ? y += ` RETURN ${c.join(", ")}` : s && (y += ` RETURN ${s.toUpperCase()}`), a && (y += ` TIMEOUT ${a}s`), h && (y += " PARALLEL"), y;
   }
 };
 let me = I;
-S = new WeakMap(), ae = new WeakSet(), Te = function() {
-  return Object.keys(r(this, S).setFields).length > 0;
+R = new WeakMap(), ae = new WeakSet(), Te = function() {
+  return Object.keys(r(this, R).setFields).length > 0;
 }, X = new WeakSet(), we = function() {
-  return Object.keys(r(this, S).content).length > 0;
+  return Object.keys(r(this, R).content).length > 0;
 };
 function Ot(...e) {
   if (e.length === 0)
@@ -981,13 +985,13 @@ const Q = class {
       where: n,
       returnMode: i,
       returnFields: s,
-      timeout: l,
+      timeout: c,
       parallel: a
     } = r(this, A);
     if (!t)
       throw new Error("No targets specified");
-    let f = `DELETE ${t}`;
-    return n && (f += ` WHERE ${n}`), i === "fields" ? f += ` RETURN ${s.join(", ")}` : i && (f += ` RETURN ${i.toUpperCase()}`), l && (f += ` TIMEOUT ${l}s`), a && (f += " PARALLEL"), f;
+    let h = `DELETE ${t}`;
+    return n && (h += ` WHERE ${n}`), i === "fields" ? h += ` RETURN ${s.join(", ")}` : i && (h += ` RETURN ${i.toUpperCase()}`), c && (h += ` TIMEOUT ${c}s`), a && (h += " PARALLEL"), h;
   }
 };
 let se = Q;
@@ -1038,20 +1042,20 @@ function an(e) {
     unrelate: !0
   });
 }
-var R, ce, Ae, _, pe;
+var S, ce, Ae, _, pe;
 const L = class {
   constructor(t) {
     p(this, ce);
     p(this, _);
-    p(this, R, void 0);
+    p(this, S, void 0);
     j(this, "_quantity", "one");
-    N(this, R, t);
+    N(this, S, t);
   }
   get _schema() {
-    return r(this, R).schema;
+    return r(this, S).schema;
   }
   get _state() {
-    return Object.freeze({ ...r(this, R) });
+    return Object.freeze({ ...r(this, S) });
   }
   /**
    * Define the schema that should be used to
@@ -1062,7 +1066,7 @@ const L = class {
    */
   with(t) {
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       schema: t
     });
   }
@@ -1098,9 +1102,9 @@ const L = class {
     if (E(this, _, pe).call(this))
       throw new b("Cannot set field when content is set");
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       setFields: {
-        ...r(this, R).setFields,
+        ...r(this, S).setFields,
         [t]: n
       }
     });
@@ -1117,9 +1121,9 @@ const L = class {
     if (E(this, _, pe).call(this))
       throw new b("Cannot set fields when content is set");
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       setFields: {
-        ...r(this, R).setFields,
+        ...r(this, S).setFields,
         ...t
       }
     });
@@ -1137,7 +1141,7 @@ const L = class {
     if (E(this, ce, Ae).call(this))
       throw new b("Cannot set content when fields are set");
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       content: t
     });
   }
@@ -1149,7 +1153,7 @@ const L = class {
    */
   return(t) {
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       returnMode: t
     });
   }
@@ -1161,7 +1165,7 @@ const L = class {
    */
   returnFields(...t) {
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       returnMode: "fields",
       returnFields: t
     });
@@ -1174,7 +1178,7 @@ const L = class {
    */
   timeout(t) {
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       timeout: t
     });
   }
@@ -1185,7 +1189,7 @@ const L = class {
    */
   parallel() {
     return new L({
-      ...r(this, R),
+      ...r(this, S),
       parallel: !0
     });
   }
@@ -1195,28 +1199,28 @@ const L = class {
       edge: n,
       to: i,
       content: s,
-      setFields: l,
+      setFields: c,
       returnMode: a,
-      returnFields: f,
+      returnFields: h,
       timeout: y,
       parallel: w
-    } = r(this, R);
+    } = r(this, S);
     if (!t || !n || !i)
       throw new Error("From, edge, and to must be defined");
     let d = `RELATE ${t}->${n}->${i}`;
     if (E(this, ce, Ae).call(this)) {
-      const m = Fe(l);
+      const m = Fe(c);
       m && (d += ` SET ${m}`);
     } else
       E(this, _, pe).call(this) && (d += ` CONTENT ${JSON.stringify(s)}`);
-    return a === "fields" ? d += ` RETURN ${f.join(", ")}` : a && (d += ` RETURN ${a.toUpperCase()}`), y && (d += ` TIMEOUT ${y}s`), w && (d += " PARALLEL"), d;
+    return a === "fields" ? d += ` RETURN ${h.join(", ")}` : a && (d += ` RETURN ${a.toUpperCase()}`), y && (d += ` TIMEOUT ${y}s`), w && (d += " PARALLEL"), d;
   }
 };
 let Oe = L;
-R = new WeakMap(), ce = new WeakSet(), Ae = function() {
-  return Object.keys(r(this, R).setFields).length > 0;
+S = new WeakMap(), ce = new WeakSet(), Ae = function() {
+  return Object.keys(r(this, S).setFields).length > 0;
 }, _ = new WeakSet(), pe = function() {
-  return Object.keys(r(this, R).content).length > 0;
+  return Object.keys(r(this, S).content).length > 0;
 };
 function lt(e, t, n) {
   return new Oe({
@@ -1501,9 +1505,9 @@ const T = class {
       targets: n,
       where: i,
       split: s,
-      group: l,
+      group: c,
       order: a,
-      limit: f,
+      limit: h,
       start: y,
       fetch: w,
       timeout: d,
@@ -1514,13 +1518,13 @@ const T = class {
         throw new Error("No targets specified");
     } else
       throw new Error("No projections specified");
-    const k = t.length > 0 ? t.join(", ") : "*", h = Object.entries(a);
-    let c = `SELECT ${k} FROM ${n}`;
-    if (i && (c += ` WHERE ${i}`), s.length > 0 && (c += ` SPLIT ${s.join(", ")}`), l === "all" ? c += " GROUP ALL" : l.length > 0 && (c += ` GROUP BY ${l.join(", ")}`), h.length > 0) {
-      const C = h.map(([v, O]) => `${v} ${O.toUpperCase()}`);
-      c += ` ORDER BY ${C.join(", ")}`;
+    const k = t.length > 0 ? t.join(", ") : "*", f = Object.entries(a);
+    let l = `SELECT ${k} FROM ${n}`;
+    if (i && (l += ` WHERE ${i}`), s.length > 0 && (l += ` SPLIT ${s.join(", ")}`), c === "all" ? l += " GROUP ALL" : c.length > 0 && (l += ` GROUP BY ${c.join(", ")}`), f.length > 0) {
+      const C = f.map(([v, O]) => `${v} ${O.toUpperCase()}`);
+      l += ` ORDER BY ${C.join(", ")}`;
     }
-    return f && (c += ` LIMIT BY ${f}`), y && (c += ` START AT ${y}`), w.length > 0 && (c += ` FETCH ${w.join(", ")}`), d && (c += ` TIMEOUT ${d}s`), m && (c += " PARALLEL"), c;
+    return h && (l += ` LIMIT BY ${h}`), y && (l += ` START AT ${y}`), w.length > 0 && (l += ` FETCH ${w.join(", ")}`), d && (l += ` TIMEOUT ${d}s`), m && (l += " PARALLEL"), l;
   }
 };
 let je = T;
@@ -1739,9 +1743,9 @@ const F = class {
       content: n,
       contentMode: i,
       setFields: s,
-      where: l,
+      where: c,
       returnMode: a,
-      returnFields: f,
+      returnFields: h,
       timeout: y,
       parallel: w
     } = r(this, $);
@@ -1753,7 +1757,7 @@ const F = class {
       m && (d += ` SET ${m}`);
     } else
       E(this, te, ye).call(this) && (d += ` ${i === "merge" ? "MERGE" : "CONTENT"} ${JSON.stringify(n)}`);
-    return l && (d += ` WHERE ${l}`), a === "fields" ? d += ` RETURN ${f.join(", ")}` : a && (d += ` RETURN ${a.toUpperCase()}`), y && (d += ` TIMEOUT ${y}s`), w && (d += " PARALLEL"), d;
+    return c && (d += ` WHERE ${c}`), a === "fields" ? d += ` RETURN ${h.join(", ")}` : a && (d += ` RETURN ${a.toUpperCase()}`), y && (d += ` TIMEOUT ${y}s`), w && (d += " PARALLEL"), d;
   }
 };
 let oe = F;
@@ -1946,7 +1950,7 @@ const $n = {
 };
 export {
   Ct as Cirql,
-  Re as CirqlAuthenticationError,
+  Se as CirqlAuthenticationError,
   M as CirqlError,
   Ve as CirqlParseError,
   Ze as CirqlQueryError,
@@ -1995,7 +1999,7 @@ export {
   Wt as noneInside,
   Vt as notInside,
   Xt as outside,
-  Rt as param,
+  St as param,
   yn as parseQueries,
   ht as query,
   $n as rand,
