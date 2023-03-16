@@ -44,7 +44,8 @@ async function execute() {
 				.setAll({
 					name: 'Test',
 					isEnabled: Math.random() > 0.5,
-					createdAt: eq(time.now())
+					createdAt: eq(time.now()),
+					parent: null
 				})
 		},
 		{

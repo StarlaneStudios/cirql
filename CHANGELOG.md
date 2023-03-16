@@ -1,6 +1,9 @@
 # Change Log
 
-## 0.6.6 - Fate fixes
+## 0.6.8 - Setting null
+- Fixed passing null to setAll throwing an error
+
+## 0.6.6 - Date fixes
 - Fixed dates not being included in CREATE and UPDATE queries
 
 ## 0.6.5 - More schema functions
