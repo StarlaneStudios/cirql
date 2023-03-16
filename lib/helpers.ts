@@ -48,7 +48,7 @@ export function isRaw(input: any): input is RawQuery {
 
 /** Returns whether the given input is a query writer */
 export function isWriter(input: any): input is QueryWriter<any, any> {
-	return typeof input === 'object' && 'toQuery' in input
+	return typeof input === 'object' && input !== null && 'toQuery' in input
 }
 
 /** Returns whether any of the strings attempts to present a list */
