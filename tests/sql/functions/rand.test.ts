@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { Raw } from "../../../lib/symbols";
 import { rand } from "../../../lib/sql/functions/rand";
+import { raw } from "../../../lib/sql/raw";
 
 describe("bool", () => {
   test("should return a RawQuery object with no other keys", () => {
@@ -163,14 +164,13 @@ describe("string", () => {
         expect(rawQuery).toEqual({ [Raw]: 'rand::string(10)' });
     });
       
-    test('string(0) should return a RawQuery with rand::string(0)', () => {
-        const rawQuery = rand.string(0);
-        expect(rawQuery).toEqual({ [Raw]: 'rand::string(0)' });
+    test('string(0) should throw an error', () => {
+      expect(() => rand.string(0)).toThrow();
     });
 
-    test('string(undefined) should return a RawQuery with rand::string()', () => {
-        const rawQuery = rand.string(undefined);
-        expect(rawQuery).toEqual({ [Raw]: 'rand::string()' });
+    test('string(undefined) should return rand:;string()', () => {
+      const rawQuery = rand.string(undefined);
+      expect(rawQuery).toEqual({ [Raw]: 'rand::string()'})
     });
       
     test('string(-1) should throw an error', () => {
