@@ -17,7 +17,7 @@ function bool() {
  * @returns The raw query
  */
 function enumOf(value: SurrealValue[]) {
-	return raw(`rand::enum(${value.map(useSurrealValue).join(', ')})`);
+    return raw(`rand::enum(${value.map(useSurrealValue).join(', ')})`);
 }
 
 /**
@@ -35,7 +35,11 @@ function float(min: number = 0, max: number = 1) {
  * @returns The raw query
  */
 function guid(length?: number) {
-    return raw(`rand::guid(${length ?? ""})`);
+    if (length == undefined || length <= 0) {
+        return raw(`rand::guid()`);
+    } else {
+        return raw(`rand::guid(${length})`);
+    }
 }
 
 /**
@@ -44,8 +48,12 @@ function guid(length?: number) {
  * @returns The raw query
  */
 function int(min?: number, max?: number) {
-    if (min && max) {
-        return raw(`rand::int(${min}, ${max})`);
+    if (min || min === 0 && max || max === 0) {
+        if (min == max) {
+            throw new Error("Minimum and Maximum must not be the same!");
+        } else {
+            return raw(`rand::int(${min}, ${max})`);
+        }
     } else {
         return raw(`rand::int()`);
     }
@@ -57,7 +65,14 @@ function int(min?: number, max?: number) {
  * @returns The raw query
  */
 function string(length?: number) {
-    return raw(`rand::string(${length ?? ""})`);
+    if (length === undefined) {
+        return raw(`rand::string()`);
+    }
+    else if (length > 0) {
+        return raw(`rand::string(${length ?? ""})`);
+    } else {
+        throw new Error("String must not be less than 0!")
+    }
 }
 
 /**
@@ -66,8 +81,24 @@ function string(length?: number) {
  * @returns The raw query
  */
 function time(minUnix?: number, maxUnix?: number) {
-    if (minUnix && maxUnix) {
-        return raw(`rand::time(${minUnix}, ${maxUnix})`);
+    if (maxUnix !== undefined) {
+        if (maxUnix <= 0) {
+            throw new Error("maxUnix must not be less than or equal to 0")
+        }
+
+        if (minUnix !== undefined) {
+            if (minUnix < 0) {
+                throw new Error("minUnix and maxUnix must not be less than 0")
+            }
+
+            if (minUnix === maxUnix) {
+                throw new Error("minUnix and maxUnix must not be the same!")
+            }
+            
+            return raw(`rand::time(${minUnix}, ${maxUnix})`);
+        } else {
+            return raw(`rand::tine(0, ${maxUnix})`)
+        }
     } else {
         return raw('rand::time()');
     }
@@ -87,11 +118,11 @@ function uuid() {
  */
 export const rand = {
     bool,
-	enumOf,
-	float,
-	guid,
-	int,
-	string,
-	time,
-	uuid
+    enumOf,
+    float,
+    guid,
+    int,
+    string,
+    time,
+    uuid
 };
