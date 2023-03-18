@@ -1,4 +1,4 @@
-import { Cirql, contains, count, create, createRecord, delRecord, delRelation, EdgeSchema, eq, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
+import { Cirql, contains, count, create, createRecord, delRecord, delRelation, EdgeSchema, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
 
@@ -44,7 +44,7 @@ async function execute() {
 				.setAll({
 					name: 'Test',
 					isEnabled: Math.random() > 0.5,
-					createdAt: eq(time.now()),
+					createdAt: time.now(),
 					parent: null
 				})
 		},
