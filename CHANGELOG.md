@@ -7,6 +7,7 @@
 	- `raw('null')` can be used to use JavaScript-like null values
 - `.setAll()` now automatically inserts an equals sign for raw values not starting with += or -=
 	This means you no longer need to wrap all raw values with `eq()` going forward
+- Implemented some initial unit tests
 ## 0.6.8 - Setting null
 - Fixed passing null to setAll throwing an error
 
