@@ -18,7 +18,7 @@
 		"coverage": "vitest run --coverage",
 		"dev": "vite",
 		"build": "rm -rf dist && tsc && vite build && tsup ./lib/index.ts --dts --dts-only",
-		"prepublishOnly": "pnpm run build"
+		"prepublishOnly": "pnpm run test --run && pnpm run build"
 	},
 	"devDependencies": {
 		"@types/ws": "^8.5.4",

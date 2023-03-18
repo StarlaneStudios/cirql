@@ -3,6 +3,8 @@ import { isRaw } from "../helpers";
 import { Raw } from "../symbols";
 import { Schema, Where } from "./types";
 
+const SETTER = ['=', '+=', '-='];
+
 /**
  * Builds the SET operators for a query based on the input object
  * 
@@ -11,27 +13,22 @@ import { Schema, Where } from "./types";
 export function parseSetFields(input: object): string {
 	const values: string[] = [];
 
-	function process(obj: object, path: string) {
-		Object.entries(obj).forEach(([key, value]) => {
-			if (value === undefined) {
-				return;
-			}
+	Object.entries(input).forEach(([key, value]) => {
+		if (value === undefined) {
+			return;
+		}
 
-			if (isRaw(value)) {
-				const raw = value[Raw];
+		if (isRaw(value)) {
+			const rawValue = value[Raw];
+			const toInsert = SETTER.some(s => rawValue.startsWith(s))
+				? rawValue
+				: `= ${rawValue}`;
 
-				if (raw) {
-					values.push(`${path}${key} ${raw}`);
-				} else {
-					process(value, `${path}${key}.`);
-				}
-			} else {
-				values.push(`${path}${key} = ${value === null ? 'NONE' : JSON.stringify(value)}`);
-			}
-		});
-	}
-
-	process(input, '');
+			values.push(`${key} ${toInsert}`);
+		} else {
+			values.push(`${key} = ${value === null ? 'NONE' : JSON.stringify(value)}`);
+		}
+	});
 
 	return values.join(', ');
 }
@@ -67,7 +64,7 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 				continue;
 			}
 
-			clauses.push(`(${subClauses.join(` ${key} `)})`);
+			clauses.push(subClauses.join(` ${key} `));
 		} else if(key == 'QUERY') {
 			const [condition, matches] = clause[key]!;
 
@@ -75,10 +72,14 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 		} else {
 			const value = (clause as any)[key];
 
+			if (value === undefined) {
+				continue;
+			}
+
 			if (isRaw(value)) {
 				clauses.push(`${key} ${value[Raw]}`);
 			} else {
-				clauses.push(`${key} = ${JSON.stringify(value)}`);
+				clauses.push(`${key} = ${value === null ? 'NONE' : JSON.stringify(value)}`);
 			}
 		}
 	}
