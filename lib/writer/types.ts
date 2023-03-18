@@ -2,7 +2,7 @@ import { input, TypeOf, ZodTypeAny } from "zod";
 import { RawQuery, SurrealValue } from "../types";
 
 export type OpenUnion<T> = T | (string & {});
-export type FieldOrRaw<T> = { [K in keyof T]: T[K] | RawQuery };
+export type FieldOrRaw<T> = { [K in keyof T]: T[K] | RawQuery | null };
 
 export type Order = 'asc' | 'desc';
 export type Ordering = Record<string, Order>;
