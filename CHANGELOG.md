@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.7.1 - Record handling
+- When selecting from a record start and limit are now ignored
+
 ## 0.7.0 - Where and setAll
 - The behavior of `.where()` and `.setAll()` has been altered to work in a more consistent and expected way
 	- `undefined` values are skipped
