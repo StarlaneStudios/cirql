@@ -10,7 +10,7 @@ interface SelectQueryState<S extends Schema, Q extends Quantity> {
 	schema: S;
 	quantity: Q;
 	projections: string[];
-	targets: string | undefined;
+	targets: string[];
 	where: string | undefined;
 	split: string[];
 	group: string[] | 'all';
@@ -136,7 +136,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 
 		return new SelectQueryWriter({
 			...this.#state,
-			targets: columns.join(', ')
+			targets: columns
 		});
 	}
 
@@ -167,7 +167,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 		return new SelectQueryWriter({
 			...this.#state,
 			quantity: 'maybe',
-			targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
+			targets: [id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id)],
 			limit: 1
 		});
 	}
@@ -189,7 +189,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 			...this.#state,
 			quantity: 'maybe',
 			relation: true,
-			targets: relation.edge,
+			targets: [relation.edge],
 			where: parseWhereClause({
 				in: eq(getRelationFrom(relation)),
 				out: eq(getRelationTo(relation))
@@ -382,6 +382,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 			throw new Error('No targets specified');
 		}
 
+		const isRecord = targets.length === 1 && (targets[0].includes(':') || targets[0].includes('type::thing'));
 		const what = projections.length > 0 ? projections.join(', ') : '*';
 		const orders = Object.entries(order);
 
@@ -409,11 +410,11 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 			builder += ` ORDER BY ${orderFields.join(', ')}`;
 		}
 
-		if (limit) {
+		if (limit && !isRecord) {
 			builder += ` LIMIT BY ${limit}`;
 		}
 
-		if (start) {
+		if (start && !isRecord) {
 			builder += ` START AT ${start}`;
 		}
 
@@ -450,7 +451,7 @@ export function select(...projections: string[]) {
 		schema: null,
 		quantity: 'many',
 		projections: projections,
-		targets: undefined,
+		targets: [],
 		where: undefined,
 		split: [],
 		group: [],
