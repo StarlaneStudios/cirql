@@ -1,10 +1,11 @@
 # Change Log
 
-## 0.7.2 - Imporoved where
+## 0.7.3 - Imporoved where
 - Improved the generation of `WHERE` clauses
 	- Also fixes edge cases where parenthesis were generated incorrectly
 - Improved the internal implementation of `count` queries
 	- Should have increased performance on large tables
+- Fixed `count` returning null instead if 0
 
 ## 0.7.1 - Record handling
 - When selecting from a record start and limit are now ignored
