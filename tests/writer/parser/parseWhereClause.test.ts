@@ -87,7 +87,26 @@ describe("parseWhereClause", () => {
 			]
 		});
 
-		expect(result).toEqual(`(alpha = true) OR (alpha = false)`);
+		expect(result).toEqual(`(alpha = true OR alpha = false)`);
+	});
+
+	test("should collapse nested parenthesis", () => {
+		const result = parseWhereClause({
+			OR: [
+				{
+					OR: [
+						{
+							OR: [
+								{ alpha: true },
+								{ alpha: false }
+							]
+						}
+					]
+				}
+			]
+		});
+
+		expect(result).toEqual(`(alpha = true OR alpha = false)`);
 	});
 
 	test("should skip empty nested OR and AND values", () => {
@@ -115,7 +134,7 @@ describe("parseWhereClause", () => {
 			]
 		});
 
-		expect(result).toEqual(`(alpha = true) OR ((beta = true) AND (gamma = true))`);
+		expect(result).toEqual(`(alpha = true OR (beta = true AND gamma = true))`);
 	});
 
 });

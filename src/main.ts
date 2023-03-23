@@ -25,6 +25,17 @@ export const OrganisationSchema = RecordSchema.extend({
 	createdAt: z.string()
 });
 
+console.log(
+	select().from('test').where({
+		OR: [
+			{ domains: contains('test') },
+			{ emails: contains('test') },
+		],
+		relationId: 'test',
+		isEnabled: true
+	}).toQuery()
+)
+
 async function execute() {
 
 	const relation: RecordRelation = {

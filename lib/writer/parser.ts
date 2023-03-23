@@ -56,7 +56,7 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 				const subResult = parseWhereClause(sub);
 
 				if (subResult) {
-					subClauses.push(`(${subResult})`);
+					subClauses.push(subResult);
 				}
 			}
 
@@ -64,7 +64,12 @@ export function parseWhereClause<S extends Schema>(clause: Where<S>) {
 				continue;
 			}
 
-			clauses.push(subClauses.join(` ${key} `));
+			if (subClauses.length == 1) {
+				clauses.push(subClauses[0]);
+				continue;
+			}
+
+			clauses.push(`(${subClauses.join(` ${key} `)})`);
 		} else if(key == 'QUERY') {
 			const [condition, matches] = clause[key]!;
 
