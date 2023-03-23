@@ -169,7 +169,7 @@ export abstract class CirqlBaseImpl extends EventTarget {
 					throw new CirqlError(`Query ${i + 1} expected at most one result but got ${values.length}`, 'invalid_response');
 				}
 
-				results.push(values[0] || null);
+				results.push(values[0] ?? null);
 				continue;
 			}
 
