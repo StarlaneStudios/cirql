@@ -72,19 +72,17 @@ export class CountQueryWriter implements QueryWriter<ZodNumber, 'one'> {
 			throw new Error('No target specified');
 		}
 
-		let builder = `SELECT count() FROM ${target}`;
+		let inner = `SELECT * FROM ${target}`;
 
 		if (where) {
-			builder += ` WHERE ${where}`;
+			inner += ` WHERE ${where}`;
 		}
 
-		builder += ' GROUP ALL';
-
-		return builder;
+		return `SELECT * FROM count((${inner}))`;
 	}
 
 	_transform(response: any[]): any[] {
-		return response.map(row => row['count']);
+		return response[0];
 	}
 
 }
