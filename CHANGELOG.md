@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.7.4 - Query timeout
+- The query timeout in stateful connections can now be customized using the `queryTimeout` option, specified in milliseconds
+
 ## 0.7.3 - Imporoved where
 - Improved the generation of `WHERE` clauses
 	- Also fixes edge cases where parenthesis were generated incorrectly
