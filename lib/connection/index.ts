@@ -37,7 +37,7 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 				if (requestMap.delete(id)) {
 					reject(new Error('Request timed out'));
 				}
-			}, 5_000);
+			}, options.queryTimeout);
 		});
 	}
 

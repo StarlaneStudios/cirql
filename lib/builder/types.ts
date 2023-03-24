@@ -50,6 +50,7 @@ export interface CirqlOptions extends CirqlBaseOptions {
 	autoConnect?: boolean;
 	retryCount?: number;
 	retryDelay?: number;
+	queryTimeout?: number;
 }
 
 export interface CirqlStatelessOptions extends CirqlBaseOptions {

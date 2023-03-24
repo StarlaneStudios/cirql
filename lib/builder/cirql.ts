@@ -46,6 +46,7 @@ export class Cirql extends CirqlBaseImpl {
 			logPrinter: (query) => console.log(query),
 			retryCount: 10,
 			retryDelay: 2000,
+			queryTimeout: 5_000,
 			...options
 		};
 		
@@ -82,6 +83,7 @@ export class Cirql extends CirqlBaseImpl {
 		this.#surreal = openConnection({
 			connection: this.options.connection,
 			credentials: this.options.credentials,
+			queryTimeout: this.options.queryTimeout,
 			onConnect: () => {
 				clearTimeout(this.#retryTask);
 

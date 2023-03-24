@@ -5,6 +5,7 @@ export type Operation = [(data: any) => void, (error: any) => void];
 export interface SurrealOptions {
 	connection: ConnectionDetails;
 	credentials?: AuthenticationDetails;
+	queryTimeout: number;
 	onConnect?: () => void;
 	onDisconnect?: (code: number, reason: string) => void;
 	onError?: (error: any) => void;
