@@ -25,7 +25,7 @@ describe("select", () => {
 			.fromRecord('example:test')
 			.toQuery();
 
-		expect(query).toEqual(`SELECT * FROM "example:test"`);
+		expect(query).toEqual(`SELECT * FROM example:test`);
 	});
 
 	test("should handle single records with type::thing()", () => {
@@ -43,7 +43,27 @@ describe("select", () => {
 			.limit(10)
 			.toQuery();
 
-		expect(query).toEqual(`SELECT * FROM "example:test"`);
+		expect(query).toEqual(`SELECT * FROM example:test`);
+	});
+
+	test("should accept advanced record links", () => {
+		const query = select()
+			.fromRecord('example:`some escaped value`')
+			.start(10)
+			.limit(10)
+			.toQuery();
+
+		expect(query).toEqual('SELECT * FROM example:`some escaped value`');
+	});
+
+	test("should throw on invalid record links", () => {
+		expect(() => {
+			select()
+				.fromRecord('example:value; SELECT * FROM dangerous')
+				.start(10)
+				.limit(10)
+				.toQuery();
+		}).toThrow();
 	});
 
 });
