@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.7.5 - Validation
+- Record links are now validated opposed to being converted to JSON strings
+	- This is to ensure compatibility with changes in SurrealDB beta 9
+	- Should not break existing code, however the internal regex may not cover all valid formats yet
+
 ## 0.7.4 - Query timeout
 - The query timeout in stateful connections can now be customized using the `queryTimeout` option, specified in milliseconds
 
