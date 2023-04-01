@@ -1,7 +1,7 @@
 import { QueryWriter, RecordRelation, Schema, Where } from "./types";
 import { parseWhereClause } from "./parser";
 import { z, ZodNumber } from "zod";
-import { getRelationFrom, getRelationTo, thing, useSurrealValueUnsafe } from "../helpers";
+import { assertRecordLink, getRelationFrom, getRelationTo, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { CirqlWriterError } from "../errors";
 import { SurrealValue } from "../types";
@@ -127,7 +127,7 @@ export function countRecord(table: string, id: string): CountQueryWriter
 
 export function countRecord(recordOrTable: string, id?: string): CountQueryWriter {
 	return new CountQueryWriter({
-		target: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
+		target: id === undefined ? assertRecordLink(recordOrTable) : thing(recordOrTable, id),
 		where: undefined,
 		relation: false
 	});

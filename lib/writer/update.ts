@@ -1,7 +1,7 @@
 import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaFields, SchemaInput, Where } from "./types";
 import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
-import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { assertRecordLink, getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
 import { z, ZodRawShape, ZodTypeAny } from "zod";
@@ -369,7 +369,7 @@ export function updateRecord(recordOrTable: string, id?: string) {
 	return new UpdateQueryWriter({
 		schema: null,
 		quantity: 'maybe',
-		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
+		targets: id === undefined ? assertRecordLink(recordOrTable) : thing(recordOrTable, id),
 		setFields: {},
 		content: {},
 		contentMode: undefined,

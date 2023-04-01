@@ -1,9 +1,11 @@
+import { CirqlError } from "./errors";
 import { type } from "./sql/functions/type";
 import { raw } from "./sql/raw";
 import { Raw } from "./symbols";
 import { RawQuery, SurrealValue } from "./types";
 import { QueryWriter, RecordRelation } from "./writer";
 
+const THING_REGEX = /^\w+:(\w+|[`⟨][^`⟩]+[`⟩])$/;
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 /** Generate a random id */
@@ -49,6 +51,11 @@ export function isRaw(input: any): input is RawQuery {
 /** Returns whether the given input is a query writer */
 export function isWriter(input: any): input is QueryWriter<any, any> {
 	return typeof input === 'object' && input !== null && 'toQuery' in input
+}
+
+/** Returns whether the given input is a valid record link */
+export function isRecordLink(input: any) {
+	return typeof input === 'string' && THING_REGEX.test(input);
 }
 
 /** Returns whether any of the strings attempts to present a list */
@@ -114,4 +121,15 @@ export function useSurrealValueUnsafe(value: SurrealValue, wrapRaw?: boolean) {
 	}
 
 	return value === null ? 'NONE' : value;
+}
+
+/**
+ * Asserts that the given value is a valid record link
+ */
+export function assertRecordLink(value: string) {
+	if (!isRecordLink(value)) {
+		throw new CirqlError(`Invalid record link: ${value}`, 'invalid_record');
+	}
+
+	return value;
 }

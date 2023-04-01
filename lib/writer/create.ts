@@ -1,7 +1,7 @@
 import { Quantity, QueryWriter, ReturnMode, Schema, SchemaFields, SchemaInput } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseSetFields } from "./parser";
-import { isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { assertRecordLink, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { SurrealValue } from "../types";
 import { z, ZodRawShape, ZodTypeAny } from "zod";
 
@@ -284,7 +284,18 @@ export function create(...targets: SurrealValue[]) {
 }
 
 /**
- * Start a new CREATE query for the given record. This function
+ * Start a new UPDATE query for the given record. Unlike the
+ * `create` function this function will ensure that the record
+ * is a valid record link, which may be beneficial in situations
+ * where potential injection attacks are a concern.
+ * 
+ * @param record The record id
+ * @returns The query writer
+ */
+export function createRecord(record: string): CreateQueryWriter<null, 'one'>;
+
+/**
+ * Start a new UPDATE query for the given record. This function
  * is especially useful in situations where the table name within a
  * record pointer may be spoofed, and a specific table name is required.
  * 
@@ -292,11 +303,13 @@ export function create(...targets: SurrealValue[]) {
  * @param id The record id, either the full id or just the unique id
  * @returns The query writer
  */
-export function createRecord(table: string, id: string) {
+export function createRecord(table: string, id: string): CreateQueryWriter<null, 'one'>;
+
+export function createRecord(recordOrTable: string, id?: string) {
 	return new CreateQueryWriter({
 		schema: null,
 		quantity: 'one',
-		targets: thing(table, id),
+		targets: id === undefined ? assertRecordLink(recordOrTable) : thing(recordOrTable, id),
 		setFields: {},
 		content: {},
 		returnMode: undefined,

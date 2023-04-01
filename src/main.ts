@@ -25,17 +25,6 @@ export const OrganisationSchema = RecordSchema.extend({
 	createdAt: z.string()
 });
 
-console.log(
-	select().from('test').where({
-		OR: [
-			{ domains: contains('test') },
-			{ emails: contains('test') },
-		],
-		relationId: 'test',
-		isEnabled: true
-	}).toQuery()
-)
-
 async function execute() {
 
 	const relation: RecordRelation = {
@@ -81,7 +70,7 @@ async function execute() {
 				.withAny(),
 		},
 		{
-			query: createRecord('person', 'john')
+			query: createRecord('person:john')
 				.with(RecordSchema)
 				.set('name', 'John')
 		},
@@ -136,7 +125,7 @@ async function execute() {
 					.orderBy('startAt')
 					.one()
 				)
-				.fromRecord('profile:kordian')
+				.fromRecord('person:john')
 				.with(RecordSchema)
 		},
 		{

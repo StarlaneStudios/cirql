@@ -1,4 +1,4 @@
-import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { assertRecordLink, getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { Order, Ordering, Where, Quantity, RecordRelation, Schema, QueryWriter, SchemaFields } from "./types";
 import { parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
@@ -167,7 +167,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 		return new SelectQueryWriter({
 			...this.#state,
 			quantity: 'maybe',
-			targets: [id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id)],
+			targets: [id === undefined ? assertRecordLink(recordOrTable) : thing(recordOrTable, id)],
 			limit: 1
 		});
 	}

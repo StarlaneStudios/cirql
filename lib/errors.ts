@@ -1,7 +1,7 @@
 import { ZodError } from "zod";
 import { QueryWriter } from "./writer/types";
 
-export type ErrorCodes = 'no_connection' | 'invalid_query' | 'invalid_request' | 'invalid_response' | 'query_failure' | 'parse_failure' | 'too_many_results' | 'auth_failure';
+export type ErrorCodes = 'no_connection' | 'invalid_query' | 'invalid_request' | 'invalid_response' | 'query_failure' | 'parse_failure' | 'too_many_results' | 'auth_failure' | 'invalid_record';
 
 const formatZodError = (err: ZodError) => {
 	const reports = err.errors.map(issue => {

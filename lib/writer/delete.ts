@@ -1,7 +1,7 @@
 import { Quantity, QueryWriter, RecordRelation, ReturnMode, Schema, SchemaFields, Where } from "./types";
 import { CirqlWriterError } from "../errors";
 import { parseWhereClause } from "./parser";
-import { getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
+import { assertRecordLink, getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
 import { SurrealValue } from "../types";
 import { z, ZodRawShape, ZodTypeAny } from "zod";
@@ -253,7 +253,7 @@ export function delRecord(recordOrTable: string, id?: string) {
 	return new DeleteQueryWriter({
 		schema: null,
 		quantity: 'maybe',
-		targets: id === undefined ? JSON.stringify(recordOrTable) : thing(recordOrTable, id),
+		targets: id === undefined ? assertRecordLink(recordOrTable) : thing(recordOrTable, id),
 		where: undefined,
 		returnMode: 'before',
 		returnFields: [],
