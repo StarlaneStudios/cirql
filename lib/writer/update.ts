@@ -3,17 +3,23 @@ import { parseSetFields, parseWhereClause } from "./parser";
 import { CirqlWriterError } from "../errors";
 import { assertRecordLink, getRelationFrom, getRelationTo, isListLike, thing, useSurrealValueUnsafe } from "../helpers";
 import { eq } from "../sql/operators";
-import { SurrealValue } from "../types";
+import { Patch, SurrealValue } from "../types";
 import { z, ZodRawShape, ZodTypeAny } from "zod";
 
-type ContentMode = 'replace' | 'merge';
+type ContentMode = 'replace' | 'merge' | 'patch';
+
+const MODE_KEYWORDS = {
+	replace: 'CONTENT',
+	merge: 'MERGE',
+	patch: 'PATCH'
+}
 
 interface UpdateQueryState<S extends Schema, Q extends Quantity> {
 	schema: S;
 	quantity: Q;
 	targets: string;
 	setFields: object;
-	content: object;
+	content: any;
 	contentMode: ContentMode | undefined;
 	where: string | undefined;
 	returnMode: ReturnMode | 'fields' | undefined;
@@ -177,6 +183,25 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 	}
 
 	/**
+	 * Apply the given list of patches to the record. The content is
+	 * serialized to JSON, meaning you can not use raw query values.
+	 * 
+	 * @param patches The patches to apply
+	 * @returns The query writer
+	 */
+	patch(patches: Patch[]) {
+		if (this.#hasSetFields()) {
+			throw new CirqlWriterError('Cannot set content when fields are set');
+		}
+
+		return new UpdateQueryWriter({
+			...this.#state,
+			content: JSON.stringify(patches),
+			contentMode: 'patch'
+		});
+	}
+
+	/**
 	 * Define the where clause for the query. All values will be escaped
 	 * automatically. Use of `raw` is supported, as well as any operators
 	 * wrapping the raw function.
@@ -277,7 +302,7 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 				builder += ` SET ${fields}`;
 			}
 		} else if (this.#hasContent()) {
-			const keyword = contentMode === 'merge' ? 'MERGE' : 'CONTENT';
+			const keyword = MODE_KEYWORDS[contentMode!]
 
 			builder += ` ${keyword} ${JSON.stringify(content)}`;
 		}

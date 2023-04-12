@@ -35,6 +35,31 @@ export interface TokenAuth {
 export type AuthenticationDetails = TokenAuth | (RootAuth | NamespaceAuth | DatabaseAuth | ScopeAuth);
 export type RegistrationDetails = RootAuth | NamespaceAuth | DatabaseAuth | ScopeAuth;
 
+export interface BasePatch {
+	path: string;
+}
+
+export interface AddPatch extends BasePatch {
+	op: "add";
+	value: any;
+}
+
+export interface RemovePatch extends BasePatch {
+	op: "remove";
+}
+
+export interface ReplacePatch extends BasePatch {
+	op: "replace";
+	value: any;
+}
+
+export interface ChangePatch extends BasePatch {
+	op: "change";
+	value: string;
+}
+
+export type Patch = AddPatch | RemovePatch | ReplacePatch | ChangePatch;
+
 export interface ConnectionDetails {
 
 	/**
