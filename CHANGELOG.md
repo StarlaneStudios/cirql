@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.7.6 - Patches
+- Add support for patches in update queries
+
 ## 0.7.5 - Validation
 - Record links are now validated opposed to being converted to JSON strings
 	- This is to ensure compatibility with changes in SurrealDB beta 9
