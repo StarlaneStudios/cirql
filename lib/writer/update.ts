@@ -196,7 +196,7 @@ export class UpdateQueryWriter<S extends Schema, Q extends Quantity> implements 
 
 		return new UpdateQueryWriter({
 			...this.#state,
-			content: JSON.stringify(patches),
+			content: patches,
 			contentMode: 'patch'
 		});
 	}
