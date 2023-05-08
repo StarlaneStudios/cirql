@@ -25,7 +25,7 @@ function tb(value: SurrealValue) {
 /**
  * Raw query functions for the category `meta`
  */
-export const rand = {
+export const meta = {
     id,
     tb,
 };
