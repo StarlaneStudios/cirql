@@ -120,6 +120,19 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 	}
 
 	/**
+	 * Append a subquery projection to the query. The query will be
+	 * aliased with the given alias. Unlike `andQuery`, this will only
+	 * take the first record from the subquery.
+	 * 
+	 * @param alias The alias for the subquery
+	 * @param query The subquery
+	 * @returns The query writer
+	 */
+	andQueryOne(alias: string, query: SelectQueryWriter<any, any>) {
+		return this.and(`(${query.toQuery()})[0] AS ${alias}`);
+	}
+
+	/**
 	 * Specify the targets for the query. This can include table names,
 	 * record ids, and subqueries.
 	 * 
