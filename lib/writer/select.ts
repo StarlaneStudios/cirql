@@ -9,6 +9,7 @@ import { z, ZodRawShape, ZodTypeAny } from "zod";
 interface SelectQueryState<S extends Schema, Q extends Quantity> {
 	schema: S;
 	quantity: Q;
+	value: boolean;
 	projections: string[];
 	targets: string[];
 	where: string | undefined;
@@ -365,6 +366,7 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 		const {
 			projections,
 			targets,
+			value,
 			where,
 			split,
 			group,
@@ -386,7 +388,13 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 		const what = projections.length > 0 ? projections.join(', ') : '*';
 		const orders = Object.entries(order);
 
-		let builder = `SELECT ${what} FROM ${targets}`;
+		let builder = `SELECT`;
+
+		if (value) {
+			builder += ` VALUE`;
+		}
+
+		builder += ` ${what} FROM ${targets}`;
 
 		if (where) {
 			builder += ` WHERE ${where}`;
@@ -448,9 +456,40 @@ export function select(...projections: string[]) {
 	}
 
 	return new SelectQueryWriter({
+		value: false,
 		schema: null,
 		quantity: 'many',
 		projections: projections,
+		targets: [],
+		where: undefined,
+		split: [],
+		group: [],
+		order: {},
+		limit: undefined,
+		start: undefined,
+		fetch: [],
+		timeout: undefined,
+		parallel: false,
+		relation: false
+	});
+}
+
+/**
+ * Start a new SELECT VALUE query with the given required projection
+ * 
+ * @param projection The projection to select
+ * @returns The query writer
+ */
+export function selectValue(projection: string) {
+	if (isListLike(projection)) {
+		throw new CirqlWriterError('Select value only accepts a single projection');
+	}
+
+	return new SelectQueryWriter({
+		value: true,
+		schema: null,
+		quantity: 'many',
+		projections: [projection],
 		targets: [],
 		where: undefined,
 		split: [],
