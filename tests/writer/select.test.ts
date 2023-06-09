@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { select } from '../../lib/writer';
+import { select, selectValue } from '../../lib/writer';
 
 describe("select", () => {
 	
@@ -62,6 +62,15 @@ describe("select", () => {
 				.fromRecord('example:value; SELECT * FROM dangerous')
 				.start(10)
 				.limit(10)
+				.toQuery();
+		}).toThrow();
+	});
+
+	test("should allow at most one projection on select value", () => {
+		expect(() => {
+			selectValue('test')
+				.and('test2')
+				.fromRecord('test:test')
 				.toQuery();
 		}).toThrow();
 	});

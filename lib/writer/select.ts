@@ -395,6 +395,8 @@ export class SelectQueryWriter<S extends Schema, Q extends Quantity> implements 
 			throw new Error('No projections specified');
 		} else if (!targets) {
 			throw new Error('No targets specified');
+		} else if (value && projections.length > 1) {
+			throw new Error('Cannot use value with multiple projections');
 		}
 
 		const isRecord = targets.length === 1 && (targets[0].includes(':') || targets[0].includes('type::thing'));
