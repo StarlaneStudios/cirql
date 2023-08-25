@@ -16,12 +16,16 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	const socket = new WebSocket(endpoint);
 	const requestMap = new Map<string, Operation>();
 
-	let isClosed = false;
+	let cleanedUp = false;
 
 	/**
 	 * Send a message to the database
 	 */
 	const message = (method: string, params: any[] = []) => {
+		if (socket.readyState !== WebSocket.OPEN) {
+			return Promise.reject(new Error('Connection is not open'));
+		}
+
 		const id = nextId();
 
 		return new Promise((success, reject) => {
@@ -45,17 +49,25 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	 * Clean up any resources
 	 */
 	const cleanUp = (code: number, reason: string) => {
+		if (cleanedUp) {
+			return;
+		}
+
 		clearInterval(pinger);
 		options.onDisconnect?.(code, reason);
+		cleanedUp = true;
 	}
 
 	/**
 	 * Forcefully close the connection
 	 */
 	const close = () => {
-		isClosed = true;
-		socket.close();
-		cleanUp(-1, 'connection terminated');
+		if (socket.readyState == WebSocket.CLOSING || socket.readyState == WebSocket.CLOSED) {
+			return;
+		}
+
+		socket.close(1000, 'Closed by user');
+		cleanUp(1000, 'Closed by user');
 	};
 
 	/**
@@ -113,19 +125,23 @@ export function openConnection(options: SurrealOptions): SurrealHandle {
 	socket.addEventListener('open', async () => {
 		const { namespace, database } = options.connection;
 		
-		if (options.credentials) {
-			signIn(options.credentials);
-		}
+		try {
+			if (options.credentials) {
+				await signIn(options.credentials);
+			}
 		
-		if (namespace && database) {
-			message('use', [namespace, database]);
-		}
+			if (namespace && database) {
+				await message('use', [namespace, database]);
+			}
 
-		options.onConnect?.();
+			options.onConnect?.();
+		} catch {
+			close();
+		}
 	});
 
 	socket.addEventListener('close', (event) => {
-		if (!isClosed) {
+		if (event.code !== 1000) {
 			cleanUp(event.code, event.reason);
 		}
 	});
