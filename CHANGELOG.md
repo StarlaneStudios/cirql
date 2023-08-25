@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.7.8 - Connection improvements
+- Update connection logic with additional checks and fixes
+
 ## 0.7.6 - Patches
 - Add support for patches in update queries
 
