@@ -68,6 +68,19 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	}
 
 	/**
+	 * Execute a raw query string with provided parameters and return
+	 * the result. This function bypasses the validation logic and
+	 * does not support query writers.
+	 * 
+	 * @param query Query string to execute
+	 * @param params Query parameters
+	 * @returns The result of the query execution
+	 */
+	async query(query: string, params: Record<string, any>) {
+		return this.#adapter.onQuery(query, params);
+	}
+
+	/**
 	 * Sign in with the provided credentials or session token
 	 * 
 	 * @param credentials The credentials to sign in with
