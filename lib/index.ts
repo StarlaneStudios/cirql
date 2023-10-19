@@ -3,6 +3,7 @@ export * from './builder';
 export * from './writer';
 export * from './errors';
 export * from './utils';
+export * from './tag';
 
 export * from './sql/raw';
 export * from './sql/operators';
