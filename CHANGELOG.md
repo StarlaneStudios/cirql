@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.7.9 - Minor additions
+- Added `cirql.query()` to execute raw queries
+- Export `surql` template literal function
+	- Useful for syntax highlighting when available
+	- Escapes interpolated values as JSON
+
 ## 0.7.8 - Connection improvements
 - Update connection logic with additional checks and fixes
 
