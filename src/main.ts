@@ -1,3 +1,4 @@
+import { Surreal } from 'surrealdb.js';
 import { Cirql, contains, count, create, createRecord, delRecord, delRelation, EdgeSchema, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
@@ -5,19 +6,22 @@ import { z } from 'zod';
 (window as any).cirql = cirql;
 
 // Create a Cirql instance and connect to the database
-const database = new Cirql({
-	connection: {
-		namespace: 'test',
-		database: 'test',
-		endpoint: 'http://localhost:8000'
-	},
-	credentials: {
-		user: 'root',
-		pass: 'root'
-	},
-	logging: true,
-	retryCount: -1
-});
+// const database = new Cirql({
+// 	connection: {
+// 		namespace: 'test',
+// 		database: 'test',
+// 		endpoint: 'http://localhost:8000'
+// 	},
+// 	credentials: {
+// 		user: 'root',
+// 		pass: 'root'
+// 	},
+// 	logging: true,
+// 	retryCount: -1
+// });
+
+const surreal = new Surreal();
+const database = new Cirql(surreal);
 
 export const OrganisationSchema = RecordSchema.extend({
     name: z.string().min(1),
@@ -156,13 +160,13 @@ async function execute() {
 	);
 }
 
-database.addEventListener('open', async () => {
-	setConnected(true);
-});
+// database.addEventListener('open', async () => {
+// 	setConnected(true);
+// });
 
-database.addEventListener('close', () => {
-	setConnected(false);
-});
+// database.addEventListener('close', () => {
+// 	setConnected(false);
+// });
 
 // -- Initialization --
 
@@ -212,12 +216,23 @@ async function sendQuery() {
 
 setConnected(false);
 
-get('connect').addEventListener('click', () => {
-	database.connect();
+get('connect').addEventListener('click', async () => {
+	await surreal.connect('http://localhost:8000', {
+		namespace: 'test',
+		database: 'test',
+		auth: {
+			username: 'root',
+			password: 'root',
+		},
+	});
+
+	await surreal.wait();
+
+	setConnected(true);
 });
 
 get('disconnect').addEventListener('click', () => {
-	database.disconnect();
+	surreal.close();
 });
 
 get('send').addEventListener('click', () => {

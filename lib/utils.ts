@@ -1,5 +1,5 @@
 import { z, ZodTypeAny } from "zod";
-import { QueryRequest } from "./builder/types";
+import { QueryRequest } from "./types";
 import { query } from "./writer/query";
 
 /**

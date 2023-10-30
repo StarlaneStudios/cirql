@@ -1,7 +1,7 @@
 import { ZodTypeAny } from "zod";
 import { Quantity } from "../writer";
 import { CirqlError, CirqlParseError, CirqlQueryError } from "../errors";
-import { MultiTypeOf, Params, QueryRequest, SoloTypeOf } from "./types";
+import { MultiTypeOf, Params, QueryRequest, SoloTypeOf } from "../types";
 import { AuthenticationDetails, RegistrationDetails } from "../types";
 
 type SendOptions<T> = { queries: T, prefix: string, suffix: string };
@@ -79,27 +79,6 @@ export abstract class CirqlBaseImpl extends EventTarget {
 	async query(query: string, params: Record<string, any>) {
 		return this.#adapter.onQuery(query, params);
 	}
-
-	/**
-	 * Sign in with the provided credentials or session token
-	 * 
-	 * @param credentials The credentials to sign in with
-	 * @returns The session token, can be saved and used to sign in again later
-	 */
-	abstract signIn(credentials: AuthenticationDetails): Promise<string | undefined>;
-
-	/**
-	 * Sign up with the provided credentials
-	 * 
-	 * @param registration The credentials to sign up with
-	 * @returns The session token, can be saved and used to sign in again later
-	 */
-	abstract signUp(registration: RegistrationDetails): Promise<string | undefined>;
-
-	/**
-	 * Sign out of the current session
-	 */
-	abstract signOut(): Promise<void>;
 
 	async #sendQuery<T extends QueryRequest<any, any>[]>(options: SendOptions<T>): Promise<MultiTypeOf<T>> {
 		if (!this.#adapter.onRequest()) {
@@ -221,5 +200,34 @@ export abstract class CirqlBaseImpl extends EventTarget {
 
 		return params;
 	}
+
+}
+
+/**
+ * A base implementation for Cirql implementations making use of
+ * legacy internal connection logic.
+ */
+export abstract class CirqlLegacyBaseImpl extends CirqlBaseImpl {
+
+	/**
+	 * Sign in with the provided credentials or session token
+	 * 
+	 * @param credentials The credentials to sign in with
+	 * @returns The session token, can be saved and used to sign in again later
+	 */
+	abstract signIn(credentials: AuthenticationDetails): Promise<string | undefined>;
+
+	/**
+	 * Sign up with the provided credentials
+	 * 
+	 * @param registration The credentials to sign up with
+	 * @returns The session token, can be saved and used to sign in again later
+	 */
+	abstract signUp(registration: RegistrationDetails): Promise<string | undefined>;
+
+	/**
+	 * Sign out of the current session
+	 */
+	abstract signOut(): Promise<void>;
 
 }

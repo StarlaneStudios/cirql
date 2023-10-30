@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.0 - Stable release
+- Delegate connection logic to surrealdb.js
+	- Original implementations are still available as `LegacyCirqlStateful` and `LegacyCirqlStateless`
+	- These will be removed in a future version
+
 ## 0.7.9 - Minor additions
 - Added `cirql.query()` to execute raw queries
 - Export `surql` template literal function
