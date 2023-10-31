@@ -1,4 +1,3 @@
-import { Surreal } from 'surrealdb.js';
 import { Cirql, contains, count, create, createRecord, delRecord, delRelation, EdgeSchema, inside, letValue, param, query, RecordRelation, RecordSchema, relateRelation, select, time, type, updateRelation } from '../lib';
 import * as cirql from '../lib';
 import { z } from 'zod';
@@ -20,8 +19,7 @@ import { z } from 'zod';
 // 	retryCount: -1
 // });
 
-const surreal = new Surreal();
-const database = new Cirql(surreal);
+const database = new Cirql();
 
 export const OrganisationSchema = RecordSchema.extend({
     name: z.string().min(1),
@@ -160,13 +158,13 @@ async function execute() {
 	);
 }
 
-// database.addEventListener('open', async () => {
-// 	setConnected(true);
-// });
+database.addEventListener('open', async () => {
+	setConnected(true);
+});
 
-// database.addEventListener('close', () => {
-// 	setConnected(false);
-// });
+database.addEventListener('close', () => {
+	setConnected(false);
+});
 
 // -- Initialization --
 
@@ -217,7 +215,7 @@ async function sendQuery() {
 setConnected(false);
 
 get('connect').addEventListener('click', async () => {
-	await surreal.connect('http://localhost:8000', {
+	await database.handle.connect('http://localhost:8000', {
 		namespace: 'test',
 		database: 'test',
 		auth: {
@@ -226,13 +224,11 @@ get('connect').addEventListener('click', async () => {
 		},
 	});
 
-	await surreal.wait();
-
-	setConnected(true);
+	await database.handle.wait();
 });
 
 get('disconnect').addEventListener('click', () => {
-	surreal.close();
+	database.handle.close();
 });
 
 get('send').addEventListener('click', () => {

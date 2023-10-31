@@ -9,8 +9,8 @@ dependencies:
     specifier: ^5.0.0
     version: 5.0.0(ws@8.14.2)
   surrealdb.js:
-    specifier: ^0.10.0
-    version: 0.10.0
+    specifier: ^0.10.1
+    version: 0.10.1
   vitest:
     specifier: ^0.29.2
     version: 0.29.2
@@ -1424,8 +1424,8 @@ packages:
       has-flag: 4.0.0
     dev: true
 
-  /surrealdb.js@0.10.0:
-    resolution: {integrity: sha512-KtFr4SjJr8xJ0n8IjmtC/lkpxW4GvbMFFD9qb8Bcm3tJgG+AM0L5YCpa/GVZuUSlPHJ3LauDx0yqtz0iFx3HjQ==}
+  /surrealdb.js@0.10.1:
+    resolution: {integrity: sha512-GMLwnhqMkDQrpBkovK6PHHvvs/8QEW57FnWAA0H31ZhaEN1aFC1EvweIZUTF5UWzSEM3f0+WA3QU1ogTqViuUw==}
     dependencies:
       unws: 0.2.4(ws@8.14.2)
       ws: 8.14.2
