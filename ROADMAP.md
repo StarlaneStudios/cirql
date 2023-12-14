@@ -1,8 +1,15 @@
-# Roadmap
+# V2 Roadmap
 
-- Add raw helper functions for more surreal functions
-- Automatic zod schema generation
-	- Commandline tool to generate zod schemas from Surreal database schemas
-- Add more query writer implementations
-	- ~~Add `let()`~~
-	- Add `ifElse()`
+## New methodology
+- Rely on surrealdb.js as peer dependency for handling connections
+- Replace query builder in favor of written query strings
+- Support additional validation libraries
+- Expose surql template literal tag
+	- Syntax highlighting supported by the official language
+	- Automatically escape interpolated values
+	- Support raw values
+- Focus on query utilities
+	- WHERE clause generator
+	- CONTENT/SET generator
+- Layered approach, everything should be optional
+- 
