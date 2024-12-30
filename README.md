@@ -4,6 +4,10 @@
     <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/logo.png">
 </div>
 
+<div align="center">
+    <h3>⚠️ This project is no-longer being maintained and should not be used in production! ⚠️</h3>
+</div>
+
 <hr />
 
 <br>
@@ -98,10 +102,10 @@ To run in live development mode, run `pnpm dev` in the project directory. This w
   <img src="https://raw.githubusercontent.com/StarlaneStudios/cirql/main/.github/branding/starlane.png" height="64">
 </a>
 
-Cirql is built and maintained by <a href="https://starlane.studio/">Starlane Studios</a> at no cost. If you would like to support our work feel free to [donate to us](https://paypal.me/ExodiusStudios) ⚡
+Cirql is built and maintained by <a href="https://starlane.studio/">Starlane Studios</a> at no cost. If you would like to support our work feel free to [donate to us](https://paypal.me/StarlaneStudios) ⚡
 
 ## License
 
 Cirql is licensed under [MIT](LICENSE)
 
-Copyright (c) 2023, Starlane Studios
+Copyright (c) 2023-2025, Starlane Studios
